@@ -35,16 +35,21 @@ target_sources(dorico PRIVATE
     internal/doricomodestate.h
     internal/doriconoteinputcontroller.cpp
     internal/doriconoteinputcontroller.h
+    internal/doricomenu.cpp
+    internal/doricomenu.h
+    internal/doricomenuarranger.cpp
+    internal/doricomenuarranger.h
     internal/doricoshell.h
     internal/notationspanels.cpp
     internal/notationspanels.h
     internal/selectionsummary.cpp
     internal/selectionsummary.h
     internal/noteinpututils.h
+    idoricomenuarranger.h
     idoricomodestate.h
 )
 
-target_link_libraries(dorico PRIVATE engraving)
+target_link_libraries(dorico PRIVATE engraving muse_uicomponents_qml)
 
 if (MUE_BUILD_DORICO_QML)
     add_subdirectory(qml/MuseScore/Dorico)

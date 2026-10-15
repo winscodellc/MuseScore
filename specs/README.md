@@ -37,6 +37,7 @@ The Dorico manual is the behavioural reference: <https://www.steinberg.help/r/do
 Namespace `mu::dorico`, commands `command://dorico/<name>`. It is created in spec 00 by copying the layout of `src/palette/`. Upstream touch points are the 4 standard ones in `CLAUDE.md` ("Adding a new module") plus:
 - a single QML `Loader` in `src/notationscene/qml/MuseScore/NotationScene/NotationView.qml` (next to `SearchPopup`, ~L344) that hosts the popover / Jump-bar overlay (spec 20);
 - `shortcuts.cfg` + `app.qrc` entries for the `dorico` shortcut preset (spec 10).
+- `appshell/qml/MuseScore/AppShell/appmenumodel.{h,cpp}`: one optional `IDoricoMenuArranger` hook in `load()` (spec 59);
 - the "is the score page open" checks, so commands also work on the `musescore://dorico/*` mode pages (fix after spec 50): `notationscene/internal/notationcommandsstate.cpp`, `playback/internal/playbackcommandsstate.cpp`, `appshell/internal/appshellcommandsstate.cpp` (`isProjectPageOpened`) and `context/internal/uicontextresolver.cpp` (legacy shortcut context). Each is marked `// Dorico fork:`.
 
 ### 2. Changing behaviour = new commands, not overriding old ones
@@ -130,7 +131,7 @@ Status: todo | in-progress | pending review | done  -  Depends on: NN, NN  -  Do
 | 56 | [Engrave mode](56-engrave-mode.md) | pending review | 50 |
 | 57 | [Play mode](57-play-mode.md) | pending review | 50 |
 | 58 | [Print mode](58-print-mode.md) | pending review | 50, 55 |
-| 59 | [Menus](59-menus.md) | todo | 50 |
+| 59 | [Menus](59-menus.md) | pending review | 50 |
 
 Specs 20-36 and 40-47 are listed here but written in a later pass. Specs 50-59 (UI shell) are all written; **implement 50 first**, then the rest in any order (58 after 55). Suggested model: Opus for 50, 53, 59; Sonnet is enough for 51, 52, 54-58. A spec file that does not exist yet is just not started.
 

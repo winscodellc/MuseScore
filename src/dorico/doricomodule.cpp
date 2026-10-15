@@ -33,6 +33,7 @@
 #include "internal/doricoactionscontroller.h"
 #include "internal/doricocommandsregister.h"
 #include "internal/doricocommandsstate.h"
+#include "internal/doricomenuarranger.h"
 #include "internal/doricomodestate.h"
 #include "internal/doricoshell.h"
 #include "internal/doriconoteinputcontroller.h"
@@ -95,6 +96,7 @@ void DoricoContext::registerExports()
     m_noteInputController = std::make_shared<DoricoNoteInputController>(iocContext());
 
     ioc()->registerExport<IDoricoModeState>(mname, m_modeState);
+    ioc()->registerExport<IDoricoMenuArranger>(mname, std::make_shared<DoricoMenuArranger>(iocContext()));
 }
 
 void DoricoContext::resolveImports()

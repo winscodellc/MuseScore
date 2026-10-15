@@ -46,6 +46,7 @@
 
 #include "iappshellconfiguration.h"
 #include "internal/iappmenumodelhook.h"
+#include "dorico/idoricomenuarranger.h" // Dorico fork (spec 59)
 
 namespace mu::appshell {
 class AppMenuModel : public muse::uicomponents::AbstractMenuModel
@@ -76,6 +77,8 @@ public:
     muse::ContextInject<muse::ui::INavigationController> navigationController = { this };
     muse::ContextInject<muse::workspace::IWorkspaceManager> workspacesManager = { this };
     muse::ContextInject<project::IRecentFilesController> recentFilesController = { this };
+    // Dorico fork (spec 59): registered only by the Dorico module; null otherwise.
+    muse::ContextInject<mu::dorico::IDoricoMenuArranger> doricoMenuArranger = { this };
 
 public:
     explicit AppMenuModel(QObject* parent = nullptr);

@@ -107,6 +107,11 @@ void AppMenuModel::load()
         items << makeHelpMenu(true);
     }
 
+    // Dorico fork (spec 59): the Dorico module regroups these menus into Dorico's menu bar.
+    if (auto arranger = doricoMenuArranger()) {
+        items = arranger->arrange(items, this);
+    }
+
     setItems(items);
 
     setupConnections();
