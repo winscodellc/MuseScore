@@ -28,10 +28,13 @@
 #include "rcommand/icommandsregister.h"
 #include "rcommand/icommandsstate.h"
 
+#include "interactive/iinteractiveuriregister.h"
+
 #include "internal/doricoactionscontroller.h"
 #include "internal/doricocommandsregister.h"
 #include "internal/doricocommandsstate.h"
 #include "internal/doricomodestate.h"
+#include "internal/doricoshell.h"
 #include "internal/doriconoteinputcontroller.h"
 
 #include "log.h"
@@ -50,6 +53,14 @@ std::string DoricoModule::moduleName() const
 
 void DoricoModule::resolveImports()
 {
+    // Write reuses musescore://notation (registered by appshell); the other modes are ours.
+    auto ir = globalIoc()->resolve<muse::interactive::IInteractiveUriRegister>(mname);
+    if (ir) {
+        for (Mode mode : { Mode::Setup, Mode::Engrave, Mode::Play, Mode::Print }) {
+            ir->registerPageUri(modeUri(mode));
+        }
+    }
+
     auto cr = globalIoc()->resolve<muse::rcommand::ICommandsRegister>(mname);
     if (cr) {
         cr->reg(std::make_shared<DoricoCommandsRegister>());

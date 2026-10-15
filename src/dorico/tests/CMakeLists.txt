@@ -22,6 +22,7 @@ set(MODULE_TEST dorico_tests)
 
 set(MODULE_TEST_SRC
     ${CMAKE_CURRENT_LIST_DIR}/doricomodule_tests.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/doricoshell_tests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/noteinput_tests.cpp
 )
 

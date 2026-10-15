@@ -23,11 +23,31 @@ muse_create_qml_module(dorico_qml FOR dorico)
 qt_add_qml_module(dorico_qml
     URI MuseScore.Dorico
     VERSION 1.0
+    SOURCES
+        doricotopbarmodel.cpp
+        doricotopbarmodel.h
+        doricoviewmenumodel.cpp
+        doricoviewmenumodel.h
     QML_FILES
+        DoricoPage.qml
         DoricoPlaceholder.qml
+        DoricoTopBar.qml
+        EngravePage.qml
+        PlayPage.qml
+        PrintPage.qml
+        SetupPage.qml
+        WritePage.qml
     IMPORTS
         TARGET muse_ui_qml
         TARGET muse_uicomponents_qml
+        TARGET muse_dockwindow_qml
+        # By URI: these modules are added after dorico in src/CMakeLists.txt, so their targets do not exist yet.
+        MuseScore.AppShell
+        MuseScore.NotationScene
+        MuseScore.Playback
+        MuseScore.InstrumentsScene
+        MuseScore.Palette
+        MuseScore.PropertiesPanel
 )
 
 fixup_qml_module_dependencies(dorico_qml)

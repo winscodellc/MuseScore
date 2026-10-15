@@ -83,4 +83,21 @@ inline static const muse::rcommand::Command DORICO_TOGGLE_STRESSED_COMMAND("comm
 inline static const muse::rcommand::Command DORICO_TOGGLE_STACCATISSIMO_COMMAND("command://dorico/toggle-articulation-staccatissimo");
 inline static const muse::rcommand::Command DORICO_TOGGLE_UNSTRESSED_COMMAND("command://dorico/toggle-articulation-unstressed");
 inline static const muse::rcommand::Command DORICO_TOGGLE_TENUTO_STACCATO_COMMAND("command://dorico/toggle-articulation-tenuto-staccato");
+
+// Project window modes and zones (spec 50). Mode commands are in `Mode` order (Setup, Write, Engrave, Play, Print).
+inline static const std::array<muse::rcommand::Command, 5> DORICO_MODE_COMMANDS = {
+    muse::rcommand::Command("command://dorico/mode-setup"),
+    muse::rcommand::Command("command://dorico/mode-write"),
+    muse::rcommand::Command("command://dorico/mode-engrave"),
+    muse::rcommand::Command("command://dorico/mode-play"),
+    muse::rcommand::Command("command://dorico/mode-print")
+};
+// In `Zone` order (Left, Lower, Right).
+inline static const std::array<muse::rcommand::Command, 3> DORICO_TOGGLE_ZONE_COMMANDS = {
+    muse::rcommand::Command("command://dorico/toggle-zone-left"),
+    muse::rcommand::Command("command://dorico/toggle-zone-lower"),
+    muse::rcommand::Command("command://dorico/toggle-zone-right")
+};
+inline static const muse::rcommand::Command DORICO_TOGGLE_ALL_ZONES_COMMAND("command://dorico/toggle-all-zones");
+inline static const muse::rcommand::Command DORICO_TOGGLE_TOOLBAR_COMMAND("command://dorico/toggle-toolbar");
 }

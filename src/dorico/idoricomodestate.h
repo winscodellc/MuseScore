@@ -26,6 +26,15 @@
 #include "modularity/imoduleinterface.h"
 
 namespace mu::dorico {
+//! The five project window modes (spec 50). Write is the default when a project opens.
+enum class Mode {
+    Setup,
+    Write,
+    Engrave,
+    Play,
+    Print
+};
+
 //! Dorico's toolbox toggles for note input. Chord and Insert are mutually exclusive.
 class IDoricoModeState : MODULE_CONTEXT_INTERFACE
 {
@@ -39,5 +48,9 @@ public:
     virtual void setChordMode(bool on) = 0;
     virtual void setInsertMode(bool on) = 0;
     virtual muse::async::Notification modesChanged() const = 0;
+
+    virtual Mode mode() const = 0;
+    virtual void setMode(Mode mode) = 0;
+    virtual muse::async::Notification modeChanged() const = 0;
 };
 }

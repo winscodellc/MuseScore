@@ -35,6 +35,7 @@ target_sources(dorico PRIVATE
     internal/doricomodestate.h
     internal/doriconoteinputcontroller.cpp
     internal/doriconoteinputcontroller.h
+    internal/doricoshell.h
     internal/noteinpututils.h
     idoricomodestate.h
 )

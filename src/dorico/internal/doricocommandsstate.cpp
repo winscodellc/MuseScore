@@ -22,6 +22,8 @@
 
 #include "doricocommandsstate.h"
 
+#include "../doricocommands.h"
+
 #include "log.h"
 
 using namespace muse;
@@ -49,11 +51,17 @@ void DoricoCommandsState::init()
         updateCommandStates();
     });
 
+    // The active mode tab is shown as checked.
+    modes()->modeChanged().onNotify(this, [this]() {
+        updateCommandStates();
+    });
+
     updateCommandStates();
 }
 
 void DoricoCommandsState::deinit()
 {
+    modes()->modeChanged().disconnect(this);
     globalContext()->currentProjectChanged().disconnect(this);
     notationController()->textEditingChanged().disconnect(this);
 }
@@ -73,10 +81,19 @@ void DoricoCommandsState::updateCommandStates()
     }
 }
 
-CommandState DoricoCommandsState::commandState(const Command&) const
+CommandState DoricoCommandsState::commandState(const Command& command) const
 {
     const bool editingText = notationController()->isTextEditing() || notationController()->isLyricsEditing();
-    return CommandState(globalContext()->currentProject() != nullptr && !editingText, false);
+    const bool enabled = globalContext()->currentProject() != nullptr && !editingText;
+
+    bool checked = false;
+    for (size_t i = 0; i < DORICO_MODE_COMMANDS.size(); ++i) {
+        if (command == DORICO_MODE_COMMANDS[i]) {
+            checked = modes()->mode() == static_cast<mu::dorico::Mode>(i);
+        }
+    }
+
+    return CommandState(enabled, checked);
 }
 
 async::Channel<Command, CommandState> DoricoCommandsState::commandStateChanged() const

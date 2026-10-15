@@ -47,3 +47,12 @@ void DoricoModeState::setInsertMode(bool on)
     }
     m_changed.notify();
 }
+
+void DoricoModeState::setMode(Mode mode)
+{
+    if (m_mode == mode) {
+        return;
+    }
+    m_mode = mode;
+    m_modeChanged.notify();
+}

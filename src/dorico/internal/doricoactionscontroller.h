@@ -22,20 +22,45 @@
 
 #pragma once
 
+#include <map>
+#include <set>
+#include <vector>
+
 #include "global/async/asyncable.h"
 #include "modularity/ioc.h"
 #include "rcommand/commandable.h"
 #include "rcommand/icommanddispatcher.h"
+#include "interactive/iinteractive.h"
+#include "dockwindow/idockwindowprovider.h"
+
+#include "../idoricomodestate.h"
+#include "doricoshell.h"
 
 namespace mu::dorico {
 class DoricoActionsController : public muse::async::Asyncable, public muse::Contextable, public muse::rcommand::Commandable
 {
     muse::ContextInject<muse::rcommand::ICommandDispatcher> commandDispatcher = { this };
+    muse::ContextInject<muse::IInteractive> interactive = { this };
+    muse::ContextInject<muse::dock::IDockWindowProvider> dockWindowProvider = { this };
+    muse::ContextInject<IDoricoModeState> modes = { this };
 
 public:
     DoricoActionsController(const muse::modularity::ContextPtr& iocCtx)
         : muse::Contextable(iocCtx) {}
 
     void init();
+
+private:
+    using ZoneKey = std::pair<mu::dorico::Mode, Zone>;
+
+    std::vector<QString> openDocks(Zone zone) const;
+    void toggleZone(Zone zone);
+    void toggleAllZones();
+    void toggleToolbar();
+
+    // Docks that were open when their zone was last hidden, so showing the zone brings back the same panels.
+    std::map<ZoneKey, std::vector<QString>> m_remembered;
+    // Zones hidden by "Hide Zones", so "Restore Zones" does not reopen zones the user had closed on purpose.
+    std::set<ZoneKey> m_hiddenByAll;
 };
 }

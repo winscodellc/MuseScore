@@ -22,6 +22,8 @@
 
 #include "doricoactionscontroller.h"
 
+#include "dockwindow/idockwindow.h"
+
 #include "../doricocommands.h"
 
 #include "log.h"
@@ -32,4 +34,129 @@ void DoricoActionsController::init()
 {
     auto cd = commandDispatcher();
     cd->onRequest(this, DORICO_NOOP_COMMAND, []() { LOGI() << "dorico noop"; return muse::make_ok(); });
+
+    // Mode = which page is loaded. Commands only open the page; the URI listener below updates the mode state,
+    // so tab clicks, keys, the Score tab and project opening all end up in the same place.
+    for (int i = 0; i < MODE_COUNT; ++i) {
+        const mu::dorico::Mode mode = static_cast<mu::dorico::Mode>(i);
+        cd->onRequest(this, DORICO_MODE_COMMANDS[i], [this, mode]() {
+            interactive()->open(modeUri(mode));
+            return muse::make_ok();
+        });
+    }
+
+    interactive()->currentUri().ch.onReceive(this, [this](const muse::Uri& uri) {
+        if (auto mode = modeFromUri(uri)) {
+            modes()->setMode(*mode);
+        }
+    });
+
+    for (int i = 0; i < ZONE_COUNT; ++i) {
+        const Zone zone = static_cast<Zone>(i);
+        cd->onRequest(this, DORICO_TOGGLE_ZONE_COMMANDS[i], [this, zone]() {
+            toggleZone(zone);
+            return muse::make_ok();
+        });
+    }
+    cd->onRequest(this, DORICO_TOGGLE_ALL_ZONES_COMMAND, [this]() { toggleAllZones(); return muse::make_ok(); });
+    cd->onRequest(this, DORICO_TOGGLE_TOOLBAR_COMMAND, [this]() { toggleToolbar(); return muse::make_ok(); });
+}
+
+std::vector<QString> DoricoActionsController::openDocks(Zone zone) const
+{
+    std::vector<QString> result;
+    const muse::dock::IDockWindow* window = dockWindowProvider()->window();
+    if (!window) {
+        return result;
+    }
+    for (const QString& name : zoneDocks(modes()->mode(), zone)) {
+        if (window->isDockOpen(name)) {
+            result.push_back(name);
+        }
+    }
+    return result;
+}
+
+void DoricoActionsController::toggleZone(Zone zone)
+{
+    muse::dock::IDockWindow* window = dockWindowProvider()->window();
+    const std::vector<QString> all = zoneDocks(modes()->mode(), zone);
+    if (!window || all.empty()) {
+        return;
+    }
+
+    const ZoneKey key { modes()->mode(), zone };
+    m_hiddenByAll.erase(key);
+
+    const std::vector<QString> open = openDocks(zone);
+    if (!open.empty()) {
+        m_remembered[key] = open;
+        for (const QString& name : open) {
+            window->setDockOpen(name, false);
+        }
+        return;
+    }
+
+    auto it = m_remembered.find(key);
+    const std::vector<QString> toOpen = (it != m_remembered.end() && !it->second.empty()) ? it->second : std::vector<QString> { all.front() };
+    for (const QString& name : toOpen) {
+        window->setDockOpen(name, true);
+    }
+}
+
+void DoricoActionsController::toggleAllZones()
+{
+    muse::dock::IDockWindow* window = dockWindowProvider()->window();
+    if (!window) {
+        return;
+    }
+
+    const mu::dorico::Mode mode = modes()->mode();
+
+    bool anyOpen = false;
+    for (int i = 0; i < ZONE_COUNT; ++i) {
+        const Zone zone = static_cast<Zone>(i);
+        const ZoneKey key { mode, zone };
+        const std::vector<QString> open = openDocks(zone);
+        if (open.empty()) {
+            continue;
+        }
+        anyOpen = true;
+        m_remembered[key] = open;
+        m_hiddenByAll.insert(key);
+        for (const QString& name : open) {
+            window->setDockOpen(name, false);
+        }
+    }
+
+    if (anyOpen) {
+        return;
+    }
+
+    for (int i = 0; i < ZONE_COUNT; ++i) {
+        const ZoneKey key { mode, static_cast<Zone>(i) };
+        if (!m_hiddenByAll.erase(key)) {
+            continue;
+        }
+        for (const QString& name : m_remembered[key]) {
+            window->setDockOpen(name, true);
+        }
+    }
+}
+
+void DoricoActionsController::toggleToolbar()
+{
+    muse::dock::IDockWindow* window = dockWindowProvider()->window();
+    if (!window) {
+        return;
+    }
+
+    const std::vector<QString> names = toolbarDocks();
+    bool anyOpen = false;
+    for (const QString& name : names) {
+        anyOpen = anyOpen || window->isDockOpen(name);
+    }
+    for (const QString& name : names) {
+        window->setDockOpen(name, !anyOpen);
+    }
 }

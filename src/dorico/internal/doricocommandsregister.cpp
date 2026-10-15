@@ -77,6 +77,18 @@ static std::vector<CommandInfo> makeCommandInfos()
     v.push_back(info(DORICO_TOGGLE_STACCATISSIMO_COMMAND, "Dorico: staccatissimo", "Toggles the staccatissimo articulation"));
     v.push_back(info(DORICO_TOGGLE_UNSTRESSED_COMMAND, "Dorico: unstressed", "Toggles the unstressed articulation"));
     v.push_back(info(DORICO_TOGGLE_TENUTO_STACCATO_COMMAND, "Dorico: tenuto-staccato", "Toggles the tenuto-staccato articulation"));
+
+    static const char* MODES[] = { "Setup", "Write", "Engrave", "Play", "Print" };
+    for (int i = 0; i < 5; ++i) {
+        v.push_back(info(DORICO_MODE_COMMANDS[i], std::string("Dorico: ") + MODES[i] + " mode", "Switches the project window to this mode"));
+    }
+    static const char* ZONES[] = { "left", "lower", "right" };
+    for (int i = 0; i < 3; ++i) {
+        v.push_back(info(DORICO_TOGGLE_ZONE_COMMANDS[i], std::string("Dorico: toggle ") + ZONES[i] + " zone",
+                         "Shows or hides the panels of this zone in the current mode"));
+    }
+    v.push_back(info(DORICO_TOGGLE_ALL_ZONES_COMMAND, "Dorico: hide/restore zones", "Hides all open zones, or restores them"));
+    v.push_back(info(DORICO_TOGGLE_TOOLBAR_COMMAND, "Dorico: toggle toolbar", "Shows or hides the top toolbars"));
     return v;
 }
 

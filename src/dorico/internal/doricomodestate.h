@@ -34,9 +34,15 @@ public:
     void setInsertMode(bool on) override;
     muse::async::Notification modesChanged() const override { return m_changed; }
 
+    Mode mode() const override { return m_mode; }
+    void setMode(Mode mode) override;
+    muse::async::Notification modeChanged() const override { return m_modeChanged; }
+
 private:
     bool m_chord = false;
     bool m_insert = false;
     muse::async::Notification m_changed;
+    Mode m_mode = Mode::Write;
+    muse::async::Notification m_modeChanged;
 };
 }

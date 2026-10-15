@@ -1,0 +1,85 @@
+/*
+ * SPDX-License-Identifier: GPL-3.0-only
+ * MuseScore-Studio-CLA-applies
+ *
+ * MuseScore Studio
+ * Music Composition & Notation
+ *
+ * Copyright (C) 2026 MuseScore Limited and others
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3 as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+
+#pragma once
+
+#include <QObject>
+#include <QStringList>
+#include <qqmlintegration.h>
+
+#include "async/asyncable.h"
+#include "modularity/ioc.h"
+#include "interactive/iinteractive.h"
+#include "rcommand/icommanddispatcher.h"
+#include "context/iglobalcontext.h"
+#include "notation/inotation.h"
+
+#include "../../../idoricomodestate.h"
+
+namespace mu::dorico {
+//! Backs DoricoTopBar.qml: active mode, the layout (score / part) selector, and two dispatch helpers.
+//! A Q_PROPERTY with a NOTIFY signal is the observer pattern: QML re-reads the value whenever the signal fires.
+class DoricoTopBarModel : public QObject, public muse::Contextable, public muse::async::Asyncable
+{
+    Q_OBJECT
+
+    Q_PROPERTY(int currentMode READ currentMode NOTIFY currentModeChanged)
+    Q_PROPERTY(QStringList layoutTitles READ layoutTitles NOTIFY layoutsChanged)
+    Q_PROPERTY(int currentLayoutIndex READ currentLayoutIndex NOTIFY layoutsChanged)
+
+    QML_ELEMENT
+
+    muse::ContextInject<muse::IInteractive> interactive = { this };
+    muse::ContextInject<muse::rcommand::ICommandDispatcher> dispatcher = { this };
+    muse::ContextInject<context::IGlobalContext> globalContext = { this };
+    muse::ContextInject<IDoricoModeState> modes = { this };
+
+public:
+    explicit DoricoTopBarModel(QObject* parent = nullptr);
+
+    Q_INVOKABLE void load();
+
+    int currentMode() const;
+    QStringList layoutTitles() const;
+    int currentLayoutIndex() const;
+
+    Q_INVOKABLE void selectMode(int mode);
+    Q_INVOKABLE void selectLayout(int index);
+    Q_INVOKABLE void dispatch(const QString& command);
+    Q_INVOKABLE void openPage(const QString& uri);
+
+signals:
+    void currentModeChanged();
+    void layoutsChanged();
+
+private:
+    void updateLayouts();
+
+    // Index 0 is the full score, the rest are the parts (opened or not), in the Parts dialog order.
+    std::vector<notation::INotationPtr> m_layouts;
+    // Non-null for entries that are parts: selecting one must make sure the part is open first.
+    std::vector<notation::IExcerptNotationPtr> m_excerpts;
+    QStringList m_titles;
+    int m_currentLayout = 0;
+};
+}
