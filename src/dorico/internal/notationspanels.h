@@ -71,6 +71,7 @@ struct PaletteCellInfo {
 };
 
 //! Every panel section, in manual order. Panels with no section are stubs (cues, video, comments, proofreading).
+//! "engraveBracketing" is not a Write panel: Engrave's Formatting panel shows it (spec 56).
 const std::vector<NotationsSection>& notationsSections();
 std::vector<NotationsSection> sectionsOfPanel(const QString& panel);
 

@@ -121,6 +121,12 @@ inline std::vector<QString> zoneDocks(Mode mode, Zone zone)
         }
         break;
     case Mode::Engrave:
+        switch (zone) {
+        case Zone::Left: return { "engraveLeftPanel" };
+        case Zone::Right: return { "pagesPanel" };
+        case Zone::Lower: return { LOWER_ZONE_PANEL };
+        }
+        break;
     case Mode::Play:
         break;
     }

@@ -85,6 +85,9 @@ const std::vector<NotationsSection>& mu::dorico::notationsSections()
 
         { "lines", "Horizontal", SP::Lines, { ET::TEXTLINE, ET::LET_RING, ET::PALM_MUTE, ET::VIBRATO, ET::NOTELINE }, {} },
         { "lines", "Vertical", SP::Lines, { ET::CHORD_BRACKET }, {} },
+
+        // Engrave mode's Formatting panel (spec 56), Bracketing: MuseScore's system brackets and braces.
+        { "engraveBracketing", "Bracketing", SP::Brackets, { ET::BRACKET }, {} },
     };
     return sections;
 }

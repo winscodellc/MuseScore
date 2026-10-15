@@ -83,6 +83,13 @@ TEST(DoricoShell, SetupHasOnePanelPerZone)
     EXPECT_EQ(zoneDocks(Mode::Setup, Zone::Lower), std::vector<QString>({ "flowsPanel" }));
 }
 
+TEST(DoricoShell, EngraveZones)
+{
+    EXPECT_EQ(zoneDocks(Mode::Engrave, Zone::Left), std::vector<QString>({ "engraveLeftPanel" }));
+    EXPECT_EQ(zoneDocks(Mode::Engrave, Zone::Right), std::vector<QString>({ "pagesPanel" }));
+    EXPECT_EQ(zoneDocks(Mode::Engrave, Zone::Lower), std::vector<QString>({ LOWER_ZONE_PANEL }));
+}
+
 TEST(DoricoShell, PrintHasNoLowerZone)
 {
     EXPECT_EQ(zoneDocks(Mode::Print, Zone::Left), std::vector<QString>({ "printLayoutsPanel" }));

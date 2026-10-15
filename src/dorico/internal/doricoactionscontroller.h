@@ -23,6 +23,7 @@
 #pragma once
 
 #include <map>
+#include <optional>
 #include <set>
 #include <vector>
 
@@ -32,6 +33,8 @@
 #include "rcommand/icommanddispatcher.h"
 #include "interactive/iinteractive.h"
 #include "dockwindow/idockwindowprovider.h"
+#include "context/iglobalcontext.h"
+#include "notation/inotation.h"
 
 #include "../idoricomodestate.h"
 #include "doricoshell.h"
@@ -43,6 +46,7 @@ class DoricoActionsController : public muse::async::Asyncable, public muse::Cont
     muse::ContextInject<muse::IInteractive> interactive = { this };
     muse::ContextInject<muse::dock::IDockWindowProvider> dockWindowProvider = { this };
     muse::ContextInject<IDoricoModeState> modes = { this };
+    muse::ContextInject<context::IGlobalContext> globalContext = { this };
 
 public:
     DoricoActionsController(const muse::modularity::ContextPtr& iocCtx)
@@ -58,10 +62,13 @@ private:
     bool selectLowerZoneTab(const QString& tab);
     void toggleAllZones();
     void toggleToolbar();
+    void applyEngraveViewMode(mu::dorico::Mode from, mu::dorico::Mode to);
 
     // Docks that were open when their zone was last hidden, so showing the zone brings back the same panels.
     std::map<ZoneKey, std::vector<QString>> m_remembered;
     // Zones hidden by "Hide Zones", so "Restore Zones" does not reopen zones the user had closed on purpose.
     std::set<ZoneKey> m_hiddenByAll;
+    // Engrave is always page view (spec 56); the view mode the score had before, restored when leaving Engrave.
+    std::optional<notation::ViewMode> m_viewModeBeforeEngrave;
 };
 }

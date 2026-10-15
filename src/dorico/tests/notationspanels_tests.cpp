@@ -70,7 +70,7 @@ TEST(NotationsPanels, RestTakesWhatOtherSectionsLeave)
     EXPECT_EQ(unknown, QStringList({ "Common: Gone clef" }));
 }
 
-TEST(NotationsPanels, TableHasElevenBackedPanels)
+TEST(NotationsPanels, TableHasElevenBackedPanelsPlusBracketing)
 {
     QStringList panels;
     for (const NotationsSection& s : notationsSections()) {
@@ -79,6 +79,7 @@ TEST(NotationsPanels, TableHasElevenBackedPanels)
         }
     }
     EXPECT_EQ(panels, QStringList({ "clefs", "keySignatures", "timeSignatures", "tempo", "dynamics", "ornaments",
-                                    "repeatStructures", "barsAndBarlines", "holdsAndPauses", "playingTechniques", "lines" }));
+                                    "repeatStructures", "barsAndBarlines", "holdsAndPauses", "playingTechniques", "lines",
+                                    "engraveBracketing" }));
     EXPECT_TRUE(sectionsOfPanel("cues").empty());
 }

@@ -47,7 +47,9 @@ void DoricoActionsController::init()
 
     interactive()->currentUri().ch.onReceive(this, [this](const muse::Uri& uri) {
         if (auto mode = modeFromUri(uri)) {
+            const mu::dorico::Mode previous = modes()->mode();
             modes()->setMode(*mode);
+            applyEngraveViewMode(previous, *mode);
         }
     });
 
@@ -184,5 +186,21 @@ void DoricoActionsController::toggleToolbar()
     }
     for (const QString& name : names) {
         window->setDockOpen(name, !anyOpen);
+    }
+}
+
+void DoricoActionsController::applyEngraveViewMode(mu::dorico::Mode from, mu::dorico::Mode to)
+{
+    const notation::INotationPtr notation = globalContext()->currentNotation();
+    if (!notation || from == to) {
+        return;
+    }
+
+    if (to == mu::dorico::Mode::Engrave) {
+        m_viewModeBeforeEngrave = notation->viewMode();
+        notation->setViewMode(notation::ViewMode::PAGE);
+    } else if (from == mu::dorico::Mode::Engrave && m_viewModeBeforeEngrave) {
+        notation->setViewMode(*m_viewModeBeforeEngrave);
+        m_viewModeBeforeEngrave.reset();
     }
 }

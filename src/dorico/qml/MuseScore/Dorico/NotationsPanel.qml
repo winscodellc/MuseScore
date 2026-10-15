@@ -27,7 +27,6 @@ import QtQuick
 
 import Muse.Ui
 import Muse.UiComponents
-import MuseScore.Palette
 
 //! The right-zone panel of Write mode (spec 53): the Dorico panel chosen in the Notations toolbox. Each section
 //! is MuseScore's palette grid over the cells DoricoPanelModel picked; clicking applies like the palette does.
@@ -58,55 +57,17 @@ Item {
     StyledFlickable {
         anchors.fill: parent
         visible: root.panelModel.sectionTitles.length > 0
-        contentHeight: sectionsColumn.implicitHeight + 16
+        contentHeight: sections.implicitHeight + 16
 
-        Column {
-            id: sectionsColumn
+        PaletteSections {
+            id: sections
 
             x: 8
             y: 8
             width: parent.width - 16
-            spacing: 12
 
-            Repeater {
-                model: root.panelModel.sectionTitles
-
-                Column {
-                    id: section
-
-                    required property int index
-                    required property string modelData
-
-                    readonly property size cell: root.panelModel.cellSize(index)
-
-                    width: sectionsColumn.width
-                    spacing: 4
-
-                    StyledTextLabel {
-                        text: section.modelData
-                        font: ui.theme.bodyBoldFont
-                    }
-
-                    PaletteGridView {
-                        id: grid
-
-                        readonly property int columns: Math.max(1, Math.floor(width / section.cell.width))
-
-                        width: parent.width
-                        height: Math.ceil(ncells / columns) * section.cell.height
-
-                        cellSize: section.cell
-                        drawGrid: root.panelModel.drawGrid(section.index)
-
-                        paletteModel: root.panelModel.paletteModel
-                        paletteRootIndex: root.panelModel.sectionIndex(section.index)
-                        paletteController: root.panelModel.paletteController
-
-                        navigationPanel: navPanel
-                        navigationRow: section.index
-                    }
-                }
-            }
+            panelModel: root.panelModel
+            navigationPanel: navPanel
         }
     }
 }

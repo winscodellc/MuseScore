@@ -51,6 +51,7 @@ qt_add_qml_module(dorico_qml
         NotationsToolbox.qml
         NotesPanel.qml
         NotesToolbox.qml
+        PaletteSections.qml
         PlayPage.qml
         PrintPage.qml
         SetupPage.qml
