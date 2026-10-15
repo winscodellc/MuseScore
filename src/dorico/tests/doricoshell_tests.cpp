@@ -69,7 +69,20 @@ TEST(DoricoShell, WriteZonesHaveDocks)
     for (int i = 0; i < ZONE_COUNT; ++i) {
         EXPECT_FALSE(zoneDocks(Mode::Write, static_cast<Zone>(i)).empty());
     }
-    EXPECT_TRUE(zoneDocks(Mode::Print, Zone::Left).empty());
+}
+
+TEST(DoricoShell, SetupHasOnePanelPerZone)
+{
+    EXPECT_EQ(zoneDocks(Mode::Setup, Zone::Left), std::vector<QString>({ "playersPanel" }));
+    EXPECT_EQ(zoneDocks(Mode::Setup, Zone::Right), std::vector<QString>({ "layoutsPanel" }));
+    EXPECT_EQ(zoneDocks(Mode::Setup, Zone::Lower), std::vector<QString>({ "flowsPanel" }));
+}
+
+TEST(DoricoShell, LayoutPageInfo)
+{
+    // A4 portrait, 1.75 mm staff space = 4.96 pt.
+    EXPECT_EQ(layoutPageInfo(8.27, 11.69, 4.96), QString("210 x 297 mm, portrait, 5.0 pt"));
+    EXPECT_EQ(layoutPageInfo(11.69, 8.27, 7.0), QString("297 x 210 mm, landscape, 7.0 pt"));
 }
 
 TEST(DoricoShell, LowerZoneIsOneDock)

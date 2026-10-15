@@ -87,6 +87,21 @@ DockPage {
 
     property var notationView: null
 
+    // Shared by the mode pages' zone panels.
+    readonly property int verticalPanelDefaultWidth: 300
+    readonly property int panelMinDimension: 10
+    readonly property int panelMaxDimension: 7500 //! NOTE: Value found experimentally - see issue #27770
+
+    readonly property var verticalPanelDropDestinations: [
+        { "dock": root.centralDock, "dropLocation": Location.Left, "dropDistance": root.verticalPanelDefaultWidth },
+        { "dock": root.centralDock, "dropLocation": Location.Right, "dropDistance": root.verticalPanelDefaultWidth }
+    ]
+
+    readonly property var horizontalPanelDropDestinations: [
+        root.panelTopDropDestination,
+        root.panelBottomDropDestination
+    ]
+
     // Which status bar controls this mode shows (see DoricoStatusBar.qml); a mode page overrides it.
     property var statusItems: ["grid", "pitch", "summary", "zoneArrow", "follow", "tools", "viewType", "arrangement", "zoom", "midi"]
 

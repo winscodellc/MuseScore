@@ -35,15 +35,18 @@ qt_add_qml_module(dorico_qml
         lowerzonemodel.cpp
         lowerzonemodel.h
     QML_FILES
+        DoricoButton.qml
         DoricoPage.qml
         DoricoPlaceholder.qml
         DoricoStatusBar.qml
         DoricoTopBar.qml
         EngravePage.qml
+        LayoutsPanel.qml
         LowerZonePanel.qml
         PlayPage.qml
         PrintPage.qml
         SetupPage.qml
+        ToolSection.qml
         WritePage.qml
     IMPORTS
         TARGET muse_ui_qml

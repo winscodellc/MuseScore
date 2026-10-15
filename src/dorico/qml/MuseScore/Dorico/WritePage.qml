@@ -49,23 +49,8 @@ DoricoPage {
         Qt.callLater(pageModel.init)
     }
 
-    readonly property int verticalPanelDefaultWidth: 300
-
-    readonly property int panelMinDimension: 10
-    readonly property int panelMaxDimension: 7500 //! NOTE: Value found experimentally - see issue #27770
-
     readonly property string verticalPanelsGroup: "VERTICAL_PANELS"
     readonly property string rightPanelsGroup: "RIGHT_PANELS"
-
-    readonly property var verticalPanelDropDestinations: [
-        { "dock": root.centralDock, "dropLocation": Location.Left, "dropDistance": root.verticalPanelDefaultWidth },
-        { "dock": root.centralDock, "dropLocation": Location.Right, "dropDistance": root.verticalPanelDefaultWidth }
-    ]
-
-    readonly property var horizontalPanelDropDestinations: [
-        root.panelTopDropDestination,
-        root.panelBottomDropDestination
-    ]
 
 
     toolBars: [

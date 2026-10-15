@@ -31,6 +31,7 @@
 #include <QString>
 
 #include "types/uri.h"
+#include "translation.h"
 
 #include "../idoricomodestate.h"
 
@@ -91,20 +92,41 @@ inline std::optional<QString> lowerZoneTabForCommand(const std::string& uri)
     return std::nullopt;
 }
 
-// Dock names are the ones in appshell/appshelltypes.h (not included: that header is upstream QML-module-internal).
-// ponytail: Write still hosts MuseScore's own panels (specs 52-54 replace them); other modes have no zones until 55-58.
+// Dock names are the ones in appshell/appshelltypes.h (not included: that header is upstream QML-module-internal)
+// and the objectNames of the Dorico pages' DockPanels.
 inline std::vector<QString> zoneDocks(Mode mode, Zone zone)
 {
-    if (mode != Mode::Write) {
-        return {};
-    }
-
-    switch (zone) {
-    case Zone::Left: return { "palettesPanel", "layoutPanel" };
-    case Zone::Right: return { "selectionFiltersPanel", "undoHistoryPanel" };
-    case Zone::Lower: return { LOWER_ZONE_PANEL };
+    switch (mode) {
+    case Mode::Setup:
+        switch (zone) {
+        case Zone::Left: return { "playersPanel" };
+        case Zone::Right: return { "layoutsPanel" };
+        case Zone::Lower: return { "flowsPanel" };
+        }
+        break;
+    case Mode::Write:
+        // ponytail: Write still hosts MuseScore's Palettes/Layout panels until specs 52-53.
+        switch (zone) {
+        case Zone::Left: return { "palettesPanel", "layoutPanel" };
+        case Zone::Right: return { "selectionFiltersPanel", "undoHistoryPanel" };
+        case Zone::Lower: return { LOWER_ZONE_PANEL };
+        }
+        break;
+    case Mode::Engrave:
+    case Mode::Play:
+    case Mode::Print:
+        break;
     }
     return {};
+}
+
+// Subtitle of a layout card in Setup/Print (specs 55, 58): page size, orientation and staff space, as Dorico shows them.
+inline QString layoutPageInfo(double widthInch, double heightInch, double spacePt)
+{
+    const double mm = 25.4;
+    const QString orientation = widthInch > heightInch ? muse::qtrc("dorico", "landscape") : muse::qtrc("dorico", "portrait");
+    return QString("%1 x %2 mm, %3, %4 pt").arg(qRound(widthInch * mm)).arg(qRound(heightInch * mm)).arg(orientation)
+           .arg(spacePt, 0, 'f', 1);
 }
 
 // Top-level toolbars of every Dorico page (Cmd-6 toggles them).

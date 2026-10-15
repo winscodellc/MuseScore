@@ -1,5 +1,5 @@
 # 55 - Setup mode
-Status: todo  -  Depends on: 50  -  Dorico refs: `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/setup_mode/setup_mode_project_window_r.html`, `.../setup_mode_players_panel_r.html`, `.../setup_mode_layouts_panel_r.html`, `.../setup_mode_flows_panel_r.html`
+Status: pending review  -  Depends on: 50  -  Dorico refs: `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/setup_mode/setup_mode_project_window_r.html`, `.../setup_mode_players_panel_r.html`, `.../setup_mode_layouts_panel_r.html`, `.../setup_mode_flows_panel_r.html`
 
 Implementer: Sonnet is fine.
 
@@ -23,6 +23,17 @@ See `reference/dorico-ui.md` 1. Three zones, no toolbox. Cards list the items; t
 
 ## Deferred / unsupported
 Section players, ensembles, groups, sort orders, custom/full-score layouts beyond the one score, multiple flows, assignment checkboxes, layout numbers.
+
+## As built
+- **Players (left, `playersPanel`)** embeds MuseScore's instruments panel (`LayoutPanel`) unchanged: it keeps its own add / move / delete / visibility controls, so adding and removing instruments happen there. Below it is Dorico's action bar: Add Single Player = `command://instruments/select` (the Add instruments dialog); Add Section Player, Add Ensemble, Add Group, Sort Players and Player Settings are unavailable placeholders (instrument settings stay in each row's own popup).
+- **Layouts (right, `layoutsPanel`, `LayoutsPanel.qml`)**: cards from `DoricoTopBarModel` (same list and order as the layout selector) with type, name, and `layoutPageInfo()` (page size in mm, orientation, staff space in pt; blank for parts that were never opened, since they have no score yet). The list now also refreshes on part renames and style changes. Double-click a card shows that layout. Actions call MuseScore's Parts-dialog model `PartListModel` (row i = card i + 1, rebuilt on each change because it builds its list only once): Add Instrumental Part Layout = `createNewPart`, Layout Settings = inline rename (`setPartTitle`), Delete Layout = `removePart` (asks first when the part has content). Layout Options opens MuseScore's Style dialog. Add Full Score / Custom Score and Sort are placeholders.
+- **Flows (lower, `flowsPanel`)**: one read-only card with the project title and "Flow 1"; all four actions are placeholders.
+- Zones: `zoneDocks(Setup)` = players / flows / layouts, so Cmd-7/8/9 work.
+- Shared pieces introduced here: `ToolSection.qml` (titled button group over `DoricoToolsModel`), `DoricoButton.qml` (a FlatButton that looks disabled but still shows its "Not available yet" tooltip: a disabled FlatButton shows no tooltip at all), `DoricoPlaceholder.qml` (the "Not available yet" stub, also used by the lower zone). The panel size constants and drop destinations moved from `WritePage` to `DoricoPage`.
+- Status bar "Order" stays a label: MuseScore's instrument-order menu lives inside the instruments panel's context menu.
+
+## Verification status
+Built and unit-tested (`dorico_tests` 26/26: Setup zone table, `layoutPageInfo`), QML linted with `qmllint`. Manual check in the app pending.
 
 ## Acceptance criteria
 - [ ] Setup page shows three zones matching `dorico-ui.md` 1.

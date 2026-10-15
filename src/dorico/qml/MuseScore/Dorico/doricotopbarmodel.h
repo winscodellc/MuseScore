@@ -46,6 +46,9 @@ class DoricoTopBarModel : public QObject, public muse::Contextable, public muse:
     Q_PROPERTY(int currentMode READ currentMode NOTIFY currentModeChanged)
     Q_PROPERTY(QStringList layoutTitles READ layoutTitles NOTIFY layoutsChanged)
     Q_PROPERTY(int currentLayoutIndex READ currentLayoutIndex NOTIFY layoutsChanged)
+    // Parallel to layoutTitles: page size / space size per layout, empty for parts that were never opened (spec 55).
+    Q_PROPERTY(QStringList layoutInfos READ layoutInfos NOTIFY layoutsChanged)
+    Q_PROPERTY(QString projectTitle READ projectTitle NOTIFY layoutsChanged)
 
     QML_ELEMENT
 
@@ -62,6 +65,8 @@ public:
     int currentMode() const;
     QStringList layoutTitles() const;
     int currentLayoutIndex() const;
+    QStringList layoutInfos() const;
+    QString projectTitle() const;
 
     Q_INVOKABLE void selectMode(int mode);
     Q_INVOKABLE void selectLayout(int index);
@@ -80,6 +85,7 @@ private:
     // Non-null for entries that are parts: selecting one must make sure the part is open first.
     std::vector<notation::IExcerptNotationPtr> m_excerpts;
     QStringList m_titles;
+    QStringList m_infos;
     int m_currentLayout = 0;
 };
 }

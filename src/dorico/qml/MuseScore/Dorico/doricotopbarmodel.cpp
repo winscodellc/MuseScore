@@ -28,6 +28,9 @@
 
 #include "notation/imasternotation.h"
 #include "notation/iexcerptnotation.h"
+#include "notation/inotationstyle.h"
+#include "engraving/dom/mscore.h"
+#include "project/inotationproject.h"
 
 #include "../../../doricocommands.h"
 #include "../../../internal/doricoshell.h"
@@ -69,6 +72,17 @@ QStringList DoricoTopBarModel::layoutTitles() const
 int DoricoTopBarModel::currentLayoutIndex() const
 {
     return m_currentLayout;
+}
+
+QStringList DoricoTopBarModel::layoutInfos() const
+{
+    return m_infos;
+}
+
+QString DoricoTopBarModel::projectTitle() const
+{
+    const auto project = globalContext()->currentProject();
+    return project ? project->displayName() : QString();
 }
 
 void DoricoTopBarModel::selectMode(int mode)
@@ -119,6 +133,7 @@ void DoricoTopBarModel::updateLayouts()
     m_layouts.clear();
     m_excerpts.clear();
     m_titles.clear();
+    m_infos.clear();
     m_currentLayout = 0;
 
     IMasterNotationPtr master = globalContext()->currentMasterNotation();
@@ -146,10 +161,31 @@ void DoricoTopBarModel::updateLayouts()
             }
         }
 
-        // Parts are added and removed from the Parts dialog.
+        for (size_t i = 0; i < m_layouts.size(); ++i) {
+            // A part that was never opened has no score yet, so it has no style to read.
+            const bool hasScore = !m_excerpts[i] || m_excerpts[i]->isInited();
+            const INotationStylePtr style = hasScore ? m_layouts[i]->style() : nullptr;
+            if (!style) {
+                m_infos << QString();
+                continue;
+            }
+            m_infos << layoutPageInfo(style->styleValue(mu::engraving::Sid::pageWidth).toDouble(),
+                                      style->styleValue(mu::engraving::Sid::pageHeight).toDouble(),
+                                      style->styleValue(mu::engraving::Sid::spatium).toDouble() / mu::engraving::DPI * 72.0);
+            style->styleChanged().onNotify(this, [this]() {
+                updateLayouts();
+            }, Asyncable::Mode::SetReplace);
+        }
+
+        // Parts are added, removed and renamed from the Setup Layouts panel and the Parts dialog.
         master->excerptsChanged().onNotify(this, [this]() {
             updateLayouts();
         }, Asyncable::Mode::SetReplace);
+        for (const IExcerptNotationPtr& excerpt : excerpts) {
+            excerpt->nameChanged().onNotify(this, [this]() {
+                updateLayouts();
+            }, Asyncable::Mode::SetReplace);
+        }
     }
 
     emit layoutsChanged();

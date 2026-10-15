@@ -224,7 +224,7 @@ DockPanel {
             return stubTab
         }
 
-        Component { id: stubTab; Stub {} }
+        Component { id: stubTab; DoricoPlaceholder {} }
 
         Component {
             id: propertiesTab
@@ -265,7 +265,7 @@ DockPanel {
                     Repeater {
                         model: keyTools.items
 
-                        FlatButton {
+                        DoricoButton {
                             id: keyButton
 
                             required property var modelData
@@ -279,10 +279,9 @@ DockPanel {
                             ]
 
                             text: labels[index]
-                            enabled: modelData.enabled
-                            toolTipDescription: modelData.enabled ? "" : qsTrc("dorico", "Not available yet")
+                            available: modelData.enabled
 
-                            onClicked: keyTools.handleMenuItem(modelData.id)
+                            onTriggered: keyTools.handleMenuItem(modelData.id)
                         }
                     }
                 }
@@ -324,14 +323,6 @@ DockPanel {
                 navigationSection: root.navigationSection
                 contentNavigationPanelOrderStart: root.contentNavigationPanelOrderStart + 1
             }
-        }
-    }
-
-    component Stub: Item {
-        StyledTextLabel {
-            anchors.centerIn: parent
-            text: qsTrc("dorico", "Not available yet")
-            opacity: 0.6
         }
     }
 }
