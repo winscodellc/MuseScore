@@ -26,11 +26,16 @@ qt_add_qml_module(dorico_qml
     SOURCES
         doricotopbarmodel.cpp
         doricotopbarmodel.h
+        doricostatusmodel.cpp
+        doricostatusmodel.h
+        doricotoolsmodel.cpp
+        doricotoolsmodel.h
         doricoviewmenumodel.cpp
         doricoviewmenumodel.h
     QML_FILES
         DoricoPage.qml
         DoricoPlaceholder.qml
+        DoricoStatusBar.qml
         DoricoTopBar.qml
         EngravePage.qml
         PlayPage.qml

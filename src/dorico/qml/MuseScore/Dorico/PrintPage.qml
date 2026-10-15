@@ -27,4 +27,6 @@ import QtQuick
 DoricoPage {
     objectName: "DoricoPrint"
     uri: "musescore://dorico/print"
+
+    statusItems: ["summary", "zoom", "midi"]
 }

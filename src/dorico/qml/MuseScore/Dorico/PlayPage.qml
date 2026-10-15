@@ -27,4 +27,6 @@ import QtQuick
 DoricoPage {
     objectName: "DoricoPlay"
     uri: "musescore://dorico/play"
+
+    statusItems: ["pitch", "summary", "zoneArrow", "zoom", "midi"]
 }

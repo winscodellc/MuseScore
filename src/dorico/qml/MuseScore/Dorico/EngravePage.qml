@@ -27,4 +27,6 @@ import QtQuick
 DoricoPage {
     objectName: "DoricoEngrave"
     uri: "musescore://dorico/engrave"
+
+    statusItems: ["grid", "pitch", "summary", "zoneArrow", "tools", "arrangement", "zoom", "midi"]
 }

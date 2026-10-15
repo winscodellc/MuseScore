@@ -121,7 +121,7 @@ Status: todo | in-progress | pending review | done  -  Depends on: NN, NN  -  Do
 | 46 | [Jump bar and Go To Bar](46-jump-bar.md) | todo | 20 (overlay), 10 |
 | 47 | [Explode / Reduce](47-explode-reduce.md) | todo | 41 (lowest priority) |
 | 50 | [UI shell and modes](50-ui-shell-and-modes.md) | done | 00, 10 |
-| 51 | [Status bar](51-status-bar.md) | todo | 50 |
+| 51 | [Status bar](51-status-bar.md) | pending review | 50 |
 | 52 | [Write: Notes toolbox and panel](52-write-notes-toolbox-and-panel.md) | todo | 50, 11 |
 | 53 | [Write: Notations toolbox and panels](53-write-notations-toolbox-and-panels.md) | todo | 50, 20 |
 | 54 | [Write: lower zone](54-write-lower-zone.md) | todo | 50 |

@@ -87,6 +87,9 @@ DockPage {
 
     property var notationView: null
 
+    // Which status bar controls this mode shows (see DoricoStatusBar.qml); a mode page overrides it.
+    property var statusItems: ["grid", "pitch", "summary", "zoneArrow", "follow", "tools", "viewType", "arrangement", "zoom", "midi"]
+
     mainToolBars: [
         DockToolBar {
             id: doricoTopBar
@@ -206,8 +209,10 @@ DockPage {
 
         navigationSection: content.navigationSection
 
-        NotationStatusBar {
+        DoricoStatusBar {
             id: content
+
+            items: root.statusItems
         }
     }
 }
