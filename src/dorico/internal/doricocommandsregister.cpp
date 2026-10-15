@@ -23,6 +23,7 @@
 #include "doricocommandsregister.h"
 
 #include "../doricocommands.h"
+#include "../popover/popoverregistry.h"
 #include "rcommand/commandtypes.h"
 
 using namespace muse;
@@ -90,6 +91,12 @@ static std::vector<CommandInfo> makeCommandInfos()
     }
     v.push_back(info(DORICO_TOGGLE_ALL_ZONES_COMMAND, "Dorico: hide/restore zones", "Hides all open zones, or restores them"));
     v.push_back(info(DORICO_TOGGLE_TOOLBAR_COMMAND, "Dorico: toggle toolbar", "Shows or hides the top toolbars"));
+
+    const PopoverRegistry popovers = makePopoverRegistry();
+    for (const Command& command : DORICO_POPOVER_COMMANDS) {
+        const std::string& title = popovers.find(command.pathSegments().back())->title;
+        v.push_back(info(command, "Dorico: " + title + " popover", "Opens the " + title + " popover at the selection or caret"));
+    }
     return v;
 }
 

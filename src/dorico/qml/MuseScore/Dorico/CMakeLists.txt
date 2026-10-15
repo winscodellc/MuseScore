@@ -36,6 +36,8 @@ qt_add_qml_module(dorico_qml
         doricoviewmenumodel.h
         lowerzonemodel.cpp
         lowerzonemodel.h
+        popovermodel.cpp
+        popovermodel.h
         printmodel.cpp
         printmodel.h
         trackinspectormodel.cpp
@@ -57,6 +59,7 @@ qt_add_qml_module(dorico_qml
         NotesToolbox.qml
         PaletteSections.qml
         PlayPage.qml
+        Popover.qml
         PrintPage.qml
         SetupPage.qml
         ToolSection.qml

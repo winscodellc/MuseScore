@@ -37,6 +37,7 @@
 #include "internal/doricomodestate.h"
 #include "internal/doricoshell.h"
 #include "internal/doriconoteinputcontroller.h"
+#include "internal/popovercontroller.h"
 
 #include "log.h"
 
@@ -94,8 +95,10 @@ void DoricoContext::registerExports()
     m_actionsController = std::make_shared<DoricoActionsController>(iocContext());
     m_modeState = std::make_shared<DoricoModeState>();
     m_noteInputController = std::make_shared<DoricoNoteInputController>(iocContext());
+    m_popoverController = std::make_shared<PopoverController>(iocContext());
 
     ioc()->registerExport<IDoricoModeState>(mname, m_modeState);
+    ioc()->registerExport<IPopoverController>(mname, m_popoverController);
     ioc()->registerExport<IDoricoMenuArranger>(mname, std::make_shared<DoricoMenuArranger>(iocContext()));
 }
 
@@ -111,4 +114,5 @@ void DoricoContext::onInit(const IApplication::RunMode&)
 {
     m_actionsController->init();
     m_noteInputController->init();
+    m_popoverController->init();
 }

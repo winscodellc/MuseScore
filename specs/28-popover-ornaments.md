@@ -54,7 +54,7 @@ Trill intervals: `1`–`8` degree; `M`/`maj`/`major` major; `m`/`min`/`minor` mi
 ### Placement
 - Return only (no local variant documented).
 - Selection: on each selected note; ranges span the range for lines (trill, glissando).
-- Note input: a trill's length comes from the next note input or a Space advance (use `PendingSpanner`, spec 20).
+- Note input: a trill's length comes from the next note input or a Space advance (use `PendingSpanner`, spec 21).
 - Return on a selected ornament/arpeggio/glissando reopens the popover pre-filled.
 
 ## MuseScore today

@@ -46,8 +46,14 @@ target_sources(dorico PRIVATE
     internal/selectionsummary.h
     internal/noteinpututils.h
     internal/partlayouts.h
+    internal/popovercontroller.cpp
+    internal/popovercontroller.h
+    popover/popoverregistry.cpp
+    popover/popoverregistry.h
+    popover/popovertypes.h
     idoricomenuarranger.h
     idoricomodestate.h
+    ipopovercontroller.h
 )
 
 target_link_libraries(dorico PRIVATE engraving muse_uicomponents_qml)

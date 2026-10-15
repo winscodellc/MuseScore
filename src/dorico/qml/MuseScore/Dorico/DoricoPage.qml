@@ -228,6 +228,16 @@ DockPage {
         Component.onDestruction: {
             root.setDefaultNavigationControl(null)
         }
+
+        // Popovers (spec 20) open in Write mode only. On the paint view, so the popover works in view pixels.
+        Loader {
+            parent: notationView.paintView
+            anchors.fill: parent
+            active: root.uri === "musescore://notation"
+            sourceComponent: Popover {
+                view: notationView.paintView
+            }
+        }
     }
 
     statusBar: DockStatusBar {

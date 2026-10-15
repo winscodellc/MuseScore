@@ -1,0 +1,83 @@
+/*
+ * SPDX-License-Identifier: GPL-3.0-only
+ * MuseScore-Studio-CLA-applies
+ *
+ * MuseScore Studio
+ * Music Composition & Notation
+ *
+ * Copyright (C) 2026 MuseScore Limited and others
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3 as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include <QObject>
+#include <QRectF>
+#include <QString>
+#include <QTransform>
+#include <QVariant>
+#include <qqmlintegration.h>
+
+#include "async/asyncable.h"
+#include "modularity/ioc.h"
+
+#include "../../../ipopovercontroller.h"
+
+namespace mu::dorico {
+//! Backs Popover.qml (spec 20): mirrors IPopoverController and maps its canvas anchor into view pixels.
+class PopoverModel : public QObject, public muse::Contextable, public muse::async::Asyncable
+{
+    Q_OBJECT
+
+    Q_PROPERTY(bool isOpen READ isOpen NOTIFY changed)
+    Q_PROPERTY(int iconCode READ iconCode NOTIFY changed)
+    Q_PROPERTY(QString title READ title NOTIFY changed)
+    Q_PROPERTY(bool supportsLocal READ supportsLocal NOTIFY changed)
+    Q_PROPERTY(QString text READ text WRITE setText NOTIFY changed)
+    Q_PROPERTY(int status READ status NOTIFY changed) // ParseStatus: 0 Ok, 1 Incomplete, 2 Unsupported, 3 Invalid
+    // The paint view's `matrix` (canvas -> view); bound from QML so scroll and zoom move the popover.
+    Q_PROPERTY(QVariant viewMatrix READ viewMatrix WRITE setViewMatrix NOTIFY changed)
+    Q_PROPERTY(QRectF anchorRect READ anchorRect NOTIFY changed)
+
+    QML_ELEMENT
+
+    muse::ContextInject<IPopoverController> controller = { this };
+
+public:
+    explicit PopoverModel(QObject* parent = nullptr);
+
+    Q_INVOKABLE void load();
+    Q_INVOKABLE void accept(bool local);
+    Q_INVOKABLE void cancel();
+
+    bool isOpen() const;
+    int iconCode() const;
+    QString title() const;
+    bool supportsLocal() const;
+    QString text() const { return m_text; }
+    void setText(const QString& text);
+    int status() const;
+    QVariant viewMatrix() const { return m_viewMatrix; }
+    void setViewMatrix(const QVariant& matrix);
+    QRectF anchorRect() const;
+
+signals:
+    void changed();
+    void opened(); // a popover was opened (or replaced): take keyboard focus
+
+private:
+    QString m_text;
+    QVariant m_viewMatrix;
+};
+}

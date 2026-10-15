@@ -30,7 +30,7 @@ import Muse.UiComponents
 
 //! Write mode's Notations toolbox (spec 53): the vertical strip at the far right. A switch at the top chooses
 //! Panels (each button shows that panel in the right zone, NotationsPanel.qml) or Popovers (each button opens a
-//! popover; until the popover specs (20-36) register `command://dorico/popover/<id>` those buttons are unavailable).
+//! popover, spec 20; Cues and MIDI Trigger Region have no command and stay unavailable).
 Column {
     id: root
 

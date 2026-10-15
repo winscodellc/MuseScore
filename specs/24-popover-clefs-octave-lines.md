@@ -81,7 +81,7 @@ Clef octave shift: `<clef>+N` / `<clef>-N` shifts by N octaves (e.g. `g+2`); app
 - Clef name table → `ClefType`: encode in one `static const std::unordered_map<std::string, ClefType>` with all aliases from the table above; unsupported rows map to `std::nullopt`.
 - Handler: `handlers/clefhandler.cpp`.
   - Clef: single/caret → `insertClef(type)`. Range → `insertClef(type)` at the start, then compute the clef in force at the selection start (`Staff::clef(tick)`) and insert it again at the end tick (restorative).
-  - Octave line: `addOttavaToSelection(type)`; note input → `PendingSpanner` (spec 20) until `|`/`stop`; `loco` ends the line (on a selected ottava: shorten to the selection end).
+  - Octave line: `addOttavaToSelection(type)`; note input → `PendingSpanner` (spec 21) until `|`/`stop`; `loco` ends the line (on a selected ottava: shorten to the selection end).
 - `prefill`: clef → its canonical name (`treble`, `bass8ba`…); ottava → `8va` etc.
 - `handlesItem`: `Clef`, `Ottava`.
 - Key binding: `Shift+C` → `command://dorico/popover/clef`.

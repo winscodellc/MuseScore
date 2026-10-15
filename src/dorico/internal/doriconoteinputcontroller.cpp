@@ -289,8 +289,9 @@ void DoricoNoteInputController::onReturn()
         ni->endNoteInput();
     } else if (notationController()->isNoteOrRestSelected()) {
         dispatcher()->dispatch(TOGGLE_NOTE_INPUT_COMMAND);
+    } else {
+        popovers()->openForSelection(); // e.g. a selected clef or key signature
     }
-    // Spec 20 will open the popover for a selected notation item here.
 }
 
 void DoricoNoteInputController::onSpace()

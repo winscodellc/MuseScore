@@ -101,4 +101,24 @@ inline static const std::array<muse::rcommand::Command, 3> DORICO_TOGGLE_ZONE_CO
 };
 inline static const muse::rcommand::Command DORICO_TOGGLE_ALL_ZONES_COMMAND("command://dorico/toggle-all-zones");
 inline static const muse::rcommand::Command DORICO_TOGGLE_TOOLBAR_COMMAND("command://dorico/toggle-toolbar");
+
+// Popovers (spec 20). The id is the URI tail; PopoverRegistry has the matching PopoverDef.
+inline static const std::array<muse::rcommand::Command, 16> DORICO_POPOVER_COMMANDS = {
+    muse::rcommand::Command("command://dorico/popover/bars"),
+    muse::rcommand::Command("command://dorico/popover/clef"),
+    muse::rcommand::Command("command://dorico/popover/dynamics"),
+    muse::rcommand::Command("command://dorico/popover/fingering"),
+    muse::rcommand::Command("command://dorico/popover/figuredbass"),
+    muse::rcommand::Command("command://dorico/popover/holds"),
+    muse::rcommand::Command("command://dorico/popover/notetools"),
+    muse::rcommand::Command("command://dorico/popover/keysig"),
+    muse::rcommand::Command("command://dorico/popover/lyrics"),
+    muse::rcommand::Command("command://dorico/popover/timesig"),
+    muse::rcommand::Command("command://dorico/popover/ornaments"),
+    muse::rcommand::Command("command://dorico/popover/techniques"),
+    muse::rcommand::Command("command://dorico/popover/chordsymbols"),
+    muse::rcommand::Command("command://dorico/popover/repeats"),
+    muse::rcommand::Command("command://dorico/popover/tempo"),
+    muse::rcommand::Command("command://dorico/popover/tuplets")
+};
 }

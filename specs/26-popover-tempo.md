@@ -76,6 +76,7 @@ Beat units for the left side of `=`:
   - Hidden: `setVisible(false)`. Parenthesised: wrap text in parentheses.
   - Gradual: `GradualTempoChange` of the mapped type; range → span the range; caret/single → one quarter note; `...` → continuation-line style (**verify** option).
   - Suggestions (`suggest`): prefix filter over a static list of tempo words + gradual terms (+ palette names).
+  - **Framework part (moved from spec 20, first user):** add `std::function<std::vector<std::string>(const std::string&)> suggest` to `PopoverDef` (`popover/popovertypes.h`); `suggestions` + `currentSuggestion` properties and `moveSuggestion(int)` on `PopoverModel`; a list under the box in `Popover.qml`, where Up/Down already reach the field (they are swallowed today) and Return picks the highlighted suggestion. Spec 29 reuses it.
 - Placement via `applyPaletteElement`.
 - `prefill`: `TempoText` → its plain text + bpm string; gradual → `rit.` etc.
 - `handlesItem`: `TempoText`, `GradualTempoChange`.

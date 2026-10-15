@@ -88,10 +88,10 @@ Phrases: `p<f>p`, `f>` create a grouped phrase. During note input each hairpin i
   - Phrase: apply items sequentially at consecutive positions: dynamic at start, hairpin spans to the next dynamic's tick; each hairpin one quarter at the caret.
   - Local (Opt-Return): after creating each element set the voice-assignment property to current-voice-only; default sets all-voices-in-instrument.
   - Parenthesised: set `Pid::DYNAMICS_PARENTHESES`-style property if present (**verify**), else wrap xmlText with parentheses.
-- Open-ended at caret: use the shared `PendingSpanner` helper from spec 20.
+- Open-ended at caret: **build the shared `PendingSpanner` helper here** (moved from spec 20, since this is its first user; specs 24, 28, 29 reuse it). Design as first sketched in spec 20: `PendingSpanner { type, startTick, track, payload }` held while note input is active, set by an open-ended entry (`p<`), finalised from `startTick` to the input tick when the stop token is entered, another item of the family is entered, or note input ends (`INotationNoteInput::stateChanged()` / `noteInputEnded()`). `// ponytail:` the line is created when stopped, not live-extended.
 - `prefill`: for a `Dynamic` return its `dynamicType` text (`TConv::toXml`) or plain text; for a `Hairpin` return `<` / `>`.
-- `handlesItem`: `Dynamic`, `Hairpin` (hairpin only when `isNotLine`).
-- Key binding: `Shift+D` → `command://dorico/popover/dynamics` (spec 10 lists it). Ctrl-D (MuseScore) stays unless spec 10 frees it.
+- `itemTypes` (spec 20 replaced `handlesItem` with a type list): `DYNAMIC`, `HAIRPIN_SEGMENT` (selected hairpins are segments; check `isNotLine` inside `prefill`/`apply`).
+- Key binding: `Shift+D` → `command://dorico/popover/dynamics` is already bound (spec 20). Replace `temporaryDynamics()` in `src/dorico/popover/popoverregistry.cpp` with the real def; keep its tests' expectations or update them in `popoverregistry_tests.cpp`.
 
 ## Deferred / unsupported
 - `?` stop token outside note input (no-op, status Ok).

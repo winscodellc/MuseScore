@@ -35,6 +35,7 @@
 #include "notationscene/inotationcommandscontroller.h"
 
 #include "../idoricomodestate.h"
+#include "../ipopovercontroller.h"
 #include "noteinpututils.h"
 
 namespace mu::dorico {
@@ -47,6 +48,7 @@ class DoricoNoteInputController : public muse::async::Asyncable, public muse::Co
     muse::ContextInject<context::IGlobalContext> globalContext = { this };
     muse::ContextInject<notation::INotationCommandsController> notationController = { this };
     muse::ContextInject<IDoricoModeState> modes = { this };
+    muse::ContextInject<IPopoverController> popovers = { this };
     muse::GlobalInject<notation::INotationConfiguration> notationConfiguration;
     muse::GlobalInject<muse::toast::IToastService> toastService;
 

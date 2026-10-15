@@ -94,7 +94,7 @@ Example: `harm nat n1 s1 p4 diamond`.
 - Vibrato: `Vibrato` spanner (`VibratoType`) — usable for `vibrato->`.
 - Bowing/stopped marks: `toggleArticulation` with SymIds `stringsUpBow`, `stringsDownBow`, `stringsHarmonic`, `brassMuteClosed`, `pluckedLeftHandPizzicato`.
 - Harp pedal diagrams: `HarpPedalDiagram` (popup model `HARP_DIAGRAM` exists in `abstractelementpopupmodel.h`).
-- Note input: `PendingSpanner` helper (spec 20) for open-ended lines.
+- Note input: `PendingSpanner` helper (spec 21) for open-ended lines.
 
 ## Design
 - Technique registry: one static table in `popover/parsers/techniquestable.cpp`: each row `{canonical id, aliases[], category, mapping}` where `category ∈ { PlayTech, Text, Articulation, Line, Pedal }`. The `suggest` callback and the parser both read it; "valid technique only" is enforced by the table (matches Dorico's behaviour).

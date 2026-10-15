@@ -35,7 +35,7 @@ The Dorico manual is the behavioural reference: <https://www.steinberg.help/r/do
 
 ### 1. One fork module: `src/dorico/`
 Namespace `mu::dorico`, commands `command://dorico/<name>`. It is created in spec 00 by copying the layout of `src/palette/`. Upstream touch points are the 4 standard ones in `CLAUDE.md` ("Adding a new module") plus:
-- a single QML `Loader` in `src/notationscene/qml/MuseScore/NotationScene/NotationView.qml` (next to `SearchPopup`, ~L344) that hosts the popover / Jump-bar overlay (spec 20);
+- (no edit) the popover overlay lives in our own `DoricoPage.qml`, parented to `notationView.paintView` (spec 20); the Jump bar (spec 46) can be hosted the same way. The planned `NotationView.qml` Loader was not needed. Return on a selected text item is redirected by a `preDispatch` veto of `screen-edit-text`, not by editing `notationviewinputcontroller.cpp`;
 - `shortcuts.cfg` + `app.qrc` entries for the `dorico` shortcut preset (spec 10).
 - `appshell/qml/MuseScore/AppShell/appmenumodel.{h,cpp}`: one optional `IDoricoMenuArranger` hook in `load()` (spec 59);
 - the "is the score page open" checks, so commands also work on the `musescore://dorico/*` mode pages (fix after spec 50): `notationscene/internal/notationcommandsstate.cpp`, `playback/internal/playbackcommandsstate.cpp`, `appshell/internal/appshellcommandsstate.cpp` (`isProjectPageOpened`) and `context/internal/uicontextresolver.cpp` (legacy shortcut context). Each is marked `// Dorico fork:`.
@@ -100,7 +100,7 @@ Status: todo | in-progress | pending review | done  -  Depends on: NN, NN  -  Do
 | 11 | [Note-input modes](11-note-input-modes.md) | done | 00, 10 (land with 10) |
 | 12 | [Caret and navigation](12-caret-and-navigation.md) | todo | 00, 10, 11 |
 | 13 | [Duration and rhythmic moves](13-duration-and-rhythmic-moves.md) | todo | 00, 10, 12 (for the grid) |
-| 20 | [Popover framework](20-popover-framework.md) | todo | 00, 10 |
+| 20 | [Popover framework](20-popover-framework.md) | pending review | 00, 10 |
 | 21 | [Popover: dynamics (Shift-D)](21-popover-dynamics.md) | todo | 20 |
 | 22 | [Popover: time signatures (Shift-M)](22-popover-time-signatures.md) | todo | 20 |
 | 23 | [Popover: key signatures (Shift-K)](23-popover-key-signatures.md) | todo | 20 |

@@ -1,5 +1,5 @@
 # 20 — Popover framework
-Status: todo · Depends on: 00, 10 (key preset file exists), 11 (note-input commands) · Dorico refs: [popover concept](https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/program_concepts/program_concepts_popovers_c.html), [Notations toolbox](https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/write_mode/write_mode_notations_toolbox_r.html), [popover navigation](https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_navigation_r.html)
+Status: pending review · Depends on: 00, 10 (key preset file exists), 11 (note-input commands) · Dorico refs: [popover concept](https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/program_concepts/program_concepts_popovers_c.html), [Notations toolbox](https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/write_mode/write_mode_notations_toolbox_r.html), [popover navigation](https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_navigation_r.html)
 
 Reference: `specs/reference/dorico-popovers.md` (B0, B1), `specs/reference/musescore-internals.md` (§3, §6).
 
@@ -31,6 +31,18 @@ Everything below is stated by the manual (see reference B1) unless marked *(ours
   - `toggleDynamicPopup` (`src/notation/internal/notationinteraction.cpp:5827`) is MuseScore's Ctrl-D, an in-place text edit. It stays; Shift-D gets the new popover.
 - Key dispatch: `NotationViewInputController::shortcutOverrideEvent/keyPressEvent` (`notationviewinputcontroller.cpp:1441,1465`) handles Enter (starts text edit on the selected element) and Esc **before** shortcuts are consulted. Return-to-reopen must therefore either be handled there (one tiny upstream hook) or the Dorico preset must make Enter a `dorico` command, which then needs verifying that the override does not swallow it (see Design, "Return conflict").
 - Command system: palette module is the template (`src/palette/palettemodule.cpp`, `palettecommands.h`, `paletteactionscontroller.cpp:53-65`).
+
+## As built (wins over the Design section below where they differ)
+- **No upstream edit at all.** The overlay is `src/dorico/qml/MuseScore/Dorico/Popover.qml`, created by a `Loader` in our own `DoricoPage.qml` (Write page only), parented to `notationView.paintView`, so it works in view pixels. `PopoverModel.viewMatrix` is bound to the paint view's `matrix` (a `QTransform`); the canvas anchor is mapped in C++, so scroll/zoom move the box. No `NotationView.qml` Loader, no `fromLogical` invokable.
+- **Return on a selected text item** (dynamic, tempo, ...) never reaches `command://dorico/return`: `NotationViewInputController::shortcutOverrideEvent` claims it and dispatches `command://notation/screen-edit-text`. `PopoverController` vetoes that in `ICommandDispatcher::preDispatch` when a popover owns the item, and opens the popover instead. Non-text items reach `dorico/return`, whose handler (`DoricoNoteInputController::onReturn`) now calls `IPopoverController::openForSelection()` when the selection is not a note/rest.
+- **No `popover/reopen` or `popover/close` command.** Reopen is the existing `dorico/return`; Esc is handled inside the field (binding Esc to a command would clash with `notation/cancel` in `check_keymap.py`).
+- **Field**: a plain `TextInput` with `Keys.onShortcutOverride: event.accepted = true`, so no score shortcut fires while typing (MuseScore's `TextInputField` lets Up/Down through). Return → apply; Opt-Return (`Qt.AltModifier`) → local; Esc → cancel; Up/Down/Tab swallowed. Losing focus (click elsewhere) cancels, so a popover never acts on a selection made after it opened. Empty text + Return closes *(ours)*.
+- **Types**: `PopoverDef` (`popover/popovertypes.h`) has `itemTypes` (a list of `ElementType`) instead of a `handlesItem` lambda; `apply(text, scope, INotationPtr)` acts on the current selection (when reopened, the item is still selected). `ParseResult<T>` is left to each parser spec. `suggest` moved to spec 26, `PendingSpanner` to spec 21 (first users).
+- **Registry**: `popover/popoverregistry.{h,cpp}`, `makePopoverRegistry()` lists all 16 popovers. Each spec 21-36 replaces its `placeholder(...)` line (empty → Incomplete, anything else → Unsupported). `temporaryDynamics()` accepts MuseScore dynamic names (`p`, `mf`, `sfz`, ...) to prove the path; spec 21 replaces it.
+- **Undo**: `INotationInteraction` has no `startEdit()/apply()`. `PopoverController::accept` records `INotationUndoStack::currentStateIndex()`, calls `apply`, then `mergeTransactions(start)` if the handler made more than one transaction: one undo step per Return.
+- **Availability**: checked in the command handler (Write mode, project open, not editing text/lyrics, selection or note input), so `DoricoCommandsState` needs no selection subscription; the commands stay enabled and are no-ops otherwise.
+- **Anchor**: caret rect during note input; otherwise the selection's canvas rect (or the earliest item of a list selection), its top raised to the top line of the item's staff (`System::staffCanvasYpage`). The box sits above it, clamped to the view, flipped below if there is no room above.
+- Key rows: `shortcuts_dorico.json` binds Shift+B/C/D/F/G/H/I/K/L/M/O/P/Q/R/T and `;`; `dorico_keys.json` rows changed from `reserved:NN` to the command ids (owner 20). `Shift+;` stays reserved for spec 31.
 
 ## Design
 
@@ -118,21 +130,23 @@ Handlers pick one of, in this order of preference (smallest code first):
 - Live preview of open-ended items while notes are being entered (see `PendingSpanner`).
 - Multi-staff popover anchoring for the extended caret (use the top staff of the span).
 - Keyboard-language-dependent popover keys (US layout only).
+- "Create items at position of first selected note" (skip rests): the anchor and `applyPaletteElement` use the selection as is.
+- Suggestions (spec 26) and `PendingSpanner` (spec 21) are built by their first users.
 
 ## Acceptance criteria
-- [ ] Module registers `command://dorico/popover/<id>` for all 14 popovers with a letter key plus `;`, and `reopen`/`close`; `cmake -P build.cmake build install` succeeds.
-- [ ] With a note selected, Shift-D (dummy handler allowed) opens an overlay whose bottom edge is above the top staff and whose left edge is at the note's x; with note input active, at the caret.
-- [ ] Overlay stays on screen when the note is near the view edge and follows view scroll/zoom (anchor recomputed on `viewport` change).
-- [ ] Return applies in **one** undo step; Cmd-Z restores the score exactly.
-- [ ] Opt-Return calls `apply(..., ApplyScope::Local)`; handlers with `supportsLocal = false` ignore the modifier.
-- [ ] Esc closes without changing the score, and focus returns to the score (arrow keys move selection again).
-- [ ] Typing letters such as `p`, `q`, `i` inside the box does not trigger score shortcuts.
-- [ ] Invalid text → red border, Return does nothing; valid prefix → neutral; `Unsupported` → red plus label.
-- [ ] Select an item owned by a handler (`handlesItem`), press Return → popover reopens with `prefill()` text; apply replaces the item (no duplicate).
-- [ ] No popover opens with nothing selected and no note input; no popover opens while a text element is being edited.
-- [ ] Only upstream edits: the 4 standard module edits (spec 00), the `NotationView.qml` Loader, and (if verified necessary) `fromLogical` invokable and/or the `shortcutOverrideEvent` early-return. Each is listed in `specs/README.md`.
-- [ ] GoogleTest: `popovertypes` helpers (status mapping) and the registry (`findByItem`, duplicate id rejected).
+- [x] Module registers `command://dorico/popover/<id>` for all 15 letter popovers plus `;`; reopen uses `dorico/return`, close is Esc in the field (see As built); `cmake -P build.cmake build install` succeeds.
+- [ ] With a note selected, Shift-D opens an overlay whose bottom edge is above the top staff and whose left edge is at the note's x; with note input active, at the caret. *(manual)*
+- [ ] Overlay stays on screen when the note is near the view edge and follows view scroll/zoom. *(manual)*
+- [ ] Return applies in **one** undo step; Cmd-Z restores the score exactly. *(manual, temporary dynamics)*
+- [x] Opt-Return calls `apply(..., ApplyScope::Local)`; handlers with `supportsLocal = false` get `Default` (`PopoverController::accept`).
+- [ ] Esc closes without changing the score, and focus returns to the score (arrow keys move selection again). *(manual)*
+- [ ] Typing letters such as `p`, `q`, `i` inside the box does not trigger score shortcuts. *(manual)*
+- [ ] Invalid text → red border, Return does nothing; valid prefix → neutral; `Unsupported` → red plus label. *(manual)*
+- [ ] Select an item owned by a handler (`itemTypes`), press Return → popover reopens with `prefill()` text; apply replaces the item (no duplicate). *(manual: a dynamic)*
+- [ ] No popover opens with nothing selected and no note input, outside Write mode, or while a text element is being edited. *(manual)*
+- [x] No upstream edits beyond the 4 standard module edits (spec 00); `specs/README.md` updated.
+- [x] GoogleTest `popoverregistry_tests.cpp`: every popover command has a def, duplicate id rejected, `findByType`, placeholder statuses, temporary dynamics validation (47/47 `dorico_tests` pass).
 
 ## Tests
 - Unit: `src/dorico/tests/popoverregistry_tests.cpp`.
-- Manual script: open score with 1 staff; (1) select a note, Shift-D, type `p`, Return → dynamic below note (once spec 21 is done; before that use the dummy handler and check the undo stack entry count); (2) Shift-N, Shift-D, Esc → note input still active; (3) scroll while the popover is open → it follows; (4) open a popover on the last measure at a high zoom → stays on screen.
+- Manual script: open score with 1 staff; (1) select a note, Shift-D, type `p`, Return → dynamic below note (the temporary dynamics def; Cmd-Z must remove it in one step); (1b) select that dynamic, Return → popover shows `p`, type `f`, Return → same dynamic becomes `f`; (2) Shift-N, Shift-D, Esc → note input still active; (3) scroll while the popover is open → it follows; (4) open a popover on the last measure at a high zoom → stays on screen.
