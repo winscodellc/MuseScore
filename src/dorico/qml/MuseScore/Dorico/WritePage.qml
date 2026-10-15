@@ -36,9 +36,9 @@ import MuseScore.PropertiesPanel
 import MuseScore.Playback
 
 //! Write mode. `uri` is MuseScore's own notation page URI, so the Score tab and project opening need no change.
-//! Left: Notes toolbox + Notes panel (spec 52). Right: MuseScore's Palettes, Selection filter and History (closed by
-//! default; spec 53 adds the Notations toolbox and panel). Lower: LowerZonePanel (spec 54). The instruments panel
-//! lives in Setup mode.
+//! Left: Notes toolbox + Notes panel (spec 52). Right: Notations toolbox + Notations panel (spec 53), plus MuseScore's
+//! Palettes, Selection filter and History in the same zone (closed by default). Lower: LowerZonePanel (spec 54).
+//! The instruments panel lives in Setup mode.
 DoricoPage {
     id: root
 
@@ -50,6 +50,19 @@ DoricoPage {
     }
 
     readonly property string rightPanelsGroup: "RIGHT_PANELS"
+
+    // The Dorico panel shown in the right zone (spec 53); the Notations toolbox chooses it.
+    property DoricoPanelModel notationsModel: DoricoPanelModel {}
+
+    function showNotationsPanel(panelId) {
+        // Clicking the active button closes the zone, like Dorico.
+        if (root.notationsModel.panelId === panelId && root.notationsModel.isPanelOpen()) {
+            root.notationsModel.setPanelOpen(false)
+            return
+        }
+        root.notationsModel.panelId = panelId
+        root.notationsModel.setPanelOpen(true)
+    }
 
 
     toolBars: [
@@ -72,6 +85,33 @@ DoricoPage {
             NotesToolbox {
                 navigationPanel.section: notesToolbox.navigationSection
                 navigationPanel.order: 1
+            }
+        },
+
+        DockToolBar {
+            id: notationsToolbox
+
+            objectName: "notationsToolbox"
+            title: qsTrc("dorico", "Notations toolbox")
+
+            location: Location.Right
+            orientation: Qt.Vertical
+            floatable: false
+            closable: false
+            resizable: false
+            thickness: 44
+
+            navigationSection: root.noteInputKeyNavSec
+
+            NotationsToolbox {
+                navigationPanel.section: notationsToolbox.navigationSection
+                navigationPanel.order: 2
+
+                currentPanelId: root.notationsModel.panelId
+
+                onPanelClicked: function(panelId) {
+                    root.showNotationsPanel(panelId)
+                }
             }
         }
     ]
@@ -101,6 +141,35 @@ DoricoPage {
         },
 
         DockPanel {
+            id: notationsPanel
+
+            objectName: "notationsPanel"
+            title: qsTrc("dorico", "Notations")
+
+            navigationSection: root.navigationPanelSec(notationsPanel.location)
+
+            width: root.verticalPanelDefaultWidth
+            minimumWidth: 200
+            maximumWidth: root.verticalPanelDefaultWidth * 2
+            minimumHeight: root.panelMinDimension
+            maximumHeight: root.panelMaxDimension
+
+            groupName: root.rightPanelsGroup
+            location: Location.Right
+
+            //! NOTE: hidden by default; a Notations toolbox button opens it
+            visible: false
+
+            dropDestinations: root.verticalPanelDropDestinations
+
+            NotationsPanel {
+                panelModel: root.notationsModel
+                navigationSection: notationsPanel.navigationSection
+                navigationOrderStart: notationsPanel.contentNavigationPanelOrderStart
+            }
+        },
+
+        DockPanel {
             id: palettesPanel
 
             objectName: root.pageModel.palettesPanelName()
@@ -118,7 +187,7 @@ DoricoPage {
             groupName: root.rightPanelsGroup
             location: Location.Right
 
-            //! NOTE: hidden by default; the Notations panel (spec 53) is the Dorico way in
+            //! NOTE: hidden by default; the Notations panel is the Dorico way in
             visible: false
 
             dropDestinations: root.verticalPanelDropDestinations

@@ -109,7 +109,7 @@ inline std::vector<QString> zoneDocks(Mode mode, Zone zone)
         // The first dock of a zone is the one a closed zone opens with (when nothing was open before).
         switch (zone) {
         case Zone::Left: return { "notesPanel" };
-        case Zone::Right: return { "palettesPanel", "selectionFiltersPanel", "undoHistoryPanel" };
+        case Zone::Right: return { "notationsPanel", "palettesPanel", "selectionFiltersPanel", "undoHistoryPanel" };
         case Zone::Lower: return { LOWER_ZONE_PANEL };
         }
         break;

@@ -24,6 +24,8 @@ qt_add_qml_module(dorico_qml
     URI MuseScore.Dorico
     VERSION 1.0
     SOURCES
+        doricopanelmodel.cpp
+        doricopanelmodel.h
         doricotopbarmodel.cpp
         doricotopbarmodel.h
         doricostatusmodel.cpp
@@ -45,6 +47,8 @@ qt_add_qml_module(dorico_qml
         EngravePage.qml
         LayoutsPanel.qml
         LowerZonePanel.qml
+        NotationsPanel.qml
+        NotationsToolbox.qml
         NotesPanel.qml
         NotesToolbox.qml
         PlayPage.qml
@@ -64,5 +68,9 @@ qt_add_qml_module(dorico_qml
         MuseScore.Palette
         MuseScore.PropertiesPanel
 )
+
+# DoricoPanelModel (spec 53) builds palette trees; palette/internal headers include their module headers without a path.
+target_include_directories(dorico_qml PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../../../../palette)
+target_link_libraries(dorico_qml PRIVATE palette)
 
 fixup_qml_module_dependencies(dorico_qml)

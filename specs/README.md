@@ -124,7 +124,7 @@ Status: todo | in-progress | pending review | done  -  Depends on: NN, NN  -  Do
 | 50 | [UI shell and modes](50-ui-shell-and-modes.md) | done | 00, 10 |
 | 51 | [Status bar](51-status-bar.md) | done | 50 |
 | 52 | [Write: Notes toolbox and panel](52-write-notes-toolbox-and-panel.md) | pending review | 50, 11 |
-| 53 | [Write: Notations toolbox and panels](53-write-notations-toolbox-and-panels.md) | todo | 50, 20 |
+| 53 | [Write: Notations toolbox and panels](53-write-notations-toolbox-and-panels.md) | pending review | 50, 20 |
 | 54 | [Write: lower zone](54-write-lower-zone.md) | done | 50 |
 | 55 | [Setup mode](55-setup-mode.md) | pending review | 50 |
 | 56 | [Engrave mode](56-engrave-mode.md) | todo | 50 |
