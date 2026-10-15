@@ -68,6 +68,7 @@ private:
     void onPitch(int note);
     void onForcedOctave(int note, bool above);
     void onRest();
+    void onToggleRestInput();
     void onToggleChordMode();
     void onToggleInsertMode();
     void onSetDuration(int digit);
@@ -80,12 +81,18 @@ private:
     bool voiceHasContent(size_t staffIdx, size_t voice) const;
     void switchToVoice(size_t voice);
 
+    void onNoteAdded();
+    void holdCaretOnChord();
+    void closeChord();
+    void rebarAfterInsert();
+
     void onNotationChanged();
     void syncInsertModeFromInput();
 
     DotTap m_dotTap;
-    // true after a chord-mode letter was entered: the next letter stacks onto that chord instead of starting a new one.
-    // ponytail: cleared on Space / duration key / mode change / input end, not on a mouse click elsewhere.
+    // true after a chord-mode letter was entered: the next letter stacks onto that chord instead of starting a new one,
+    // and the caret is held on the chord. Space / duration key / mode change move the caret past it.
+    // ponytail: not cleared by a mouse click elsewhere.
     bool m_chordPending = false;
     notation::INotationNoteInputPtr m_subscribedInput;
 };

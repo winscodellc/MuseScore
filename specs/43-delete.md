@@ -58,7 +58,7 @@ Reference digests: [reference/dorico-editing.md](reference/dorico-editing.md) §
 
 `selectNearest()`: before deleting, remember `(track, tick range)` of the selection; afterwards pick the first **Chord** (not rest) with the same track at `tick >= rangeEnd`, else the last Chord before `rangeStart` in that track, else the rest now at `rangeStart`; select it via `INotationInteraction::select({el}, SelectType::SINGLE, staffIdx)`.
 
-Rebind in [10](10-keymap-preset.md): `Del`/`Backspace` → `dorico/delete`; keep `Ctrl+Del` (MuseScore-only, key is free in Dorico). `preDispatch` veto on `notation/delete` is the fallback for the context menu / menu paths only.
+Rebind in [10](10-keymap-preset.md): `Del`/`Backspace` → `dorico/delete`; `Ctrl+Del` is unbound (MuseScore-only keys are removed, see README). `preDispatch` veto on `notation/delete` is the fallback for the context menu / menu paths only.
 
 Upstream edits: none.
 

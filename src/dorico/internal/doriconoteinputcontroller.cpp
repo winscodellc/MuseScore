@@ -30,17 +30,22 @@
 #include "settings.h"
 
 #include "engraving/dom/chord.h"
+#include "engraving/dom/input.h"
+#include "engraving/dom/measure.h"
 #include "engraving/dom/note.h"
 #include "engraving/dom/pitchspelling.h"
 #include "engraving/dom/score.h"
 #include "engraving/dom/segment.h"
+#include "engraving/editing/edittimesig.h"
 #include "engraving/editing/noteinput.h"
+#include "engraving/editing/transaction/transaction.h"
 
 #include "notation/inotation.h"
 #include "notation/inotationelements.h"
 #include "notation/inotationinteraction.h"
 #include "notation/inotationnoteinput.h"
 #include "notation/inotationselection.h"
+#include "notation/inotationundostack.h"
 #include "notationscene/notationcommands.h"
 #include "playback/playbackcommands.h"
 
@@ -100,6 +105,7 @@ void DoricoNoteInputController::init()
     reg(DORICO_RETURN_COMMAND, [this]() { onReturn(); });
     reg(DORICO_SPACE_COMMAND, [this]() { onSpace(); });
     reg(DORICO_REST_COMMAND, [this]() { onRest(); });
+    reg(DORICO_TOGGLE_REST_INPUT_COMMAND, [this]() { onToggleRestInput(); });
     reg(DORICO_TOGGLE_CHORD_MODE_COMMAND, [this]() { onToggleChordMode(); });
     reg(DORICO_TOGGLE_INSERT_MODE_COMMAND, [this]() { onToggleInsertMode(); });
     reg(DORICO_CYCLE_DOTS_COMMAND, [this]() { onCycleDots(); });
@@ -158,6 +164,7 @@ void DoricoNoteInputController::onNotationChanged()
         m_subscribedInput->noteInputStarted().disconnect(this);
         m_subscribedInput->noteInputEnded().disconnect(this);
         m_subscribedInput->stateChanged().disconnect(this);
+        m_subscribedInput->noteAdded().disconnect(this);
     }
 
     m_subscribedInput = noteInput();
@@ -179,6 +186,85 @@ void DoricoNoteInputController::onNotationChanged()
         m_dotTap.reset();
     });
     m_subscribedInput->stateChanged().onNotify(this, [this]() { syncInsertModeFromInput(); });
+    m_subscribedInput->noteAdded().onNotify(this, [this]() { onNoteAdded(); });
+}
+
+// ---- After a note is entered (synchronous, before MuseScore redraws the caret) ----
+
+void DoricoNoteInputController::onNoteAdded()
+{
+    INotationNoteInputPtr ni = noteInput();
+    if (!ni || !ni->isNoteInputMode()) {
+        return;
+    }
+
+    if (ni->usingNoteInputMethod(NoteInputMethod::TIMEWISE)) {
+        rebarAfterInsert();
+    } else if (modes()->isChordMode() && m_chordPending && !ni->usingNoteInputMethod(NoteInputMethod::BY_DURATION)) {
+        holdCaretOnChord();
+    }
+}
+
+void DoricoNoteInputController::holdCaretOnChord()
+{
+    // MuseScore moved the input position past the new note; Dorico's caret stays on the chord until Space.
+    mu::engraving::Score* score = currentNotation()->elements()->msScore();
+    const mu::engraving::EngravingItem* el = score->selection().element();
+    if (el && el->isNote()) {
+        score->inputState().setSegment(mu::engraving::toNote(el)->chord()->segment());
+    }
+}
+
+void DoricoNoteInputController::closeChord()
+{
+    if (!m_chordPending) {
+        return;
+    }
+    m_chordPending = false;
+
+    INotationNoteInputPtr ni = noteInput();
+    if (!ni || !ni->isNoteInputMode()) {
+        return;
+    }
+
+    mu::engraving::InputState& is = currentNotation()->elements()->msScore()->inputState();
+    is.moveToNextInputPos();
+    ni->setCurrentTrack(is.track()); // no-op change that makes MuseScore redraw the caret
+}
+
+void DoricoNoteInputController::rebarAfterInsert()
+{
+    // MuseScore's Insert (TIMEWISE) lengthens the bar; Dorico pushes the music on into the next bars. Re-bar from the
+    // lengthened bar up to the next time signature, like a time signature change does, as part of the same undo step.
+    // ponytail: every staff is pushed (Dorico's Global scope, not Voice), and a pick-up bar that grows past its time
+    // signature gets re-barred too.
+    INotationPtr notation = currentNotation();
+    mu::engraving::Score* score = notation->elements()->msScore();
+    const mu::engraving::EngravingItem* el = score->selection().element();
+    mu::engraving::Measure* m = el ? score->tick2measure(el->tick()) : nullptr;
+    if (!m || m->ticks() <= m->timesig()) {
+        return;
+    }
+
+    INotationUndoStackPtr undoStack = notation->undoStack();
+    const size_t beforeInsert = undoStack->currentStateIndex() - 1; // the note entry was one transaction
+    const mu::engraving::track_idx_t track = score->inputState().track();
+
+    undoStack->prepareChanges(muse::TranslatableString("undoableAction", "Insert note"));
+    if (!mu::engraving::EditTimeSig::rewriteMeasures(score->transactionManager()->currentOrDummyTransaction(), score, m,
+                                                     m->timesig(), muse::nidx)) {
+        undoStack->rollbackChanges(); // e.g. a local time signature: keep MuseScore's longer bar
+        return;
+    }
+    undoStack->commitChanges();
+    undoStack->mergeTransactions(beforeInsert);
+
+    // The entered note was rebuilt: select the note or rest before the caret again, as after any note entry.
+    const mu::engraving::Fraction caret = score->inputState().tick();
+    if (mu::engraving::ChordRest* cr = score->findCR(caret - mu::engraving::Fraction::eps(), track)) {
+        mu::engraving::EngravingItem* sel = cr->isChord() ? static_cast<mu::engraving::EngravingItem*>(mu::engraving::toChord(cr)->upNote()) : cr;
+        notation->interaction()->select({ sel });
+    }
 }
 
 void DoricoNoteInputController::syncInsertModeFromInput()
@@ -217,8 +303,7 @@ void DoricoNoteInputController::onSpace()
 
     m_dotTap.reset();
     if (m_chordPending) {
-        // MuseScore's input position already moved past the chord; Space just closes it.
-        m_chordPending = false;
+        closeChord(); // advances past the chord
         return;
     }
 
@@ -307,9 +392,10 @@ void DoricoNoteInputController::onForcedOctave(int note, bool above)
         return;
     }
 
+    // Set before addNote: its noteAdded notification holds the caret on the chord.
     const bool addToChord = modes()->isChordMode() && m_chordPending;
-    ni->addNote(params, addToChord ? NoteAddingMode::CurrentChord : NoteAddingMode::NextChord);
     m_chordPending = modes()->isChordMode();
+    ni->addNote(params, addToChord ? NoteAddingMode::CurrentChord : NoteAddingMode::NextChord);
 }
 
 void DoricoNoteInputController::onRest()
@@ -320,9 +406,18 @@ void DoricoNoteInputController::onRest()
     }
 }
 
+void DoricoNoteInputController::onToggleRestInput()
+{
+    // Dorico's comma only switches rest input; letters and Y then enter rests (onPitch / onRest).
+    INotationNoteInputPtr ni = noteInput();
+    if (ni && ni->isNoteInputMode()) {
+        ni->setRestMode(!ni->state().rest());
+    }
+}
+
 void DoricoNoteInputController::onToggleChordMode()
 {
-    m_chordPending = false;
+    closeChord();
     modes()->setChordMode(!modes()->isChordMode());
 
     // Chord excludes Insert, so leave TIMEWISE if it was on.
@@ -334,7 +429,7 @@ void DoricoNoteInputController::onToggleChordMode()
 
 void DoricoNoteInputController::onToggleInsertMode()
 {
-    m_chordPending = false;
+    closeChord();
     modes()->setInsertMode(!modes()->isInsertMode());
 
     INotationNoteInputPtr ni = noteInput();
@@ -347,7 +442,7 @@ void DoricoNoteInputController::onToggleInsertMode()
 
 void DoricoNoteInputController::onSetDuration(int digit)
 {
-    m_chordPending = false;
+    closeChord();
 
     const bool dot = m_dotTap.press(digit, nowMs(), settings()->value(DOT_TAP_MS_KEY).toInt());
     dispatcher()->dispatch(dot ? TOGGLE_DOT_COMMAND : NOTATION_DURATION_COMMANDS[digit - 1]);

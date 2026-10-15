@@ -898,6 +898,14 @@ std::set<SymId> updateArticulations(const std::set<SymId>& articulationSymbolIds
         break;
     }
     default:
+        // Dorico fork: toggle any other articulation too (staccatissimo, stressed, ...), else the note-input latch ignores it.
+        if (splittedArticulations.find(articulationSymbolId) != splittedArticulations.end()) {
+            if (updateMode == ArticulationsUpdateMode::Remove) {
+                splittedArticulations.erase(articulationSymbolId);
+            }
+        } else {
+            splittedArticulations.insert(articulationSymbolId);
+        }
         break;
     }
     // we no longer want to join articulations when adding or removing individual ones. combined articulations can still

@@ -26,6 +26,7 @@
 
 #include "dorico/internal/doricomodestate.h"
 #include "dorico/internal/noteinpututils.h"
+#include "engraving/dom/articulation.h"
 
 using namespace mu::dorico;
 
@@ -124,4 +125,15 @@ TEST(DoricoModeState, NotifiesOncePerRealChange)
     EXPECT_EQ(count, 2);
     s.setInsertMode(true);
     EXPECT_EQ(count, 2);
+}
+
+// The note-input latch (`}` and friends) goes through engraving's updateArticulations, which used to ignore
+// every articulation except accent, marcato, tenuto and staccato.
+TEST(DoricoArticulationLatch, StaccatissimoTogglesOnAndOff)
+{
+    using namespace mu::engraving;
+    const std::set<SymId> on = updateArticulations({}, SymId::articStaccatissimoAbove, ArticulationsUpdateMode::Remove);
+    EXPECT_EQ(on, std::set<SymId>({ SymId::articStaccatissimoAbove }));
+    EXPECT_TRUE(updateArticulations(on, SymId::articStaccatissimoAbove, ArticulationsUpdateMode::Remove).empty());
+    EXPECT_EQ(updateArticulations(on, SymId::articStaccatissimoAbove, ArticulationsUpdateMode::Insert), on);
 }

@@ -68,6 +68,7 @@ static std::vector<CommandInfo> makeCommandInfos()
     v.push_back(info(DORICO_RETURN_COMMAND, "Dorico: Return", "Starts or stops note input"));
     v.push_back(info(DORICO_SPACE_COMMAND, "Dorico: Space", "Advances the caret during note input, otherwise plays/stops"));
     v.push_back(info(DORICO_REST_COMMAND, "Dorico: input rest", "Enters a rest during note input"));
+    v.push_back(info(DORICO_TOGGLE_REST_INPUT_COMMAND, "Dorico: rest input", "Toggles rest input: letters then enter rests"));
     v.push_back(info(DORICO_TOGGLE_CHORD_MODE_COMMAND, "Dorico: chord mode", "Toggles chord mode"));
     v.push_back(info(DORICO_TOGGLE_INSERT_MODE_COMMAND, "Dorico: insert mode", "Toggles insert mode"));
     v.push_back(info(DORICO_CYCLE_DOTS_COMMAND, "Dorico: cycle dots", "Cycles 0-4 rhythm dots"));

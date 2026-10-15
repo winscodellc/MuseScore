@@ -70,7 +70,7 @@ Upstream edits: only the overlay Loader owned by spec 20.
 - Multiple flows (`fn`, `fp`, `f≥2`); Play-mode behaviour (playhead to start of bar only).
 - Key Commands page alias editing (aliases are jump-bar only); direct-open key per mode beyond the three above.
 - Options-dialog search (`Cmd-L`, `Cmd-F`, `Cmd-G` inside Dorico option dialogs).
-- Dorico has no Edit > Find; MuseScore's `Ctrl+F` search popup keeps its key (MuseScore-only command, key stays free).
+- Dorico has no Edit > Find; MuseScore's `Ctrl+F` search popup is unbound (MuseScore-only keys are removed, see README); the Jump bar replaces it.
 
 ## Acceptance criteria
 - [ ] `J` opens the bar (text field focused), `Esc` closes it without running anything; typing letters does not trigger note shortcuts.

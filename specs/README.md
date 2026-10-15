@@ -18,7 +18,7 @@ The Dorico manual is the behavioural reference: <https://www.steinberg.help/r/do
 | Question | Decision |
 |---|---|
 | Spec granularity | Small phased specs, each sized for one session |
-| MuseScore shortcuts that conflict with Dorico | **Dorico wins.** MuseScore-only commands keep their key if it is free, otherwise they become unbound (still reachable from menus and Preferences) |
+| MuseScore shortcuts | **Only Dorico's keys are bound** (decided 2026-10-15; replaces "MuseScore-only commands keep their key if it is free"). Every MuseScore binding that is not a Dorico key is removed; the command stays reachable from menus and Preferences. Exempt: keyboard navigation inside panels/dialogs (`navigation/*`, except the F6 / backtick section jumps) and keys that only work in the text / lyrics / chord-symbol editor or on TAB staves, until later specs replace them. Enforced by `check_keymap.py` (policy 5); `check_keymap.py --fix` unbinds what upstream merges add. |
 | Keyboard layout | **US English, macOS.** Windows is out of scope for now (Dorico's Windows set differs, e.g. Ctrl-Alt-letter instead of Ctrl-letter for "note below") |
 | Location | `specs/` at the repo root, committed |
 
@@ -26,7 +26,7 @@ The Dorico manual is the behavioural reference: <https://www.steinberg.help/r/do
 
 - **No Dorico code, assets, icons or proprietary file formats.** Work from MuseScore's code plus the *publicly documented behaviour*. Key bindings and entry-syntax tokens are facts, so they are fine. Popover icons reuse MuseScore palette icons.
 - Fork stays **GPLv3**. Keep all copyright / SPDX headers. New files get the same SPDX header as their neighbours (copy it from `src/palette/palettemodule.cpp`).
-- **Keep fork code isolated**: new features go in `src/dorico/`. Edits to upstream files must be tiny and obvious (each spec lists them under "upstream edits"). Merge upstream regularly (`git fetch upstream && git merge upstream/main`).
+- **Keep fork code isolated**: new features go in `src/dorico/`. Edits to upstream files must be tiny and obvious (each spec lists them under "upstream edits"). Merge upstream regularly (`git fetch upstream && git merge upstream/main`), then run `python3 -I src/dorico/tools/check_keymap.py --fix` to unbind any new MuseScore keys.
 - If distributed it needs its own name (not "MuseScore"). Not in scope for these specs.
 - The framework in `muse/` (submodule) is not edited.
 - User is a Java/Scala/TS developer with minimal C++: explain C++ idioms briefly when they matter (headers vs .cpp, smart pointers, Qt signals/slots, `Q_PROPERTY`), using Java/TS analogies.
@@ -40,6 +40,7 @@ Namespace `mu::dorico`, commands `command://dorico/<name>`. It is created in spe
 - `appshell/qml/MuseScore/AppShell/appmenumodel.{h,cpp}`: one optional `IDoricoMenuArranger` hook in `load()` (spec 59);
 - the "is the score page open" checks, so commands also work on the `musescore://dorico/*` mode pages (fix after spec 50): `notationscene/internal/notationcommandsstate.cpp`, `playback/internal/playbackcommandsstate.cpp`, `appshell/internal/appshellcommandsstate.cpp` (`isProjectPageOpened`) and `context/internal/uicontextresolver.cpp` (legacy shortcut context). Each is marked `// Dorico fork:`.
 - Setup-mode layout deletion (spec 55): `notation/internal/masternotation.cpp` (`updatePotentialExcerpts` skips the `deletedPartLayouts` meta tag), `notation/iexcerptnotation.h` + `internal/excerptnotation.{h,cpp}` (`initialPartId()`), and `engraving/dom/excerpt.cpp` (plain-text part names).
+- Note-input articulation latch (spec 11): `engraving/dom/articulation.cpp` `updateArticulations` toggles any articulation, not only accent / marcato / tenuto / staccato.
 - Play mode (spec 57): `playback/qml/MuseScore/Playback/mixerpanelmodel.cpp` applies control / mute / solo changes from other models, so two mixers over the same tracks stay in sync.
 
 ### 2. Changing behaviour = new commands, not overriding old ones
@@ -96,7 +97,7 @@ Status: todo | in-progress | pending review | done  -  Depends on: NN, NN  -  Do
 |---|---|---|---|
 | 00 | [Module skeleton](00-module-skeleton.md) | done | none |
 | 10 | [Keymap preset](10-keymap-preset.md) | done | 00 |
-| 11 | [Note-input modes](11-note-input-modes.md) | pending review | 00, 10 (land with 10) |
+| 11 | [Note-input modes](11-note-input-modes.md) | done | 00, 10 (land with 10) |
 | 12 | [Caret and navigation](12-caret-and-navigation.md) | todo | 00, 10, 11 |
 | 13 | [Duration and rhythmic moves](13-duration-and-rhythmic-moves.md) | todo | 00, 10, 12 (for the grid) |
 | 20 | [Popover framework](20-popover-framework.md) | todo | 00, 10 |

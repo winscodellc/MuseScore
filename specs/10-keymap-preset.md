@@ -205,7 +205,7 @@ Dorico's zones are mapped by meaning, not position: left zone = Notes panel, rig
 | Shift-E / Shift-0 | Ensemble picker / MIDI trigger regions | | deferred | |
 | Shift-W | (none in Dorico) | | unchanged | `notation/set-double-duration-dotted` keeps Shift+W |
 
-MuseScore-only bindings that Dorico does **not** use stay (examples): Ctrl+B, Ctrl+K, Ctrl+E, Ctrl+L, Ctrl+F, Ctrl+M, Alt+Shift+T, Alt+Shift+B, Alt+1..9 / Alt+Shift+2..9 (add interval), Alt+W, Alt+B, Alt+X, Alt+L, Ctrl+Shift+Up/Down, Ctrl+Shift+Q/W/X, Ctrl+Shift+M, Ins, Ctrl+Ins, Ctrl+Return, Alt+Return, `(`, `F8`, `F10`, `F11`, `F12`, `Ctrl+F9`, `Shift+F9`, Ctrl+J, H (alias of B).
+~~MuseScore-only bindings that Dorico does not use stay~~ **Superseded 2026-10-15:** every MuseScore binding that is not a Dorico key is unbound (see README, "MuseScore shortcuts"). `check_keymap.py` fails on any binding not backed by a `command://` row in `dorico_keys.json`, and `--fix` writes the unbinding rows. The old list (Ctrl+B, Ctrl+K, Alt+1..9, F8, H, ...) is all unbound now.
 Note: Dorico 6.2's manual documents no Opt+digit interval keys (older Dorico versions had them); MuseScore's Alt+digit stay as extras, and Shift-I (spec 35) is the Dorico route.
 
 ## MuseScore today
@@ -419,6 +419,6 @@ Option dead-key test, 2026-10-14, macOS, US layout, score focused. Each key was 
 
 Corrections made to this spec while implementing:
 - The preset also unbinds `notation/append-measures` (Alt+Shift+B), because Shift-Opt-B is "input note above" in spec 11 and Dorico wins.
-- `dorico_keys.json` has no row for Opt-8 (Alt+8 stays `add-interval-plus8`, as the "MuseScore-only bindings stay" note says), no numpad transport rows (Num+ / Num- / Num0 are the numpad accidentals and natural), and no Tab / Shift-Tab rows (Tab belongs to the `navigation/*` scope).
+- `dorico_keys.json` has no row for Opt-8 (Alt+8 is now unbound with the other MuseScore-only keys); numpad transport rows were added 2026-10-15 (Enter = play/stop, Num 0 = stop, Num . = rewind; Num + / Num - deferred: no fast-forward command), and no Tab / Shift-Tab rows (Tab belongs to the `navigation/*` scope).
 - `A`-`G` and `/` stay on `enter-note-*` and `add-acciaccatura` until spec 11 (`owner: 10-interim` in `dorico_keys.json`).
 - The checker ignores `command://none`, `edittext-*`, `editlyrics-*`, `*-tab` and `enter-fret-*` when looking for clashes.

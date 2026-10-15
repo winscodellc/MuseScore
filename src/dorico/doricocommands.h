@@ -74,6 +74,7 @@ inline static const std::array<muse::rcommand::Command, 9> DORICO_SET_DURATION_C
 inline static const muse::rcommand::Command DORICO_RETURN_COMMAND("command://dorico/return");
 inline static const muse::rcommand::Command DORICO_SPACE_COMMAND("command://dorico/space");
 inline static const muse::rcommand::Command DORICO_REST_COMMAND("command://dorico/rest");
+inline static const muse::rcommand::Command DORICO_TOGGLE_REST_INPUT_COMMAND("command://dorico/toggle-rest-input");
 inline static const muse::rcommand::Command DORICO_TOGGLE_CHORD_MODE_COMMAND("command://dorico/toggle-chord-mode");
 inline static const muse::rcommand::Command DORICO_TOGGLE_INSERT_MODE_COMMAND("command://dorico/toggle-insert-mode");
 inline static const muse::rcommand::Command DORICO_CYCLE_DOTS_COMMAND("command://dorico/cycle-dots");
