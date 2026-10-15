@@ -42,13 +42,15 @@ DockPanel {
     id: root
 
     objectName: "lowerZonePanel"
-    title: root.tabTitle(root.currentTab)
+    // Fixed: DockBase hands the title to the dock title bar only once, at creation; the selector row names the tabs.
+    title: qsTrc("dorico", "Lower zone")
 
     property var tabs: ["properties", "keyboard", "fretboard", "drumPads", "mixer", "keyEditor", "timeline"]
     property var notationView: null
 
-    // NOTE: DockPanel's default property is a lazily loaded Component with its own id scope, so anything the
-    // root-level bindings/functions use must live on the root, not inside the content Item.
+    // NOTE: DockPanel's default property is ONE lazily loaded Component (contentComponent) with its own id scope:
+    // the body below may contain exactly one object (the content Item), and anything the root-level
+    // bindings/functions use must live on the root, not inside that Item.
     property LowerZoneModel zoneModel: LowerZoneModel {
         Component.onCompleted: load()
     }
@@ -174,7 +176,7 @@ DockPanel {
                     anchors.fill: parent
                     visible: isCurrent
                     active: isCurrent || visited
-                    sourceComponent: root.componentFor(modelData)
+                    sourceComponent: content.componentFor(modelData)
 
                     function sync() {
                         if (!isCurrent || !item) {
@@ -208,17 +210,121 @@ DockPanel {
                 }
             }
         }
-    }
 
-    function componentFor(id) {
-        switch (id) {
-        case "properties": return propertiesTab
-        case "keyboard": return keyboardTab
-        case "drumPads": return drumPadsTab
-        case "mixer": return mixerTab
-        case "timeline": return timelineTab
+        // NOTE: the tab Components must stay inside this Item. Declared directly in the DockPanel body they would be
+        // assigned to its default property (contentComponent), the last one winning, and replace this whole Item.
+        function componentFor(id) {
+            switch (id) {
+            case "properties": return propertiesTab
+            case "keyboard": return keyboardTab
+            case "drumPads": return drumPadsTab
+            case "mixer": return mixerTab
+            case "timeline": return timelineTab
+            }
+            return stubTab
         }
-        return stubTab
+
+        Component { id: stubTab; Stub {} }
+
+        Component {
+            id: propertiesTab
+
+            PropertiesPanel {
+                navigationSection: root.navigationSection
+                navigationOrderStart: root.contentNavigationPanelOrderStart + 1
+                notationView: root.notationView
+            }
+        }
+
+        Component {
+            id: keyboardTab
+
+            ColumnLayout {
+                property alias contextMenuModel: keyboard.contextMenuModel
+
+                spacing: 0
+
+                DoricoToolsModel {
+                    id: keyTools
+
+                    // Advance Caret and Delete Left need specs 12 / 43; Set Duration needs spec 52. Listed so the layout matches Dorico.
+                    codes: [
+                        "command://dorico/space",
+                        "command://dorico/delete-left",
+                        "command://dorico/set-note-duration",
+                        "add-slur"
+                    ]
+
+                    Component.onCompleted: keyTools.load()
+                }
+
+                RowLayout {
+                    Layout.margins: 4
+                    spacing: 4
+
+                    Repeater {
+                        model: keyTools.items
+
+                        FlatButton {
+                            id: keyButton
+
+                            required property var modelData
+                            required property int index
+
+                            readonly property var labels: [
+                                qsTrc("dorico", "Advance Caret"),
+                                qsTrc("dorico", "Delete Left"),
+                                qsTrc("dorico", "Set Duration"),
+                                qsTrc("dorico", "Slur")
+                            ]
+
+                            text: labels[index]
+                            enabled: modelData.enabled
+                            toolTipDescription: modelData.enabled ? "" : qsTrc("dorico", "Not available yet")
+
+                            onClicked: keyTools.handleMenuItem(modelData.id)
+                        }
+                    }
+                }
+
+                PianoKeyboardPanel {
+                    id: keyboard
+
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+
+                    navigationSection: root.navigationSection
+                    contentNavigationPanelOrderStart: root.contentNavigationPanelOrderStart + 1
+                }
+            }
+        }
+
+        Component {
+            id: drumPadsTab
+
+            PercussionPanel {
+                navigationSection: root.navigationSection
+                contentNavigationPanelOrderStart: root.contentNavigationPanelOrderStart + 1
+            }
+        }
+
+        Component {
+            id: mixerTab
+
+            MixerPanel {
+                navigationSection: root.navigationSection
+                contentNavigationPanelOrderStart: root.contentNavigationPanelOrderStart + 1
+            }
+        }
+
+        Component {
+            id: timelineTab
+
+            Timeline {
+                navigationSection: root.navigationSection
+                contentNavigationPanelOrderStart: root.contentNavigationPanelOrderStart + 1
+            }
+        }
     }
 
     component Stub: Item {
@@ -226,108 +332,6 @@ DockPanel {
             anchors.centerIn: parent
             text: qsTrc("dorico", "Not available yet")
             opacity: 0.6
-        }
-    }
-
-    Component { id: stubTab; Stub {} }
-
-    Component {
-        id: propertiesTab
-
-        PropertiesPanel {
-            navigationSection: root.navigationSection
-            navigationOrderStart: root.contentNavigationPanelOrderStart + 1
-            notationView: root.notationView
-        }
-    }
-
-    Component {
-        id: keyboardTab
-
-        ColumnLayout {
-            property alias contextMenuModel: keyboard.contextMenuModel
-
-            spacing: 0
-
-            DoricoToolsModel {
-                id: keyTools
-
-                // Advance Caret and Delete Left need specs 12 / 43; Set Duration needs spec 52. Listed so the layout matches Dorico.
-                codes: [
-                    "command://dorico/space",
-                    "command://dorico/delete-left",
-                    "command://dorico/set-note-duration",
-                    "add-slur"
-                ]
-
-                Component.onCompleted: keyTools.load()
-            }
-
-            RowLayout {
-                Layout.margins: 4
-                spacing: 4
-
-                Repeater {
-                    model: keyTools.items
-
-                    FlatButton {
-                        id: keyButton
-
-                        required property var modelData
-                        required property int index
-
-                        readonly property var labels: [
-                            qsTrc("dorico", "Advance Caret"),
-                            qsTrc("dorico", "Delete Left"),
-                            qsTrc("dorico", "Set Duration"),
-                            qsTrc("dorico", "Slur")
-                        ]
-
-                        text: labels[index]
-                        enabled: modelData.enabled
-                        toolTipDescription: modelData.enabled ? "" : qsTrc("dorico", "Not available yet")
-
-                        onClicked: keyTools.handleMenuItem(modelData.id)
-                    }
-                }
-            }
-
-            PianoKeyboardPanel {
-                id: keyboard
-
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-
-                navigationSection: root.navigationSection
-                contentNavigationPanelOrderStart: root.contentNavigationPanelOrderStart + 1
-            }
-        }
-    }
-
-    Component {
-        id: drumPadsTab
-
-        PercussionPanel {
-            navigationSection: root.navigationSection
-            contentNavigationPanelOrderStart: root.contentNavigationPanelOrderStart + 1
-        }
-    }
-
-    Component {
-        id: mixerTab
-
-        MixerPanel {
-            navigationSection: root.navigationSection
-            contentNavigationPanelOrderStart: root.contentNavigationPanelOrderStart + 1
-        }
-    }
-
-    Component {
-        id: timelineTab
-
-        Timeline {
-            navigationSection: root.navigationSection
-            contentNavigationPanelOrderStart: root.contentNavigationPanelOrderStart + 1
         }
     }
 }

@@ -44,6 +44,8 @@ Fretboard and Key Editor (stubs); Properties panel layout is MuseScore's (no hor
 - **Write page changes:** Properties moved from the right zone to this tab, so the right zone (Selection filter, History) is empty until spec 53. The old Mixer/Piano/Timeline/Percussion/Properties docks were removed from `WritePage.qml`. A previously saved Write layout that mentions them may need View > Reset layout.
 - **Keyboard tab** has a button row (Advance Caret = `dorico/space`, Delete Left, Set Duration, Slur). Delete Left and Set Duration are disabled placeholders until specs 43 and 52.
 
+- **QML snags (read before reusing the panel in specs 56/57):** the build uses `muse/framework/dockwindow_v2` (not `dockwindow/`). `DockPanel`'s default property is ONE lazily loaded `Component` (`contentComponent`) with its own id scope. So: (1) the panel body must hold exactly one object, the content `Item` (a `Component {}` declared beside it silently replaces it; the last one wins, which made the first build show only Timeline); (2) ids inside the content are invisible to root-level bindings, so `LowerZoneModel` is a root property and the loaders `Repeater` is handed to the root on load. The dock title is fixed ("Lower zone") because `DockBase` passes the title to the title bar only once, at creation.
+
 ## Verification status
 Built, unit-tested (`dorico_tests` 24/24, `check_keymap.py` 0 failures) and the app starts cleanly. **Not yet checked by eye**: layout, tab switching, shortcuts, persistence. Acceptance boxes stay open until that manual check.
 
