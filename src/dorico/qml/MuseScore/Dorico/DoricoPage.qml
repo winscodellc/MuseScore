@@ -87,6 +87,9 @@ DockPage {
 
     property var notationView: null
 
+    // Print mode shows the score as a non-editable preview.
+    property bool readOnlyView: false
+
     // Shared by the mode pages' zone panels.
     readonly property int verticalPanelDefaultWidth: 300
     readonly property int panelMinDimension: 10
@@ -207,6 +210,7 @@ DockPage {
         isNavigatorVisible: root.pageModel.isNavigatorVisible
         isBraillePanelVisible: root.pageModel.isBraillePanelVisible
         isMainView: true
+        readOnly: root.readOnlyView
 
         Component.onCompleted: {
             root.notationView = notationView.paintView

@@ -129,7 +129,7 @@ Status: todo | in-progress | pending review | done  -  Depends on: NN, NN  -  Do
 | 55 | [Setup mode](55-setup-mode.md) | pending review | 50 |
 | 56 | [Engrave mode](56-engrave-mode.md) | todo | 50 |
 | 57 | [Play mode](57-play-mode.md) | todo | 50 |
-| 58 | [Print mode](58-print-mode.md) | todo | 50, 55 |
+| 58 | [Print mode](58-print-mode.md) | pending review | 50, 55 |
 | 59 | [Menus](59-menus.md) | todo | 50 |
 
 Specs 20-36 and 40-47 are listed here but written in a later pass. Specs 50-59 (UI shell) are all written; **implement 50 first**, then the rest in any order (58 after 55). Suggested model: Opus for 50, 53, 59; Sonnet is enough for 51, 52, 54-58. A spec file that does not exist yet is just not started.

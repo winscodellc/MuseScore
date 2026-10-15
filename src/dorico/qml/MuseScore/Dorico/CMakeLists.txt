@@ -34,6 +34,8 @@ qt_add_qml_module(dorico_qml
         doricoviewmenumodel.h
         lowerzonemodel.cpp
         lowerzonemodel.h
+        printmodel.cpp
+        printmodel.h
     QML_FILES
         DoricoButton.qml
         DoricoPage.qml

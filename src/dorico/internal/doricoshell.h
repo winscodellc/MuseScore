@@ -32,6 +32,7 @@
 
 #include "types/uri.h"
 #include "translation.h"
+#include "project/inotationwriter.h"
 
 #include "../idoricomodestate.h"
 
@@ -112,9 +113,15 @@ inline std::vector<QString> zoneDocks(Mode mode, Zone zone)
         case Zone::Lower: return { LOWER_ZONE_PANEL };
         }
         break;
+    case Mode::Print:
+        switch (zone) {
+        case Zone::Left: return { "printLayoutsPanel" };
+        case Zone::Right: return { "printOptionsPanel" };
+        case Zone::Lower: return {};
+        }
+        break;
     case Mode::Engrave:
     case Mode::Play:
-    case Mode::Print:
         break;
     }
     return {};
@@ -127,6 +134,17 @@ inline QString layoutPageInfo(double widthInch, double heightInch, double spaceP
     const QString orientation = widthInch > heightInch ? muse::qtrc("dorico", "landscape") : muse::qtrc("dorico", "portrait");
     return QString("%1 x %2 mm, %3, %4 pt").arg(qRound(widthInch * mm)).arg(qRound(heightInch * mm)).arg(orientation)
            .arg(spacePt, 0, 'f', 1);
+}
+
+// Print mode (spec 58): how the export writers split the chosen layouts. PNG and SVG only write one file per page;
+// PDF writes one file per layout or all layouts into one file.
+inline project::INotationWriter::UnitType exportUnitType(const QString& suffix, bool filePerLayout)
+{
+    using UnitType = project::INotationWriter::UnitType;
+    if (suffix != "pdf") {
+        return UnitType::PER_PAGE;
+    }
+    return filePerLayout ? UnitType::PER_PART : UnitType::MULTI_PART;
 }
 
 // Top-level toolbars of every Dorico page (Cmd-6 toggles them).

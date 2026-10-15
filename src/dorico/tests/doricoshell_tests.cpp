@@ -78,6 +78,22 @@ TEST(DoricoShell, SetupHasOnePanelPerZone)
     EXPECT_EQ(zoneDocks(Mode::Setup, Zone::Lower), std::vector<QString>({ "flowsPanel" }));
 }
 
+TEST(DoricoShell, PrintHasNoLowerZone)
+{
+    EXPECT_EQ(zoneDocks(Mode::Print, Zone::Left), std::vector<QString>({ "printLayoutsPanel" }));
+    EXPECT_EQ(zoneDocks(Mode::Print, Zone::Right), std::vector<QString>({ "printOptionsPanel" }));
+    EXPECT_TRUE(zoneDocks(Mode::Print, Zone::Lower).empty());
+}
+
+TEST(DoricoShell, ExportUnitType)
+{
+    using UnitType = mu::project::INotationWriter::UnitType;
+    EXPECT_EQ(exportUnitType("pdf", true), UnitType::PER_PART);
+    EXPECT_EQ(exportUnitType("pdf", false), UnitType::MULTI_PART);
+    EXPECT_EQ(exportUnitType("png", false), UnitType::PER_PAGE);
+    EXPECT_EQ(exportUnitType("svg", true), UnitType::PER_PAGE);
+}
+
 TEST(DoricoShell, LayoutPageInfo)
 {
     // A4 portrait, 1.75 mm staff space = 4.96 pt.
