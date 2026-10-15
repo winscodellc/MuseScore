@@ -32,7 +32,8 @@ import Muse.GraphicalEffects
 //! A FlatButton that can be "unavailable": it looks disabled but stays hoverable, so its tooltip can say why
 //! (a disabled FlatButton disables its MouseArea and shows no tooltip). Use `triggered`, not `clicked`.
 //! `doricoIcon` (spec 60) is an IconCode, a SMuFL glyph string (drawn in Bravura Text) or "svg:<name>" (a Lucide
-//! icon in icons/). Glyphs and SVGs are tinted like the icon font: text color, or contrast color when checked.
+//! icon in icons/). Checked icon-only buttons use Dorico's bright tool blue with a black (Dark) or white (Light)
+//! icon; the theme accent (a muted blue) stays for text buttons, where it keeps the text readable.
 FlatButton {
     id: root
 
@@ -40,10 +41,13 @@ FlatButton {
     property var doricoIcon: IconCode.NONE
     readonly property bool hasCustomIcon: typeof root.doricoIcon === "string" && root.doricoIcon !== ""
     property real iconBoxSize: 20
+    readonly property bool isToolIcon: root.text === ""
 
     signal triggered()
 
     icon: root.hasCustomIcon ? IconCode.NONE : root.doricoIcon
+    accentColor: root.isToolIcon ? (ui.theme.isDark ? "#40ACFF" : "#0068AD") : ui.theme.accentColor
+    iconColor: root.accentButton && root.isToolIcon ? (ui.theme.isDark ? "#000000" : "#FFFFFF") : ui.theme.fontPrimaryColor
     contentItem: root.hasCustomIcon ? customIconComponent : null
 
     Binding on buttonType {
@@ -67,7 +71,7 @@ FlatButton {
             id: box
 
             readonly property bool isSvg: root.doricoIcon.startsWith("svg:")
-            readonly property color tint: root.accentButton ? (ui.theme.isDark ? "#000000" : "#FFFFFF") : root.iconColor
+            readonly property color tint: root.iconColor
 
             implicitWidth: root.iconBoxSize
             implicitHeight: root.iconBoxSize
@@ -84,14 +88,16 @@ FlatButton {
                 id: glyph
 
                 readonly property rect ink: metrics.tightBoundingRect
-                // Fit the ink into 85% of the box; tiny glyphs (dots, accents) grow to at most 60 px.
+                // Fit the ink into 85% of the box; tiny glyphs (dots, accents) grow to at most 100 px.
                 readonly property real scale100: ink.width > 0 && ink.height > 0
-                                                 ? Math.min(0.85 * box.width / ink.width, 0.85 * box.height / ink.height, 0.6) : 0
+                                                 ? Math.min(0.85 * box.width / ink.width, 0.85 * box.height / ink.height, 1.0) : 0
 
                 visible: !box.isSvg
                 text: box.isSvg ? "" : root.doricoIcon
                 font.family: "Bravura Text"
                 font.pixelSize: Math.max(1, scale100 * 100)
+                // Grayscale antialiasing: native (LCD) rendering gives thin stems and barlines blue/orange fringes.
+                renderType: Text.QtRendering
                 color: box.tint
 
                 // Center the ink, not the text box: glyphs sit at very different heights around the baseline.

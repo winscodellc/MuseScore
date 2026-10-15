@@ -23,13 +23,28 @@ Sources: the screenshots embedded in the manual pages above, read through `https
 | Text fields | `#272F38` | `#FFFFFF` | `text_field_color` |
 | Tab bar, separators | `#171B1F` | `#D0D0D0` | `stroke_color` |
 | Raised buttons (mode tabs, status-bar buttons) | `#36414D` | `#E0E0E0` | `button_color` (opacity 1.0) |
-| Checked tool button | `#40ACFF`, black glyph | `#0068AD`, white glyph | `accent_color` |
-| Checked tab (muted) | `#295B82` (accent at ~0.45) | `#84CBE6` | from `accent_color` x `accent_opacity_normal` |
-| Text | `#C8CDD3` (anti-aliased peak `#C1C6CC`) | `#1F2429` | `font_primary_color` |
+| Checked icon tool button | `#40ACFF`, black glyph | `#0068AD`, white glyph | hard-coded in `DoricoButton` (icon-only buttons) |
+| Checked text button / tab | `#295B82` | `#84CBE6` | `accent_color` (accent opacities 0.8 / 0.6 / 1.0) |
+| Text | `#D0D5DB` (sampled peak `#C1C6CC`, raised for contrast) | `#1F2429` | `font_primary_color` |
 | Secondary text | `#959BA2` | (unchanged) | `font_secondary_color` |
 | Music-area gradient | top `#02629A`, middle `#0388C5`, bottom `#16A8E1` | same | notation settings |
 | Page | `#FFFFFF` | same | `ui/canvas/foreground/color` |
 | Selection | `#FF7D00` (anti-aliased `#FFA346`) | same | engraving voice colors |
+
+### Contrast (WCAG 2 ratios, checked after the first visual review)
+Every readable text/background pair is at least AA (4.5:1). Rule: **text never sits on the bright tool blue**; it is only used behind icons, with a black (Dark) or white (Light) icon.
+
+| Pair | Dark | Light |
+|---|---|---|
+| Text on panel / toolbar / button | 10.6 / 9.4 / 7.0 | 14.3 / 14.3 / 11.8 |
+| Text on checked text button | 4.9 | 8.7 |
+| Icon on checked tool button | 8.6 (black on `#40ACFF`) | 5.9 (white on `#0068AD`) |
+| Secondary text on panel | 5.6 | (MuseScore's) |
+| Disabled item (opacity 0.45, was 0.3) | 3.3 | 2.7 (disabled controls are exempt from WCAG) |
+
+The first build used `#40ACFF` as the theme accent: checked text buttons (status bar "Transposed", "Page", and MuseScore dialog buttons) had grey text on bright blue, 1.5:1.
+
+Glyph icons use `Text.QtRendering` (grayscale antialiasing): native LCD rendering gave thin stems and barlines blue/orange fringes. Bars and barlines uses `barlineFinal` (U+E032), which reads better small than the thin double barline.
 
 ## MuseScore today
 - UI themes are `src/app/configs/{light,dark,high_contrast_*}.cfg`, loaded by `UiConfiguration::makeStandardTheme` (`muse/framework/ui/internal/uiconfiguration.cpp:285`). Default theme: Light.
@@ -40,7 +55,7 @@ Sources: the screenshots embedded in the manual pages above, read through `https
 ## Design
 - **Theme colors (upstream edit, values only):** `src/app/configs/dark.cfg` and `light.cfg` take the table above. Button opacity normal/hover/hit = 1.0/0.8/0.6, so buttons are opaque like Dorico's. Keys stay the same, so Preferences' theme reset gives back the Dorico colors.
 - **Canvas colors and default theme (fork only):** `DoricoModule::onInit` (`src/dorico/doricomodule.cpp`) writes the music-area background (both themes), white paper and orange selection (voices 1-4 and "all voices") with `settings()->setSharedValue`, then switches to the Dark theme. It runs once per `APPEARANCE_VERSION`; bump the constant to re-apply after re-tuning. Same pattern as the one-time keymap switch next to it.
-- **Icons:** `DoricoButton.doricoIcon` takes an `IconCode`, a SMuFL glyph string (drawn in Bravura Text, ink-centered and fitted to a 20 px box, tiny glyphs capped at 60 px) or `"svg:<name>"` (a Lucide SVG from `qml/MuseScore/Dorico/icons/`, tinted with `EffectColorOverlay`). Checked buttons draw the glyph black (Dark) or white (Light), as in Dorico. `ToolSection.icons` accepts the same values.
+- **Icons:** `DoricoButton.doricoIcon` takes an `IconCode`, a SMuFL glyph string (drawn in Bravura Text, ink-centered and fitted to a 20 px box, tiny glyphs capped at 60 px) or `"svg:<name>"` (a Lucide SVG from `qml/MuseScore/Dorico/icons/`, tinted with `EffectColorOverlay`). Checked icon-only buttons use Dorico's bright tool blue with a black (Dark) or white (Light) glyph, as in Dorico; text buttons keep the muted theme accent. `ToolSection.icons` accepts the same values.
 - Lucide SVGs come from `https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/<name>.svg`. Only the icons in use are committed, with `icons/LICENSE-lucide.txt`. They are added to the QML module with a `file(GLOB icons/*.svg)` in its `CMakeLists.txt`.
 
 ### Icon mapping
@@ -56,7 +71,7 @@ Sources: the screenshots embedded in the manual pages above, read through `https
 | Accent / marcato / staccato / tenuto | U+E4A0 / E4AC / E4A2 / E4A4 |
 | Clefs / key signatures / time signatures | U+E050 gClef / U+E262 U+E262 / U+E08A timeSigCommon |
 | Tempo / dynamics / ornaments | `svg:gauge` / U+E522 dynamicForte / U+E566 ornamentTrill |
-| Repeat structures / bars and barlines / holds and pauses | U+E040 repeatLeft / U+E031 barlineDouble / U+E4C0 fermataAbove |
+| Repeat structures / bars and barlines / holds and pauses | U+E040 repeatLeft / U+E032 barlineFinal / U+E4C0 fermataAbove |
 | Playing techniques / lines | U+E610 stringsDownBow / `svg:spline` |
 | Note tools / figured bass | U+E0A4 noteheadBlack / U+EA5B figbass6 |
 | Cues, video, comments, proofreading | `svg:mic`, `svg:film`, `svg:message-square`, `svg:check-check` |
@@ -84,6 +99,7 @@ Sources: the screenshots embedded in the manual pages above, read through `https
 - [x] Notes toolbox, Notations toolbox (panels and popovers), Notes panel durations / accidentals / articulations, Engrave toolbox, Setup / Layouts action bars and the top bar use Bravura glyphs or Lucide icons; checked buttons show the glyph in the contrast color.
 - [x] Lucide licence committed next to the icons; every `svg:` name used in QML has a file (checked by script).
 - [x] Build and qmllint clean.
+- [x] Contrast review from a screenshot of the running app (Dark): fixed accent text contrast, glyph fringes, disabled opacity.
 - [ ] Visual check in the running app, Dark and Light, next to Dorico 6 (manual: needs a GUI session).
 
 ## Tests
