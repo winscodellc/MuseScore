@@ -39,6 +39,8 @@ Namespace `mu::dorico`, commands `command://dorico/<name>`. It is created in spe
 - `shortcuts.cfg` + `app.qrc` entries for the `dorico` shortcut preset (spec 10).
 - `appshell/qml/MuseScore/AppShell/appmenumodel.{h,cpp}`: one optional `IDoricoMenuArranger` hook in `load()` (spec 59);
 - the "is the score page open" checks, so commands also work on the `musescore://dorico/*` mode pages (fix after spec 50): `notationscene/internal/notationcommandsstate.cpp`, `playback/internal/playbackcommandsstate.cpp`, `appshell/internal/appshellcommandsstate.cpp` (`isProjectPageOpened`) and `context/internal/uicontextresolver.cpp` (legacy shortcut context). Each is marked `// Dorico fork:`.
+- Setup-mode layout deletion (spec 55): `notation/internal/masternotation.cpp` (`updatePotentialExcerpts` skips the `deletedPartLayouts` meta tag), `notation/iexcerptnotation.h` + `internal/excerptnotation.{h,cpp}` (`initialPartId()`), and `engraving/dom/excerpt.cpp` (plain-text part names).
+- Play mode (spec 57): `playback/qml/MuseScore/Playback/mixerpanelmodel.cpp` applies control / mute / solo changes from other models, so two mixers over the same tracks stay in sync.
 
 ### 2. Changing behaviour = new commands, not overriding old ones
 The command dispatcher allows **one handler per command** (`muse/framework/rcommand/internal/commanddispatcher.cpp:135` refuses duplicates), so a module cannot replace `command://notation/paste`. Instead:

@@ -23,17 +23,24 @@
 
 #include "doricotopbarmodel.h"
 
+#include <QTextDocumentFragment>
+
 #include "containers.h"
 #include "log.h"
+#include "translation.h"
 
 #include "notation/imasternotation.h"
 #include "notation/iexcerptnotation.h"
 #include "notation/inotationstyle.h"
+#include "notation/inotationundostack.h"
+#include "engraving/dom/masterscore.h"
+#include "engraving/editing/editscoreproperties.h"
 #include "engraving/dom/mscore.h"
 #include "project/inotationproject.h"
 
 #include "../../../doricocommands.h"
 #include "../../../internal/doricoshell.h"
+#include "../../../internal/partlayouts.h"
 
 using namespace mu::dorico;
 using namespace mu::notation;
@@ -82,7 +89,8 @@ QStringList DoricoTopBarModel::layoutInfos() const
 QString DoricoTopBarModel::projectTitle() const
 {
     const auto project = globalContext()->currentProject();
-    return project ? project->displayName() : QString();
+    // An unsaved / imported project is named after its work title, which can be rich text ("<font face=...>").
+    return project ? QTextDocumentFragment::fromHtml(project->displayName()).toPlainText() : QString();
 }
 
 void DoricoTopBarModel::selectMode(int mode)
@@ -126,6 +134,73 @@ void DoricoTopBarModel::selectLayout(int index)
     }
 
     globalContext()->setCurrentNotation(m_layouts[index]);
+}
+
+void DoricoTopBarModel::deleteLayout(int index)
+{
+    if (index <= 0 || index >= static_cast<int>(m_excerpts.size())) {
+        return;
+    }
+
+    // Copied, not referenced: the list is rebuilt while the question is open if the score changes.
+    const IExcerptNotationPtr excerpt = m_excerpts[index];
+    if (excerpt->isEmpty()) {
+        doDeleteLayout(excerpt);
+        return;
+    }
+
+    interactive()->question("", muse::trc("notation", "Are you sure you want to delete this part?"), {
+        muse::IInteractive::Button::Yes, muse::IInteractive::Button::No
+    })
+    .onResolve(this, [this, excerpt](const muse::IInteractive::Result& res) {
+        if (res.isButton(muse::IInteractive::Button::Yes)) {
+            doDeleteLayout(excerpt);
+        }
+    });
+}
+
+void DoricoTopBarModel::doDeleteLayout(const IExcerptNotationPtr& excerpt)
+{
+    IMasterNotationPtr master = globalContext()->currentMasterNotation();
+    if (!master) {
+        return;
+    }
+
+    const muse::ID partId = excerpt->initialPartId();
+    INotationUndoStackPtr undoStack = master->notation()->undoStack();
+    const size_t startState = undoStack->currentStateIndex();
+
+    if (globalContext()->currentNotation() == excerpt->notation()) {
+        globalContext()->setCurrentNotation(master->notation());
+    }
+
+    // Removes an opened part (an unopened instrument part is not in the list yet). Same as PartListModel::doRemovePart.
+    ExcerptNotationList excerpts = master->excerpts();
+    if (muse::remove(excerpts, excerpt)) {
+        master->setExcerpts(excerpts);
+    }
+
+    if (!partId.isValid()) {
+        return; // a custom part: removing it was enough
+    }
+
+    // MuseScore regenerates a part for every instrument without one, so remember that this one was deleted.
+    mu::engraving::MasterScore* score = master->masterScore();
+    std::map<muse::String, muse::String> tags = score->metaTags();
+    tags[DELETED_PART_LAYOUTS_TAG] = addDeletedPartLayout(score->metaTag(DELETED_PART_LAYOUTS_TAG),
+                                                          muse::String::fromStdString(partId.toStdString()));
+
+    undoStack->prepareChanges(muse::TranslatableString("undoableAction", "Delete part layout"));
+    score->undo(new mu::engraving::ChangeMetaTags(score, tags));
+    undoStack->commitChanges();
+
+    // One undo step brings back an opened part together with its content.
+    if (undoStack->currentStateIndex() > startState + 1) {
+        undoStack->mergeTransactions(startState);
+    }
+
+    // No excerpt changed when the part was never opened, so nothing else triggers a refresh.
+    updateLayouts();
 }
 
 void DoricoTopBarModel::updateLayouts()
@@ -176,6 +251,11 @@ void DoricoTopBarModel::updateLayouts()
                 updateLayouts();
             }, Asyncable::Mode::SetReplace);
         }
+
+        // Undoing a part layout deletion only changes a meta tag (see doDeleteLayout).
+        master->notation()->undoStack()->undoRedoNotification().onNotify(this, [this]() {
+            updateLayouts();
+        }, Asyncable::Mode::SetReplace);
 
         // Parts are added, removed and renamed from the Setup Layouts panel and the Parts dialog.
         master->excerptsChanged().onNotify(this, [this]() {

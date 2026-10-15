@@ -73,6 +73,11 @@ bool ExcerptNotation::isCustom() const
     return m_excerpt->custom();
 }
 
+muse::ID ExcerptNotation::initialPartId() const
+{
+    return m_excerpt->initialPartId();
+}
+
 bool ExcerptNotation::isEmpty() const
 {
     return m_excerpt->parts().empty();

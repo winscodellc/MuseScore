@@ -45,6 +45,7 @@ target_sources(dorico PRIVATE
     internal/selectionsummary.cpp
     internal/selectionsummary.h
     internal/noteinpututils.h
+    internal/partlayouts.h
     idoricomenuarranger.h
     idoricomodestate.h
 )

@@ -1821,7 +1821,10 @@ std::vector<Excerpt*> Excerpt::createExcerptsFromParts(const std::vector<Part*>&
             excerpt->m_tracksMapping.insert({ i, j });
         }
 
-        String name = formatUniqueExcerptName(part->partName(), allExcerptLowerNames);
+        // Fork: the instrument name is rich text (e.g. "<font face=.../>Alto" in 3.x files) but a part name is plain.
+        std::unique_ptr<Text> label(Factory::createText(score->dummy(), TextStyleType::DEFAULT, false));
+        label->setXmlText(part->partName());
+        String name = formatUniqueExcerptName(label->plainText(), allExcerptLowerNames);
         excerpt->setName(name);
         excerpt->setInitialPartId(part->id());
 

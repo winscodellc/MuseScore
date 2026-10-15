@@ -23,6 +23,7 @@
 #pragma once
 
 #include "async/notification.h"
+#include "types/id.h"
 #include "types/string.h"
 
 #include "inotation_fwd.h"
@@ -35,6 +36,7 @@ public:
 
     virtual bool isInited() const = 0;
     virtual bool isCustom() const = 0;
+    virtual muse::ID initialPartId() const = 0; // fork: the instrument part this part was made for, invalid if custom
     virtual bool isEmpty() const = 0;
 
     virtual QString name() const = 0;

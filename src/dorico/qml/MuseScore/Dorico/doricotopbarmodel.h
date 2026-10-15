@@ -70,6 +70,8 @@ public:
 
     Q_INVOKABLE void selectMode(int mode);
     Q_INVOKABLE void selectLayout(int index);
+    //! Deletes a part layout, including an instrument's part (which the Parts dialog cannot delete). Undoable.
+    Q_INVOKABLE void deleteLayout(int index);
     Q_INVOKABLE void dispatch(const QString& command);
     Q_INVOKABLE void openPage(const QString& uri);
 
@@ -79,6 +81,7 @@ signals:
 
 private:
     void updateLayouts();
+    void doDeleteLayout(const notation::IExcerptNotationPtr& excerpt);
 
     // Index 0 is the full score, the rest are the parts (opened or not), in the Parts dialog order.
     std::vector<notation::INotationPtr> m_layouts;

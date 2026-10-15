@@ -1490,3 +1490,20 @@ TEST_F(Engraving_PartsTests, crossMeasureUpwardGlissExcerpt)
     EXPECT_EQ(toNote(cloned->spannerFor().front()->endElement())->pitch(), 84);
     delete master;
 }
+
+TEST_F(Engraving_PartsTests, partNameFromRichInstrumentName)
+{
+    MasterScore* score = ScoreRW::readScore(PARTS_DATA_DIR + u"voices.mscx");
+    ASSERT_TRUE(score);
+
+    Part* part = score->parts().at(0);
+    part->instrument()->setLongName(u"<font face=\"Times New Roman\"/>Alto 1");
+    part->instrument()->setTransposition(u"");
+
+    std::vector<Excerpt*> excerpts = Excerpt::createExcerptsFromParts({ part }, score);
+    ASSERT_EQ(excerpts.size(), 1);
+    EXPECT_EQ(excerpts.front()->name(), u"Alto 1");
+
+    muse::DeleteAll(excerpts);
+    delete score;
+}

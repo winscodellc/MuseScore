@@ -680,8 +680,12 @@ void MasterNotation::updatePotentialExcerpts() const
     ExcerptNotationList potentialExcerpts;
     std::vector<Part*> partsWithoutExcerpt;
 
+    // Fork: part layouts deleted in the Dorico Setup mode (src/dorico/internal/partlayouts.h), by part id.
+    const StringList deletedPartLayouts = masterScore()->metaTag(u"deletedPartLayouts").split(u',');
+
     for (Part* part : score()->parts()) {
-        if (part->isSharedPart() || findExcerptByPart(m_excerpts, part) != m_excerpts.end()) {
+        if (part->isSharedPart() || deletedPartLayouts.contains(String::fromStdString(part->id().toStdString()))
+            || findExcerptByPart(m_excerpts, part) != m_excerpts.end()) {
             continue;
         }
 

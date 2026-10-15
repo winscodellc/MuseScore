@@ -31,8 +31,8 @@ import Muse.UiComponents
 import MuseScore.NotationScene
 
 //! Setup mode's Layouts panel (spec 55): one card per layout (full score, then the parts) and Dorico's action bar.
-//! The list and card details come from DoricoTopBarModel (same order as the layout selector); create / rename /
-//! delete go through MuseScore's own Parts-dialog model, PartListModel, whose row i is layout i + 1.
+//! The list and card details come from DoricoTopBarModel (same order as the layout selector), which also deletes
+//! layouts; create / rename go through MuseScore's own Parts-dialog model, PartListModel, whose row i is layout i + 1.
 Item {
     id: root
 
@@ -234,7 +234,7 @@ Item {
             transparent: true
             navigation.panel: navPanel
             navigation.order: 7
-            onTriggered: root.parts.removePart(root.selectedIndex - 1)
+            onTriggered: layouts.deleteLayout(root.selectedIndex)
         }
     }
 }

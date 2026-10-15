@@ -44,6 +44,7 @@ public:
 
     bool isInited() const override;
     bool isCustom() const override;
+    muse::ID initialPartId() const override;
     bool isEmpty() const override;
 
     QString name() const override;
