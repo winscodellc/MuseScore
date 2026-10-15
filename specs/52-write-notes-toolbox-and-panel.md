@@ -1,5 +1,5 @@
 # 52 - Write mode: Notes toolbox and Notes panel
-Status: todo  -  Depends on: 50, 11  -  Dorico refs: `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/write_mode/write_mode_notes_toolbox_r.html`, `.../write_mode_panels/write_mode_notes_panel_r.html`
+Status: pending review  -  Depends on: 50, 11  -  Dorico refs: `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/write_mode/write_mode_notes_toolbox_r.html`, `.../write_mode_panels/write_mode_notes_panel_r.html`
 
 Implementer: Sonnet is fine.
 
@@ -46,6 +46,19 @@ Notes panel:
 
 ## Deferred / unsupported
 Select tool (mouse-input off), Insert scope other than Voice, Slash voices, Lock/Force Duration and Scissors until spec 13, x:y tuplets until spec 31, "Show all notes" arrows only if the full set is hidden (otherwise omit).
+
+## As built
+- **No new model.** `NoteInputBarModel` hard-codes its tool-config key and item list, so the toolbox and panel use the fork's `DoricoToolsModel` (a list of command URIs whose MenuItems follow the command state). It gained an optional `titles` list for menu entries.
+- **Notes toolbox** (`NotesToolbox.qml`, a non-floatable vertical `DockToolBar` `notesToolbox` at `Location.Left`; a non-floatable toolbar keeps the orientation it is given), 15 buttons in manual order:
+  Show Left Zone `dorico/toggle-zone-left`; Select (placeholder); Start Note Input `dorico/return` (spec 11's start/stop); Pitch Before Duration `notation/toggle-note-input-by-duration`; Chords `dorico/toggle-chord-mode`; Insert `dorico/toggle-insert-mode` (hold: Voice real, Player / Global / Global Adjustment placeholders); Lock Duration `notation/toggle-note-input-repitch` (spec 11 maps L to re-pitch); Force Duration (placeholder); Create Voice = `dorico/next-voice` (hold: Create Voice `dorico/new-voice`, Create Slash Voice placeholder, Next Voice); Dotted Notes `dorico/cycle-dots` (hold: `notation/toggle-dot`..`toggle-dot4`); Rests `dorico/rest`; Tuplets = triplet (hold: 2:3 duplet, 3:2 triplet, 4:3 quadruplet, 5:4 quintuplet, 6:4 sextuplet, 7:8 septuplet, x:y = MuseScore's custom tuplet dialog until spec 31); Grace Notes = appoggiatura (hold: Unslashed / Slashed = acciaccatura); Tie `notation/toggle-tie`; Scissors (placeholder).
+- Click-and-hold opens the menu (the MouseArea's `pressAndHold`, which also suppresses the click).
+- **Highlight state**: `DoricoCommandsState` now reports `checked` for `dorico/return` (note input on), `toggle-chord-mode` and `toggle-insert-mode`, refreshed on `modesChanged` and `noteInputStateChanged`. MuseScore's own commands already report checked for the input method, duration, dots, accidentals and articulations.
+- **Notes panel** (`NotesPanel.qml`, dock `notesPanel`, the Write left zone): Show/Hide All Notes arrow; durations `notation/set-duration-*` (common: half..32nd; all: breve..128th); Flat / Natural / Sharp / Slur; the eight articulations (accent = `toggle-sforzato`, marcato, staccato, tenuto from MuseScore; stressed, unstressed, staccatissimo, tenuto-staccato from spec 11, shown as text buttons since MuseScore has no icons for them).
+- **Write page**: MuseScore's note-input bar and the Layout (instruments) panel are gone from Write (instruments live in Setup, spec 55). Palettes moved to the right zone, closed by default. `zoneDocks(Write)`: left = `notesPanel`; right = palettes, selection filter, history (spec 53 puts the Notations panel first).
+- The lower zone Keyboard tab's Set Duration stays a placeholder: MuseScore has no "apply the input duration to the selection" command.
+
+## Verification status
+Built and unit-tested (`dorico_tests` 29/29), QML linted. Manual check in the app pending (the vertical toolbar orientation after View > Reset layout is worth a look: `DockToolBarView::resetToDefault` forces horizontal).
 
 ## Acceptance criteria
 - [ ] Left edge matches the screenshot: vertical toolbox with 15 buttons in manual order, Notes panel beside it.

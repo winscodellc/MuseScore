@@ -71,6 +71,11 @@ TEST(DoricoShell, WriteZonesHaveDocks)
     }
 }
 
+TEST(DoricoShell, WriteLeftZoneIsTheNotesPanel)
+{
+    EXPECT_EQ(zoneDocks(Mode::Write, Zone::Left), std::vector<QString>({ "notesPanel" }));
+}
+
 TEST(DoricoShell, SetupHasOnePanelPerZone)
 {
     EXPECT_EQ(zoneDocks(Mode::Setup, Zone::Left), std::vector<QString>({ "playersPanel" }));

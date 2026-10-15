@@ -56,12 +56,22 @@ void DoricoCommandsState::init()
         updateCommandStates();
     });
 
+    // Notes toolbox highlights (spec 52): note input, chord and insert mode.
+    modes()->modesChanged().onNotify(this, [this]() {
+        updateCommandStates();
+    });
+    notationController()->noteInputStateChanged().onNotify(this, [this]() {
+        updateCommandStates();
+    });
+
     updateCommandStates();
 }
 
 void DoricoCommandsState::deinit()
 {
     modes()->modeChanged().disconnect(this);
+    modes()->modesChanged().disconnect(this);
+    notationController()->noteInputStateChanged().disconnect(this);
     globalContext()->currentProjectChanged().disconnect(this);
     notationController()->textEditingChanged().disconnect(this);
 }
@@ -91,6 +101,14 @@ CommandState DoricoCommandsState::commandState(const Command& command) const
         if (command == DORICO_MODE_COMMANDS[i]) {
             checked = modes()->mode() == static_cast<mu::dorico::Mode>(i);
         }
+    }
+
+    if (command == DORICO_RETURN_COMMAND) {
+        checked = notationController()->isNoteInputMode();
+    } else if (command == DORICO_TOGGLE_CHORD_MODE_COMMAND) {
+        checked = modes()->isChordMode();
+    } else if (command == DORICO_TOGGLE_INSERT_MODE_COMMAND) {
+        checked = modes()->isInsertMode();
     }
 
     return CommandState(enabled, checked);

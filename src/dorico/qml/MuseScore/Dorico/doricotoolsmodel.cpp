@@ -46,6 +46,19 @@ void DoricoToolsModel::setCodes(const QStringList& codes)
     }
 }
 
+void DoricoToolsModel::setTitles(const QStringList& titles)
+{
+    if (m_titles == titles) {
+        return;
+    }
+    m_titles = titles;
+    emit codesChanged();
+
+    if (!items().empty()) {
+        load();
+    }
+}
+
 void DoricoToolsModel::load()
 {
     AbstractMenuModel::load();
@@ -64,6 +77,9 @@ void DoricoToolsModel::load()
                 item->setDescription(muse::TranslatableString("dorico", "Not available yet"));
                 item->setEnabled(false);
             }
+        }
+        if (item && list.size() < m_titles.size() && !m_titles[list.size()].isEmpty()) {
+            item->setTitle(muse::TranslatableString::untranslatable(muse::String::fromQString(m_titles[list.size()])));
         }
         list << item;
     }

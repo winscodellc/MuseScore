@@ -247,7 +247,7 @@ DockPanel {
                 DoricoToolsModel {
                     id: keyTools
 
-                    // Advance Caret and Delete Left need specs 12 / 43; Set Duration needs spec 52. Listed so the layout matches Dorico.
+                    // Delete Left needs spec 43; Set Duration (apply the input duration to the selection) has no MuseScore command yet. Listed so the layout matches Dorico.
                     codes: [
                         "command://dorico/space",
                         "command://dorico/delete-left",

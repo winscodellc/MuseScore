@@ -106,10 +106,10 @@ inline std::vector<QString> zoneDocks(Mode mode, Zone zone)
         }
         break;
     case Mode::Write:
-        // ponytail: Write still hosts MuseScore's Palettes/Layout panels until specs 52-53.
+        // The first dock of a zone is the one a closed zone opens with (when nothing was open before).
         switch (zone) {
-        case Zone::Left: return { "palettesPanel", "layoutPanel" };
-        case Zone::Right: return { "selectionFiltersPanel", "undoHistoryPanel" };
+        case Zone::Left: return { "notesPanel" };
+        case Zone::Right: return { "palettesPanel", "selectionFiltersPanel", "undoHistoryPanel" };
         case Zone::Lower: return { LOWER_ZONE_PANEL };
         }
         break;

@@ -38,6 +38,8 @@ class DoricoToolsModel : public muse::uicomponents::AbstractMenuModel
     Q_OBJECT
 
     Q_PROPERTY(QStringList codes READ codes WRITE setCodes NOTIFY codesChanged)
+    // Optional, parallel to `codes`: overrides the command's own title (menus show it).
+    Q_PROPERTY(QStringList titles READ titles WRITE setTitles NOTIFY codesChanged)
 
     QML_ELEMENT
 
@@ -46,6 +48,8 @@ public:
 
     QStringList codes() const { return m_codes; }
     void setCodes(const QStringList& codes);
+    QStringList titles() const { return m_titles; }
+    void setTitles(const QStringList& titles);
 
     Q_INVOKABLE void load() override;
 
@@ -54,5 +58,6 @@ signals:
 
 private:
     QStringList m_codes;
+    QStringList m_titles;
 };
 }

@@ -33,12 +33,12 @@ import MuseScore.AppShell
 import MuseScore.NotationScene
 import MuseScore.Palette
 import MuseScore.PropertiesPanel
-import MuseScore.InstrumentsScene
 import MuseScore.Playback
 
 //! Write mode. `uri` is MuseScore's own notation page URI, so the Score tab and project opening need no change.
-//! ponytail: until specs 52-53 land it hosts MuseScore's own panels, arranged as Dorico zones
-//! (left: Palettes + Layout, right: Selection filter + History, lower: LowerZonePanel with Properties, Keyboard, Drum Pads, Mixer, ...).
+//! Left: Notes toolbox + Notes panel (spec 52). Right: MuseScore's Palettes, Selection filter and History (closed by
+//! default; spec 53 adds the Notations toolbox and panel). Lower: LowerZonePanel (spec 54). The instruments panel
+//! lives in Setup mode.
 DoricoPage {
     id: root
 
@@ -49,43 +49,57 @@ DoricoPage {
         Qt.callLater(pageModel.init)
     }
 
-    readonly property string verticalPanelsGroup: "VERTICAL_PANELS"
     readonly property string rightPanelsGroup: "RIGHT_PANELS"
 
 
     toolBars: [
         DockToolBar {
-            id: noteInputBar
+            id: notesToolbox
 
-            objectName: root.pageModel.noteInputBarName()
-            title: qsTrc("appshell", "Note input")
+            objectName: "notesToolbox"
+            title: qsTrc("dorico", "Notes toolbox")
 
-            dropDestinations: [
-                root.toolBarTopDropDestination,
-                root.toolBarBottomDropDestination,
-                root.toolBarLeftDropDestination,
-                root.toolBarRightDropDestination
-            ]
-
-            thickness: orientation === Qt.Horizontal ? 40 : 76
-            resizable: !floating
+            // A non-floatable toolbar keeps the orientation it is given (DockToolBarView::canChangeOrientation).
+            location: Location.Left
+            orientation: Qt.Vertical
+            floatable: false
+            closable: false
+            resizable: false
+            thickness: 44
 
             navigationSection: root.noteInputKeyNavSec
 
-            NoteInputBar {
-                orientation: noteInputBar.orientation
-                floating: noteInputBar.floating
-
-                maximumWidth: noteInputBar.width
-                maximumHeight: noteInputBar.height
-
-                navigationPanel.section: noteInputBar.navigationSection
+            NotesToolbox {
+                navigationPanel.section: notesToolbox.navigationSection
                 navigationPanel.order: 1
             }
         }
     ]
 
     panels: [
+        DockPanel {
+            id: notesPanel
+
+            objectName: "notesPanel"
+            title: qsTrc("dorico", "Notes")
+
+            navigationSection: root.navigationPanelSec(notesPanel.location)
+
+            width: 132
+            minimumWidth: 100
+            maximumWidth: 300
+            minimumHeight: root.panelMinDimension
+            maximumHeight: root.panelMaxDimension
+
+            location: Location.Left
+            dropDestinations: root.verticalPanelDropDestinations
+
+            NotesPanel {
+                navigationSection: notesPanel.navigationSection
+                navigationOrderStart: notesPanel.contentNavigationPanelOrderStart
+            }
+        },
+
         DockPanel {
             id: palettesPanel
 
@@ -101,7 +115,11 @@ DoricoPage {
             minimumHeight: root.panelMinDimension
             maximumHeight: root.panelMaxDimension
 
-            groupName: root.verticalPanelsGroup
+            groupName: root.rightPanelsGroup
+            location: Location.Right
+
+            //! NOTE: hidden by default; the Notations panel (spec 53) is the Dorico way in
+            visible: false
 
             dropDestinations: root.verticalPanelDropDestinations
 
@@ -111,35 +129,6 @@ DoricoPage {
 
                 Component.onCompleted: {
                     palettesPanel.contextMenuModel = contextMenuModel
-                }
-            }
-        },
-
-        DockPanel {
-            id: layoutPanel
-
-            objectName: root.pageModel.layoutPanelName()
-            title: qsTrc("appshell", "Layout")
-
-            navigationSection: root.navigationPanelSec(layoutPanel.location)
-
-            width: root.verticalPanelDefaultWidth
-            minimumWidth: root.verticalPanelDefaultWidth
-            maximumWidth: root.verticalPanelDefaultWidth
-
-            minimumHeight: root.panelMinDimension
-            maximumHeight: root.panelMaxDimension
-
-            groupName: root.verticalPanelsGroup
-
-            dropDestinations: root.verticalPanelDropDestinations
-
-            LayoutPanel {
-                navigationSection: layoutPanel.navigationSection
-                navigationOrderStart: layoutPanel.contentNavigationPanelOrderStart
-
-                Component.onCompleted: {
-                    layoutPanel.contextMenuModel = contextMenuModel
                 }
             }
         },

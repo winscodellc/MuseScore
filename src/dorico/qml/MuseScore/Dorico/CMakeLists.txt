@@ -45,6 +45,8 @@ qt_add_qml_module(dorico_qml
         EngravePage.qml
         LayoutsPanel.qml
         LowerZonePanel.qml
+        NotesPanel.qml
+        NotesToolbox.qml
         PlayPage.qml
         PrintPage.qml
         SetupPage.qml
