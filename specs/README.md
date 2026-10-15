@@ -128,7 +128,7 @@ Status: todo | in-progress | pending review | done  -  Depends on: NN, NN  -  Do
 | 54 | [Write: lower zone](54-write-lower-zone.md) | done | 50 |
 | 55 | [Setup mode](55-setup-mode.md) | pending review | 50 |
 | 56 | [Engrave mode](56-engrave-mode.md) | pending review | 50 |
-| 57 | [Play mode](57-play-mode.md) | todo | 50 |
+| 57 | [Play mode](57-play-mode.md) | pending review | 50 |
 | 58 | [Print mode](58-print-mode.md) | pending review | 50, 55 |
 | 59 | [Menus](59-menus.md) | todo | 50 |
 

@@ -38,6 +38,8 @@ qt_add_qml_module(dorico_qml
         lowerzonemodel.h
         printmodel.cpp
         printmodel.h
+        trackinspectormodel.cpp
+        trackinspectormodel.h
     QML_FILES
         DoricoButton.qml
         DoricoPage.qml
@@ -73,5 +75,9 @@ qt_add_qml_module(dorico_qml
 # DoricoPanelModel (spec 53) builds palette trees; palette/internal headers include their module headers without a path.
 target_include_directories(dorico_qml PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../../../../palette)
 target_link_libraries(dorico_qml PRIVATE palette)
+# TrackInspectorModel (spec 57) reads the mixer's channel items; their header includes playback headers without a path.
+target_include_directories(dorico_qml PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../../../../playback
+                                              ${CMAKE_CURRENT_LIST_DIR}/../../../../playback/qml/MuseScore/Playback)
+target_link_libraries(dorico_qml PRIVATE playback_qml)
 
 fixup_qml_module_dependencies(dorico_qml)

@@ -90,6 +90,13 @@ TEST(DoricoShell, EngraveZones)
     EXPECT_EQ(zoneDocks(Mode::Engrave, Zone::Lower), std::vector<QString>({ LOWER_ZONE_PANEL }));
 }
 
+TEST(DoricoShell, PlayHasNoRightZone)
+{
+    EXPECT_EQ(zoneDocks(Mode::Play, Zone::Left), std::vector<QString>({ "playLeftPanel" }));
+    EXPECT_EQ(zoneDocks(Mode::Play, Zone::Lower), std::vector<QString>({ LOWER_ZONE_PANEL }));
+    EXPECT_TRUE(zoneDocks(Mode::Play, Zone::Right).empty());
+}
+
 TEST(DoricoShell, PrintHasNoLowerZone)
 {
     EXPECT_EQ(zoneDocks(Mode::Print, Zone::Left), std::vector<QString>({ "printLayoutsPanel" }));

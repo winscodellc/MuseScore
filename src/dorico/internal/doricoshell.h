@@ -128,6 +128,12 @@ inline std::vector<QString> zoneDocks(Mode mode, Zone zone)
         }
         break;
     case Mode::Play:
+        // No right zone in Play mode.
+        switch (zone) {
+        case Zone::Left: return { "playLeftPanel" };
+        case Zone::Lower: return { LOWER_ZONE_PANEL };
+        case Zone::Right: return {};
+        }
         break;
     }
     return {};
