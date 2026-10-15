@@ -1,5 +1,5 @@
 # 11 - Note-input modes (Dorico's note-input model on MuseScore's)
-Status: todo  -  Depends on: 00, 10 (land with 10)  -  Dorico refs: see list in Dorico behaviour; full text in [reference/dorico-key-commands.md](reference/dorico-key-commands.md) sections A2-A5
+Status: pending review  -  Depends on: 00, 10 (land with 10)  -  Dorico refs: see list in Dorico behaviour; full text in [reference/dorico-key-commands.md](reference/dorico-key-commands.md) sections A2-A5
 
 ## Goal
 Make note input *feel* like Dorico: Shift-N / Return / Esc start and stop, letters only mean pitches during input, `Q` chord mode, `I` insert mode, `K` pitch-before-duration, `L` lock duration, `,`/`Y` rests, digits with double-tap dotting, forced octave above/below, voices, latching articulations. Gives back what spec 10 took away (`Shift+letter` add-to-chord is now Chord mode).
@@ -87,6 +87,16 @@ Verify while writing: shortcut JSON has no per-entry parameters (hence the many 
 ### Upstream edits
 None in this spec (all in `src/dorico/` and `shortcuts_dorico.json`).
 
+### As built (corrections to the design above)
+- `ICommandDispatcher::dispatch` is **asynchronous** (queued through `Async::call`), so a handler must not read state that a command it just dispatched changes. Each handler dispatches at most one command and reads state *before* dispatching. Direct `INotationNoteInput` calls are synchronous.
+- Dots, voice, rest mode and "is text being edited" come from `INotationCommandsController` (`src/notationscene/inotationcommandscontroller.h`: `currentDotCount()`, `currentVoice()`, `isNoteOrRestSelected()`, `isTextEditing()`), not from `ICommandsState`. All `dorico/*` commands are **disabled while text or lyrics are being edited** (`DoricoCommandsState`), so Space, Return and the letters reach the text editor.
+- Chord mode: MuseScore's input position advances after every entered note, so "caret does not advance" is emulated: the first letter after a reset is `enter-note-x`, further letters are `add-note-x` (stack onto the selected chord). `Space`, a duration key, toggling Q/I and ending input reset the pending chord and Space then does nothing else. A mouse click elsewhere does not reset it.
+- Insert mode: `IDoricoModeState::isInsertMode()` is kept equal to "method is TIMEWISE" while input is active (`DoricoNoteInputController::syncInsertModeFromInput`); starting input with the flag on switches to TIMEWISE.
+- `dorico/toggle-insert-mode` outside note input only flips the flag (it does not start input, unlike `notation/toggle-insert-mode`).
+- Forced octave: reference step is the pending note (K mode), the chord's top/bottom note (chord mode with a pending chord), or the selected note; with none, engraving's nearest-octave choice is kept. These notes do not play a preview sound (the preview helper is private to `NotationActionController`).
+- `O` (Force Duration) stays reserved/unbound.
+- Tests are in one file, `tests/noteinput_tests.cpp` (step math, dot tap, mode state).
+
 ## Deferred / unsupported
 - **Force Duration (O)**: MuseScore never auto-merges rests/ties; no equivalent. Key stays reserved.
 - **Grace-note input mode (`/`)**: `/` keeps `notation/add-acciaccatura` (adds a grace note to the selection). Toggle mode later.
@@ -98,6 +108,8 @@ None in this spec (all in `src/dorico/` and `shortcuts_dorico.json`).
 - Double-click on a staff to start note input at that position; Shift-held chromatic mouse shadow note.
 - Slash voices (Shift-Opt-V).
 - Implicit rests: Space writes explicit rests when the position is empty.
+- No playback preview for forced-octave notes (`Shift-Opt-A..G`, `Ctrl-A..G`).
+- Return on a selected notation item (popover) is a no-op until spec 20.
 
 ## Acceptance criteria
 - [ ] Select a note, press Return: note input starts at it. Return again stops it. Shift-N toggles. Esc stops.
@@ -114,12 +126,12 @@ None in this spec (all in `src/dorico/` and `shortcuts_dorico.json`).
 - [ ] `}` latches staccatissimo for subsequent notes; pressing it again unlatches. With notes selected it toggles on them.
 - [ ] `V` moves between voices 1-2 in input; `Shift-V` creates voice 2 when only voice 1 exists.
 - [ ] Space during input advances without deleting existing notes; outside input it starts/stops playback even when the mixer has focus.
-- [ ] `check_keymap.py` still exits 0 (all rows updated).
-- [ ] Unit tests pass.
+- [x] `check_keymap.py` still exits 0 (all rows updated).
+- [x] Unit tests pass.
 
 ## Tests
-GoogleTest in `src/dorico/tests/`:
-- `pitchmath_tests.cpp`: `lineAbove/lineBelow` over all 7 steps and octave boundaries (prev B4 + C -> C5 above, C4 below; prev C4 + C above -> C5 not C4).
-- `modestate_tests.cpp`: toggling Chord clears Insert and the reverse; `modesChanged` fires once per change.
-- `dottap_tests.cpp`: injectable clock; same digit within 400 ms -> dot, different digit -> no dot, beyond 400 ms -> no dot.
+GoogleTest in `src/dorico/tests/noteinput_tests.cpp` (one file; pure helpers live in `internal/noteinpututils.h`):
+- step math (was `pitchmath_tests.cpp`): `lineAbove/lineBelow` over all 7 steps and octave boundaries (prev B4 + C -> C5 above, C4 below; prev C4 + C above -> C5 not C4).
+- mode state: toggling Chord clears Insert and the reverse; `modesChanged` fires once per change.
+- dot tap: injectable clock; same digit within 400 ms -> dot, different digit -> no dot, beyond 400 ms -> no dot.
 Manual: the acceptance list above on a blank 4/4 score.
