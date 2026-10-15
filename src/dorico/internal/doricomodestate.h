@@ -38,11 +38,17 @@ public:
     void setMode(Mode mode) override;
     muse::async::Notification modeChanged() const override { return m_modeChanged; }
 
+    QString lowerZoneTab() const override { return m_lowerZoneTab; }
+    void setLowerZoneTab(const QString& tab) override;
+    muse::async::Notification lowerZoneTabChanged() const override { return m_lowerZoneTabChanged; }
+
 private:
     bool m_chord = false;
     bool m_insert = false;
     muse::async::Notification m_changed;
     Mode m_mode = Mode::Write;
     muse::async::Notification m_modeChanged;
+    QString m_lowerZoneTab = QStringLiteral("properties");
+    muse::async::Notification m_lowerZoneTabChanged;
 };
 }

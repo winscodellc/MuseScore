@@ -58,6 +58,14 @@ void DoricoActionsController::init()
             return muse::make_ok();
         });
     }
+    // MuseScore's panel toggles (F3, F8, View menu, ...) select a lower-zone tab instead of toggling a dock that no longer exists.
+    cd->preDispatch().onReceive(this, [this](const muse::rcommand::Command& command, bool* allowDispatch) {
+        const auto tab = lowerZoneTabForCommand(command.toString());
+        if (tab && selectLowerZoneTab(*tab)) {
+            *allowDispatch = false;
+        }
+    });
+
     cd->onRequest(this, DORICO_TOGGLE_ALL_ZONES_COMMAND, [this]() { toggleAllZones(); return muse::make_ok(); });
     cd->onRequest(this, DORICO_TOGGLE_TOOLBAR_COMMAND, [this]() { toggleToolbar(); return muse::make_ok(); });
 }
@@ -102,6 +110,24 @@ void DoricoActionsController::toggleZone(Zone zone)
     for (const QString& name : toOpen) {
         window->setDockOpen(name, true);
     }
+}
+
+bool DoricoActionsController::selectLowerZoneTab(const QString& tab)
+{
+    muse::dock::IDockWindow* window = dockWindowProvider()->window();
+    const std::vector<QString> docks = zoneDocks(modes()->mode(), Zone::Lower);
+    if (!window || docks.size() != 1 || docks.front() != LOWER_ZONE_PANEL) {
+        return false;
+    }
+
+    const QString dock = docks.front();
+    if (window->isDockOpen(dock) && modes()->lowerZoneTab() == tab) {
+        window->setDockOpen(dock, false);
+    } else {
+        modes()->setLowerZoneTab(tab);
+        window->setDockOpen(dock, true);
+    }
+    return true;
 }
 
 void DoricoActionsController::toggleAllZones()

@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <QString>
+
 #include "global/async/notification.h"
 #include "modularity/imoduleinterface.h"
 
@@ -52,5 +54,10 @@ public:
     virtual Mode mode() const = 0;
     virtual void setMode(Mode mode) = 0;
     virtual muse::async::Notification modeChanged() const = 0;
+
+    //! Selected tab of the Write-mode lower zone (spec 54): properties, keyboard, fretboard, drumPads, mixer, keyEditor, timeline.
+    virtual QString lowerZoneTab() const = 0;
+    virtual void setLowerZoneTab(const QString& tab) = 0;
+    virtual muse::async::Notification lowerZoneTabChanged() const = 0;
 };
 }

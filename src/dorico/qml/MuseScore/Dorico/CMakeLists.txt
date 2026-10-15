@@ -32,12 +32,15 @@ qt_add_qml_module(dorico_qml
         doricotoolsmodel.h
         doricoviewmenumodel.cpp
         doricoviewmenumodel.h
+        lowerzonemodel.cpp
+        lowerzonemodel.h
     QML_FILES
         DoricoPage.qml
         DoricoPlaceholder.qml
         DoricoStatusBar.qml
         DoricoTopBar.qml
         EngravePage.qml
+        LowerZonePanel.qml
         PlayPage.qml
         PrintPage.qml
         SetupPage.qml

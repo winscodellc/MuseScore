@@ -25,6 +25,7 @@
 
 #include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <QString>
@@ -69,6 +70,27 @@ inline std::optional<Mode> modeFromUri(const muse::Uri& uri)
     return std::nullopt;
 }
 
+// The single Write-mode lower-zone dock (spec 54); its tabs are chosen by IDoricoModeState::lowerZoneTab().
+inline constexpr const char* LOWER_ZONE_PANEL = "lowerZonePanel";
+
+// MuseScore's own panel toggles that now select a lower-zone tab instead (spec 54).
+inline std::optional<QString> lowerZoneTabForCommand(const std::string& uri)
+{
+    static const std::pair<const char*, const char*> table[] = {
+        { "command://app/dock/toggle-properties", "properties" },
+        { "command://app/dock/toggle-piano-keyboard", "keyboard" },
+        { "command://app/dock/toggle-percussion", "drumPads" },
+        { "command://app/dock/toggle-mixer", "mixer" },
+        { "command://app/dock/toggle-timeline", "timeline" },
+    };
+    for (const auto& [command, tab] : table) {
+        if (uri == command) {
+            return QString::fromLatin1(tab);
+        }
+    }
+    return std::nullopt;
+}
+
 // Dock names are the ones in appshell/appshelltypes.h (not included: that header is upstream QML-module-internal).
 // ponytail: Write still hosts MuseScore's own panels (specs 52-54 replace them); other modes have no zones until 55-58.
 inline std::vector<QString> zoneDocks(Mode mode, Zone zone)
@@ -79,8 +101,8 @@ inline std::vector<QString> zoneDocks(Mode mode, Zone zone)
 
     switch (zone) {
     case Zone::Left: return { "palettesPanel", "layoutPanel" };
-    case Zone::Right: return { "propertiesPanel", "selectionFiltersPanel", "undoHistoryPanel" };
-    case Zone::Lower: return { "mixerPanel", "pianoKeyboardPanel", "timelinePanel", "percussionPanel" };
+    case Zone::Right: return { "selectionFiltersPanel", "undoHistoryPanel" };
+    case Zone::Lower: return { LOWER_ZONE_PANEL };
     }
     return {};
 }

@@ -37,8 +37,8 @@ import MuseScore.InstrumentsScene
 import MuseScore.Playback
 
 //! Write mode. `uri` is MuseScore's own notation page URI, so the Score tab and project opening need no change.
-//! ponytail: until specs 52-54 land it hosts MuseScore's own panels, arranged as Dorico zones
-//! (left: Palettes + Layout, right: Properties + Selection filter + History, lower: Mixer, Piano, Timeline, Percussion).
+//! ponytail: until specs 52-53 land it hosts MuseScore's own panels, arranged as Dorico zones
+//! (left: Palettes + Layout, right: Selection filter + History, lower: LowerZonePanel with Properties, Keyboard, Drum Pads, Mixer, ...).
 DoricoPage {
     id: root
 
@@ -51,15 +51,11 @@ DoricoPage {
 
     readonly property int verticalPanelDefaultWidth: 300
 
-    readonly property int horizontalPanelMinHeight: 100
-    readonly property int horizontalPanelMaxHeight: 520
-
     readonly property int panelMinDimension: 10
     readonly property int panelMaxDimension: 7500 //! NOTE: Value found experimentally - see issue #27770
 
     readonly property string verticalPanelsGroup: "VERTICAL_PANELS"
     readonly property string rightPanelsGroup: "RIGHT_PANELS"
-    readonly property string horizontalPanelsGroup: "HORIZONTAL_PANELS"
 
     readonly property var verticalPanelDropDestinations: [
         { "dock": root.centralDock, "dropLocation": Location.Left, "dropDistance": root.verticalPanelDefaultWidth },
@@ -164,33 +160,6 @@ DoricoPage {
         },
 
         DockPanel {
-            id: propertiesPanel
-
-            objectName: root.pageModel.propertiesPanelName()
-            title: qsTrc("appshell", "Properties")
-
-            navigationSection: root.navigationPanelSec(propertiesPanel.location)
-
-            width: root.verticalPanelDefaultWidth
-            minimumWidth: root.verticalPanelDefaultWidth
-            maximumWidth: root.verticalPanelDefaultWidth
-
-            minimumHeight: root.panelMinDimension
-            maximumHeight: root.panelMaxDimension
-
-            groupName: root.rightPanelsGroup
-            location: Location.Right
-
-            dropDestinations: root.verticalPanelDropDestinations
-
-            PropertiesPanel {
-                navigationSection: propertiesPanel.navigationSection
-                navigationOrderStart: propertiesPanel.contentNavigationPanelOrderStart
-                notationView: root.notationView
-            }
-        },
-
-        DockPanel {
             id: selectionFilterPanel
 
             objectName: root.pageModel.selectionFiltersPanelName()
@@ -247,177 +216,15 @@ DoricoPage {
                 navigationOrderStart: undoHistoryPanel.contentNavigationPanelOrderStart
             }
         },
-        
-        // =============================================
-        // Horizontal Panels
-        // =============================================
 
-        DockPanel {
-            id: mixerPanel
+        LowerZonePanel {
+            id: lowerZonePanel
 
-            objectName: root.pageModel.mixerPanelName()
-            title: qsTrc("appshell", "Mixer")
+            notationView: root.notationView
 
-            height: 368
-            minimumHeight: root.horizontalPanelMinHeight
-            maximumHeight: root.horizontalPanelMaxHeight
-
-            minimumWidth: root.panelMinDimension
-            maximumWidth: root.panelMaxDimension
-
-            groupName: root.horizontalPanelsGroup
-
-            //! NOTE: hidden by default
-            visible: false
-
-            location: Location.Bottom
+            navigationSection: root.navigationPanelSec(lowerZonePanel.location)
 
             dropDestinations: root.horizontalPanelDropDestinations
-
-            navigationSection: root.navigationPanelSec(mixerPanel.location)
-
-            MixerPanel {
-                id: mixerPanelComponent
-
-                navigationSection: mixerPanel.navigationSection
-                contentNavigationPanelOrderStart: mixerPanel.contentNavigationPanelOrderStart
-
-                Component.onCompleted: {
-                    mixerPanel.contextMenuModel = contextMenuModel
-                    mixerPanel.toolbarComponent = toolbarComponent
-                }
-
-                Component.onDestruction: {
-                    mixerPanel.contextMenuModel = null
-                    mixerPanel.toolbarComponent = null
-                }
-
-                onResizeRequested: function(newWidth, newHeight) {
-                    mixerPanel.resize(newWidth, newHeight)
-                }
-
-                Connections {
-                    target: mixerPanel
-                    function onPanelShown() {
-                        mixerPanelComponent.resizePanelToContentHeight()
-                    }
-                }
-            }
-        },
-
-        DockPanel {
-            id: pianoKeyboardPanel
-
-            objectName: root.pageModel.pianoKeyboardPanelName()
-            title: qsTrc("appshell", "Piano keyboard")
-
-            height: 200
-            minimumHeight: root.horizontalPanelMinHeight
-            maximumHeight: root.horizontalPanelMaxHeight
-
-            minimumWidth: root.panelMinDimension
-            maximumWidth: root.panelMaxDimension
-
-            groupName: root.horizontalPanelsGroup
-
-            //! NOTE: hidden by default
-            visible: false
-
-            location: Location.Bottom
-
-            dropDestinations: root.horizontalPanelDropDestinations
-
-            navigationSection: root.navigationPanelSec(pianoKeyboardPanel.location)
-
-            PianoKeyboardPanel {
-                navigationSection: pianoKeyboardPanel.navigationSection
-                contentNavigationPanelOrderStart: pianoKeyboardPanel.contentNavigationPanelOrderStart
-
-                Component.onCompleted: {
-                    pianoKeyboardPanel.contextMenuModel = contextMenuModel
-                }
-            }
-        },
-
-        DockPanel {
-            id: timelinePanel
-
-            objectName: root.pageModel.timelinePanelName()
-            title: qsTrc("appshell", "Timeline")
-
-            height: 200
-            minimumHeight: root.horizontalPanelMinHeight
-            maximumHeight: root.horizontalPanelMaxHeight
-
-            minimumWidth: root.panelMinDimension
-            maximumWidth: root.panelMaxDimension
-
-            groupName: root.horizontalPanelsGroup
-
-            //! NOTE: hidden by default
-            visible: false
-
-            location: Location.Bottom
-
-            dropDestinations: root.horizontalPanelDropDestinations
-
-            navigationSection: root.navigationPanelSec(timelinePanel.location)
-
-            Timeline {
-                navigationSection: timelinePanel.navigationSection
-                contentNavigationPanelOrderStart: timelinePanel.contentNavigationPanelOrderStart
-            }
-        },
-
-        DockPanel {
-            id: percussionPanel
-
-            objectName: root.pageModel.percussionPanelName()
-            title: qsTrc("appshell", "Percussion")
-
-            height: 200
-            minimumHeight: root.horizontalPanelMinHeight
-            maximumHeight: root.horizontalPanelMaxHeight
-
-            minimumWidth: root.panelMinDimension
-            maximumWidth: root.panelMaxDimension
-
-            groupName: root.horizontalPanelsGroup
-
-            //! NOTE: hidden by default
-            visible: false
-
-            location: Location.Bottom
-
-            dropDestinations: root.horizontalPanelDropDestinations
-
-            navigationSection: root.navigationPanelSec(percussionPanel.location)
-
-            PercussionPanel {
-                id: percussionComponent
-
-                navigationSection: percussionPanel.navigationSection
-                contentNavigationPanelOrderStart: percussionPanel.contentNavigationPanelOrderStart
-
-                Component.onCompleted: {
-                    percussionPanel.toolbarComponent = toolbarComponent
-                }
-
-                Component.onDestruction: {
-                    percussionPanel.toolbarComponent = null
-                }
-
-                onResizeRequested: function(newWidth, newHeight) {
-                    percussionPanel.resize(newWidth, newHeight)
-                }
-
-                Connections {
-                    target: percussionPanel
-                    function onPanelShown() {
-                        percussionComponent.resizePanelToContentHeight()
-                    }
-                }
-            }
         }
     ]
 }

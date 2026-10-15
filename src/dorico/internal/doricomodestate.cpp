@@ -56,3 +56,12 @@ void DoricoModeState::setMode(Mode mode)
     m_mode = mode;
     m_modeChanged.notify();
 }
+
+void DoricoModeState::setLowerZoneTab(const QString& tab)
+{
+    if (m_lowerZoneTab == tab) {
+        return;
+    }
+    m_lowerZoneTab = tab;
+    m_lowerZoneTabChanged.notify();
+}

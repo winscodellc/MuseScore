@@ -55,6 +55,7 @@ private:
 
     std::vector<QString> openDocks(Zone zone) const;
     void toggleZone(Zone zone);
+    bool selectLowerZoneTab(const QString& tab);
     void toggleAllZones();
     void toggleToolbar();
 
