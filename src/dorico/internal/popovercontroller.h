@@ -62,12 +62,14 @@ public:
 
 private:
     bool canOpen() const;
-    void open(const PopoverDef* def, const std::string& text);
+    engraving::EngravingItem* existingItem(const PopoverDef* def) const;
+    void open(const PopoverDef* def, engraving::EngravingItem* editing);
     muse::RectF computeAnchor() const;
 
     PopoverRegistry m_registry = makePopoverRegistry();
     const PopoverDef* m_current = nullptr;
     std::string m_initialText;
+    engraving::EngravingItem* m_editing = nullptr; // the item this popover replaces; nullptr = adds a new one
     muse::RectF m_anchor;
     muse::async::Notification m_stateChanged;
 };

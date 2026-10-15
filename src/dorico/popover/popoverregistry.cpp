@@ -81,8 +81,11 @@ static PopoverDef temporaryDynamics()
         if (text.empty()) {
             return ParseStatus::Incomplete;
         }
-        if (TConv::fromXml(muse::AsciiStringView(text.c_str()), DynamicType::OTHER) != DynamicType::OTHER) {
-            return ParseStatus::Ok;
+        // Not TConv::fromXml: it asserts on unknown names, and this runs on every keystroke.
+        for (int t = int(DynamicType::OTHER) + 1; t < int(DynamicType::LAST); ++t) {
+            if (TConv::toXml(DynamicType(t)) == muse::AsciiStringView(text.c_str())) {
+                return ParseStatus::Ok;
+            }
         }
         return text.find_first_not_of("pmfszrn") == std::string::npos ? ParseStatus::Incomplete : ParseStatus::Invalid;
     };

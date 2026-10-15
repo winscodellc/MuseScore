@@ -24,7 +24,10 @@
 
 #include <algorithm>
 
+#include "engraving/dom/chordrest.h"
 #include "engraving/dom/measure.h"
+#include "engraving/dom/note.h"
+#include "engraving/dom/segment.h"
 #include "engraving/dom/system.h"
 
 #include "notation/inotation.h"
@@ -47,7 +50,7 @@ void PopoverController::init()
         const PopoverDef* def = m_registry.find(command.pathSegments().back());
         dispatcher()->onRequest(this, command, [this, def]() {
             if (canOpen()) {
-                open(def, std::string());
+                open(def, existingItem(def));
             }
             return muse::make_ok();
         });
@@ -102,7 +105,7 @@ bool PopoverController::openForSelection()
         return false;
     }
     INotationInteractionPtr interaction = globalContext()->currentNotation()->interaction();
-    const EngravingItem* item = interaction->selection()->element();
+    EngravingItem* item = interaction->selection()->element();
     if (!item || interaction->noteInput()->isNoteInputMode()) {
         return false;
     }
@@ -110,14 +113,46 @@ bool PopoverController::openForSelection()
     if (!def) {
         return false;
     }
-    open(def, def->prefill(item));
+    open(def, item);
     return true;
 }
 
-void PopoverController::open(const PopoverDef* def, const std::string& text)
+// The item the popover would edit: the selected item itself, or one of its type already attached to the selected
+// note/rest (e.g. Shift-D on a note that has a dynamic). Entering text then replaces it instead of adding a second one.
+// ponytail: only looks at the segment's annotations (dynamics, tempo, chord symbols, text); specs whose items live
+// elsewhere (clefs, key signatures, fingering) extend this when they need it.
+EngravingItem* PopoverController::existingItem(const PopoverDef* def) const
+{
+    INotationInteractionPtr interaction = globalContext()->currentNotation()->interaction();
+    EngravingItem* selected = interaction->selection()->element();
+    if (!def || !selected || interaction->noteInput()->isNoteInputMode()) {
+        return nullptr;
+    }
+
+    auto owned = [def](const EngravingItem* e) {
+        return std::find(def->itemTypes.begin(), def->itemTypes.end(), e->type()) != def->itemTypes.end();
+    };
+    if (owned(selected)) {
+        return selected;
+    }
+
+    const EngravingItem* cr = selected->isNote() ? toNote(selected)->chord() : selected;
+    if (!cr->isChordRest()) {
+        return nullptr;
+    }
+    for (EngravingItem* e : toChordRest(cr)->segment()->annotations()) {
+        if (e->staffIdx() == cr->staffIdx() && owned(e)) {
+            return e;
+        }
+    }
+    return nullptr;
+}
+
+void PopoverController::open(const PopoverDef* def, EngravingItem* editing)
 {
     m_current = def; // replaces any open popover: Dorico shows one at a time
-    m_initialText = text;
+    m_editing = editing;
+    m_initialText = def && editing ? def->prefill(editing) : std::string();
     m_anchor = computeAnchor();
     m_stateChanged.notify();
 }
@@ -167,6 +202,11 @@ bool PopoverController::accept(const std::string& text, ApplyScope scope)
     }
 
     // One undo step per Return, however many transactions the handler makes.
+    // Handlers act on the selection; selecting the edited item makes the entry replace it.
+    if (m_editing && notation->interaction()->selection()->element() != m_editing) {
+        notation->interaction()->select({ m_editing });
+    }
+
     INotationUndoStackPtr undoStack = notation->undoStack();
     const size_t start = undoStack->currentStateIndex();
     if (!m_current->apply(text, m_current->supportsLocal ? scope : ApplyScope::Default, notation)) {
@@ -182,6 +222,7 @@ bool PopoverController::accept(const std::string& text, ApplyScope scope)
 
 void PopoverController::cancel()
 {
+    m_editing = nullptr;
     if (m_current) {
         m_current = nullptr;
         m_stateChanged.notify();

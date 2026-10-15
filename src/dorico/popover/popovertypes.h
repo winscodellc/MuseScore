@@ -49,7 +49,8 @@ enum class ApplyScope {
 
 //! One popover (spec 20). A plain record of callbacks, like a TS object literal; specs 21-36 each provide one.
 //! `apply` runs inside the popover's undo step and acts on the current selection or note-input caret.
-//! When the popover was reopened from an item, that item is still the selection.
+//! When the popover edits an existing item (Return on it, or opened on a note that already has one), that item is
+//! selected before `apply`, so applying replaces it instead of adding a second one.
 struct PopoverDef {
     std::string id;    // URI tail: command://dorico/popover/<id>
     std::string title;
