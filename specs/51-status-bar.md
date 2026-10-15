@@ -1,5 +1,5 @@
 # 51 - Status bar
-Status: pending review  -  Depends on: 50  -  Dorico refs: `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/user_interface/user_interface_status_bar_r.html`, `.../user_interface_view_types_r.html`
+Status: done  -  Depends on: 50  -  Dorico refs: `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/user_interface/user_interface_status_bar_r.html`, `.../user_interface_view_types_r.html`
 
 Implementer: Sonnet is fine.
 
@@ -36,11 +36,11 @@ See `reference/dorico-ui.md` 0.5. Items per mode:
 Grid selector until spec 12; Marquee/Hand if no pan tool; Spreads and horizontal page arrangements; MIDI indicator; Fill view exactness (maps to float).
 
 ## Acceptance criteria
-- [ ] Status bar order matches `dorico-ui.md` 0.5 and the reference screenshot.
-- [ ] Concert/Transposed toggles the score pitch display like MuseScore's concert pitch.
-- [ ] Page / Galley / Fill switch the view; zoom controls and presets work.
-- [ ] Selecting a range shows bar range and duration; selecting a note shows bar, pitch and voice; nothing selected shows nothing.
-- [ ] Items not valid for the active mode are hidden.
+- [x] Status bar order matches `dorico-ui.md` 0.5 and the reference screenshot.
+- [x] Concert/Transposed toggles the score pitch display like MuseScore's concert pitch.
+- [x] Page / Galley / Fill switch the view; zoom controls and presets work.
+- [x] Selecting a range shows bar range and duration; selecting a note shows bar, pitch and voice; nothing selected shows nothing.
+- [x] Items not valid for the active mode are hidden.
 
 ## As built
 - `DoricoStatusBar.qml` replaces `NotationStatusBar` in `DoricoPage` (`statusItems` per page: Write all; Engrave without follow/view type; Play: pitch, summary, arrow, zoom, midi; Setup: order, summary, zoom, midi; Print: summary, zoom, midi). Engrave hides the view-type control because spec 56 forces page view.
@@ -53,7 +53,7 @@ Grid selector until spec 12; Marquee/Hand if no pan tool; Spreads and horizontal
 - QML snags hit: `FlatButton` has no `checked` (accent = on); `StyledToolTip` has no `visible` (use `ui.tooltip.show/hide`); a `Q_INVOKABLE` is needed for `load()` called from QML.
 
 ## Verification status
-Built and unit-tested (`dorico_tests` 21/21, `check_keymap.py` 0 failures). The app starts with no QML errors from the new files. **Not yet checked by eye**: layout, selection text and button behaviour. Acceptance boxes stay open until that manual check.
+Built, unit-tested (`dorico_tests`, `check_keymap.py`) and checked by hand in the app: all acceptance criteria pass.
 
 ## Tests
 GoogleTest for `summarise()` (single note, chord, range, multiple selection, empty). Manual: compare with the screenshot.
