@@ -1,5 +1,5 @@
 # 50 - UI shell and modes
-Status: pending review  -  Depends on: 00, 10  -  Dorico refs: `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/user_interface/user_interface_windows_c.html`, `.../user_interface_toolbar_r.html`, `.../user_interface_transport_options_r.html`, `.../user_interface_panels_r.html`, `.../user_interface_tab_bar_r.html`
+Status: done  -  Depends on: 00, 10  -  Dorico refs: `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/user_interface/user_interface_windows_c.html`, `.../user_interface_toolbar_r.html`, `.../user_interface_transport_options_r.html`, `.../user_interface_panels_r.html`, `.../user_interface_tab_bar_r.html`
 
 Implementer: **Opus** (dock framework quirks, upstream edit). Every other 5x spec builds on this one, so land it first.
 
@@ -73,16 +73,16 @@ Risk: page layouts are saved per page name. If the page `objectName` of the old 
 | Help overlay | Maps to MuseScore's Help menu |
 
 ## Acceptance criteria
-- [ ] Opening a score shows `WritePage` with the Dorico top bar; no Home/Score/Publish bar inside the score.
-- [ ] The five mode tabs switch pages (empty pages are fine) and the active tab is highlighted; Cmd-1..5 do the same.
-- [ ] Layout selector lists the score and every part, and switching it changes the displayed notation.
-- [ ] Transport (play, rewind, cycle, click, tempo, time) and undo/redo work as in MuseScore.
-- [ ] Cmd-7/8/9 toggle the left/lower/right zone of the active page; Hide/Restore Zones toggles all.
-- [ ] Layout per page persists across restart; Home and Publish still work.
+- [x] Opening a score shows `WritePage` with the Dorico top bar; no Home/Score/Publish bar inside the score.
+- [x] The five mode tabs switch pages (empty pages are fine) and the active tab is highlighted; Cmd-1..5 do the same.
+- [x] Layout selector lists the score and every part, and switching it changes the displayed notation.
+- [x] Transport (play, rewind, cycle, click, tempo, time) and undo/redo work as in MuseScore.
+- [x] Cmd-7/8/9 toggle the left/lower/right zone of the active page; Hide/Restore Zones toggles all.
+- [x] Layout per page persists across restart; Home and Publish still work.
 - [x] `check_keymap.py` passes.
 
 ## Verification status
-Built and installed; `dorico_tests` and `check_keymap.py` pass; the app starts with no Dorico QML warnings. **Not yet checked by hand** (needs a GUI session): every unticked box above, in particular that hiding the MuseScore bar via `mainToolBar.close()` works, that note-editing keys still work on the non-Write pages (UI-context note), and layout persistence across restart.
+Built, unit-tested (`dorico_tests`, `check_keymap.py`) and checked by hand in the app: all acceptance criteria pass.
 
 ## Tests
 - GoogleTest (`tests/doricoshell_tests.cpp`, passing): `Mode` state (default, set/get, `modeChanged` fires once per change), mode <-> URI round trip, zone table.
