@@ -203,3 +203,36 @@ A new `src/dorico/` module can therefore register its own `command://dorico/...`
 
 ### Key conflicts to plan for
 Dorico's Shift+letter popovers (Shift+D, Shift+M, Shift+K, Shift+B, Shift+X, …) collide with MuseScore's `add-note-*`, articulation and other bindings on Shift+letter (33 of them, all in the NOTATION scope). The Dorico shortcut file must clear those explicitly; same-scope rebinding clears them automatically.
+
+## 7. App shell (window, pages, toolbars, status bar)
+All paths relative to `src/`. Used by specs 50-59.
+
+### Loading chain and pages
+- `app/internal/guiapp.cpp:100` loads `appshell/qml/MuseScore/AppShell/platform/<os>/Main.qml`, which contains `WindowContent` (`platform/mac/Main.qml:39`).
+- `appshell/qml/MuseScore/AppShell/WindowContent.qml` is a `DockWindow`: `:49-56` `onRequestedDockPage` -> `loadPage(uri)`; `:64-98` window-level `toolBars` (one `DockToolBar` holding `MainToolBar`, the Home/Score/Publish tabs); `:100-118` the fixed `pages` list (`HomePage`, `NotationPage`, `NotationReviewPage`, `PublishPage`, `DevToolsPage`).
+- `MainToolBar.qml:70-103` tabs; model `maintoolbarmodel.cpp` (URIs `:29-33`, `load()` `:100-120`, Score tab URI swap `:139-155`). `openprojectscenario.cpp:508-520` `resolveNotationPageUri()` picks notation vs review page.
+- `appshell/qml/MuseScore/AppShell/NotationPage/NotationPage.qml` is a `DockPage`, `uri: "musescore://notation"`, C++ `NotationPageModel`. `mainToolBars` `:116-222` (notation, playback, extensions, undo/redo); `toolBars` `:224-254` (`noteInputBar`); side panels `:256-396` (Palettes, Layout = instruments, Properties, Selection filter, History; group `VERTICAL_PANELS`, 300 px); bottom panels `:402-568` (Mixer, Piano keyboard, Timeline, Percussion; group `HORIZONTAL_PANELS`); `central` = `NotationView` `:571-588`; `statusBar` `:590-598`.
+- Panel names: `appshell/appshelltypes.h:37-59`; page model accessors `xxxPanelName()`.
+- Toggle chain: actions `appshell/internal/applicationuiactions.cpp:126-188` (dock mapping `:332-342`) -> `appshellcommandscontroller.cpp:92,115-123` -> `NotationPageModel` (`notationpagemodel.cpp:69`, `toggleDock()` `:195-209`) -> `dock-toggle` / `dock-set-open` -> `muse/framework/dockwindow/qml/Muse/Dock/dockwindow.cpp:288-312`. Command URIs `appshell/appshellcommands.h:44-52`.
+- Dock engine: `dockwindow.cpp` `loadPageContent` `:357`, `loadTopLevelToolBars` `:373-387` (first on top, rest to its right), `loadToolBars` `:389-401`, `loadPanels` `:404-424`, `addDock` `:480`. Layout saved and restored **per page name** (`:617-683`); a new page starts from its QML defaults.
+
+### Toolbars
+| Toolbar | QML | Model |
+|---|---|---|
+| Notation | `notationscene/qml/MuseScore/NotationScene/NotationToolBar.qml` | `notationtoolbarmodel.cpp:35-70` |
+| Playback | `playback/qml/MuseScore/Playback/PlaybackToolBar.qml` | `playbacktoolbarmodel.cpp:44-58,101`; config via `uiState()->toolConfig` |
+| Undo/redo | `notationscene/qml/MuseScore/NotationScene/UndoRedoToolBar.qml` | `internal/undoredotoolbarmodel.h:32` |
+| Note input | `NoteInputBar.qml` (`GridViewSectional`, horizontal or vertical) | `noteinputbarmodel.cpp`, defaults `:102-160`, `load()` `:163` |
+
+### Status bar
+`appshell/qml/MuseScore/AppShell/NotationPage/NotationStatusBar.qml` + `notationstatusbarmodel.{h,cpp}`. Order: playback loading, accessibility info, online sounds, workspace switcher, concert pitch toggle, view mode, zoom, overflow menu. Reusable parts: `ViewModeControl.qml`, `ZoomControl.qml` (NotationScene). View modes -> commands at `notationstatusbarmodel.cpp:65-69`.
+
+### Vertical toolbars / side strips
+- Vertical `DockToolBar` is supported: each `DockPage` has holders for all four edges (`DockPage.qml:34-42,61-113`); `DockToolBarView.orientation` (`docktoolbarview.h:48`); `init()` `docktoolbarview.cpp:166-177`. **Snag:** vertical is only chosen when the toolbar is floatable with a left/right drop destination (`canChangeOrientation` `:179-192`), and `resetToDefault()` forces horizontal (`:194-199`). A toolbar that must start vertical needs `location: Location.Left` and an explicit orientation.
+- No side icon strip / tab bar exists. `DockTabBar.qml` is horizontal only; KDDockWidgets auto-hide sidebars are off (`dockmodule.cpp:174-184`). Build the strip as a narrow non-floatable vertical `DockToolBar` whose buttons dispatch `dock-toggle` / `dock-set-open`.
+
+### Can a module add pages?
+No hook. Pages are QML children in `WindowContent.qml:100-118`; `pageByUri()` (`dockwindow.cpp:568`) only searches that list; `registerPageUri` (`muse/framework/interactive/iinteractiveuriregister.h:45-47`) only routes (`InteractiveProvider.qml:57-63`); AppShell pages are imported relatively and compiled into `MuseScore.AppShell`, so they can't be shadowed. Required upstream edit: import `MuseScore.Dorico` in `WindowContent.qml` and list the Dorico pages there. If the Dorico QML module imports `NotationPageModel` (AppShell), add the appshell QML target to its `IMPORTS`.
+
+### `src/dorico/` at the start of the UI series
+`IDoricoModeState` (`idoricomodestate.h:30-42`) has only Chord/Insert flags. `qml/MuseScore/Dorico/` has only `DoricoPlaceholder.qml`; its imports are `muse_ui_qml` and `muse_uicomponents_qml`. `DoricoModule` registers commands, state and the preset switch (`doricomodule.cpp:51-95`), no URIs and no UI.

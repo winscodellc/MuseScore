@@ -9,6 +9,7 @@ Make this fork (MuseScore Studio 5.0-dev) behave as close as possible to **Doric
 1. **Key commands**: Dorico's default macOS key set replaces MuseScore's.
 2. **Popovers**: the Shift+letter text-entry boxes (dynamics, time signatures, ...).
 3. **Editing**: copy / paste / paste special / duplicate / repeat / delete / selection / filters / search (Jump bar).
+4. **UI shell**: Dorico's window layout (mode tabs, toolboxes, zones, status bar, menus) for all five modes (specs 50-59).
 
 The Dorico manual is the behavioural reference: <https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/introduction/introduction_c.html> (popover syntax is in the separate *Dorico Popover Reference 6.2*).
 
@@ -55,6 +56,12 @@ Each spec has a **Dorico behaviour** section copied from the reference files, wi
 ### 6. Parsers are pure functions
 Every popover is `parse(QString) -> Result` (no UI, no score) plus `apply(Result, INotationInteraction&)`. The parser is unit-tested with GoogleTest. Same for the Jump bar and `SearchCommandsParser` extensions.
 
+### 7. UI shell (specs 50-59)
+- One `DockPage` per mode in `src/dorico/qml/MuseScore/Dorico/`. `WritePage` keeps `uri: "musescore://notation"` (so the Score tab and project opening need no change); the other four use `musescore://dorico/<mode>`. Switching mode = loading a page; the dock framework saves each page's layout separately.
+- The only upstream edit for the shell is in `WindowContent.qml` (import `MuseScore.Dorico`, list the five pages, hide the Home/Score/Publish bar on Dorico pages). Spec 59 adds one hook in `appmenumodel.cpp`.
+- Shared parts (`DoricoTopBar`, `DoricoStatusBar`, toolbox/panel button grid) are reused by all pages; existing MuseScore panels (palettes, instruments, properties, mixer, piano keyboard, timeline, percussion) are embedded, not copied.
+- Dorico panels with no MuseScore backing are **stubs** ("Not available yet", disabled buttons with a tooltip) and are listed under each spec's Deferred section; nothing is silently dropped. Icons are MuseScore's, never Dorico's.
+
 ## Spec template (every `NN-*.md`)
 
 ```
@@ -76,6 +83,7 @@ Status: todo | in-progress | pending review | done  -  Depends on: NN, NN  -  Do
 | [reference/dorico-key-commands.md](reference/dorico-key-commands.md) | Full macOS key table by context, design grammar, caret visuals, gaps in the manual |
 | [reference/dorico-popovers.md](reference/dorico-popovers.md) | Popover UI behaviour, Return / Opt-Return table, every entry-syntax table |
 | [reference/dorico-editing.md](reference/dorico-editing.md) | Copy/paste/Paste Special, R, moves, delete, selection, Select More, filters, Jump bar, caret, grid, transpose/respell |
+| [reference/dorico-ui.md](reference/dorico-ui.md) | Dorico UI inventory: toolbar, transport, status bar, zones, every toolbox / panel / menu per mode, with manual URLs |
 | [reference/musescore-internals.md](reference/musescore-internals.md) | Shortcuts v2 pipeline, note-input model, popup infrastructure, item-adding APIs, paste/selection/search code locations |
 
 ## Status table
@@ -112,8 +120,18 @@ Status: todo | in-progress | pending review | done  -  Depends on: NN, NN  -  Do
 | 45 | [Filters](45-filters.md) | todo | 44 |
 | 46 | [Jump bar and Go To Bar](46-jump-bar.md) | todo | 20 (overlay), 10 |
 | 47 | [Explode / Reduce](47-explode-reduce.md) | todo | 41 (lowest priority) |
+| 50 | [UI shell and modes](50-ui-shell-and-modes.md) | pending review | 00, 10 |
+| 51 | [Status bar](51-status-bar.md) | todo | 50 |
+| 52 | [Write: Notes toolbox and panel](52-write-notes-toolbox-and-panel.md) | todo | 50, 11 |
+| 53 | [Write: Notations toolbox and panels](53-write-notations-toolbox-and-panels.md) | todo | 50, 20 |
+| 54 | [Write: lower zone](54-write-lower-zone.md) | todo | 50 |
+| 55 | [Setup mode](55-setup-mode.md) | todo | 50 |
+| 56 | [Engrave mode](56-engrave-mode.md) | todo | 50 |
+| 57 | [Play mode](57-play-mode.md) | todo | 50 |
+| 58 | [Print mode](58-print-mode.md) | todo | 50, 55 |
+| 59 | [Menus](59-menus.md) | todo | 50 |
 
-Specs 20-36 and 40-47 are listed here but written in a later pass. A spec file that does not exist yet is just not started.
+Specs 20-36 and 40-47 are listed here but written in a later pass. Specs 50-59 (UI shell) are all written; **implement 50 first**, then the rest in any order (58 after 55). Suggested model: Opus for 50, 53, 59; Sonnet is enough for 51, 52, 54-58. A spec file that does not exist yet is just not started.
 
 ### Dependency order
 
@@ -126,6 +144,8 @@ Specs 20-36 and 40-47 are listed here but written in a later pass. A spec file t
        |      12 -> 44 -> 45
        \-> 20 -> 21..36 (any order)
        \-> 20 -> 46
+
+00 -> 10 -> 50 -> 51, 52 (needs 11), 53 (needs 20), 54, 55 -> 58, 56, 57, 59
 ```
 
 Land **10 and 11 back to back**: spec 10 unbinds MuseScore's Shift+letter "add note to chord" keys and bare-letter behaviour; spec 11 gives them back as Chord mode (Q).
@@ -136,7 +156,7 @@ Land **10 and 11 back to back**: spec 10 unbinds MuseScore's Shift+letter "add n
 |---|---|
 | Cues, **Shift-U** popover | MuseScore has no cue model |
 | MIDI trigger regions, **Shift-0** popover | No equivalent model |
-| Modes: Setup / Write / Engrave / Play / Print (**Cmd-1..5**) and per-mode letters (Shift-I instrument picker, Shift-P add player, Shift-S system break, ...) | MuseScore has no mode concept. The keys stay **reserved (unbound)** so nothing else claims them |
+| Per-mode letters (Shift-I instrument picker, Shift-P add player, Shift-S system break, ...) and Cmd-1..5 key actions beyond switching mode | Modes themselves are now spec 50; the per-mode letter keys stay **reserved (unbound)** so nothing else claims them |
 | Insert scopes beyond Voice (**Opt-I**: Player / Global / Global Adjustment), stop position (**Shift-Opt-I**) | Needs a score-wide insert engine. Insert mode (I) works as MuseScore's `TIMEWISE` for the current voice |
 | Multi-staff caret (**Shift-Up/Down** during note input), caret across staves | Large `InputState` change |
 | Slash voices (**Shift-Opt-V**), voice column index | No slash-voice model parity |
@@ -146,7 +166,7 @@ Land **10 and 11 back to back**: spec 10 unbinds MuseScore's Shift+letter "add n
 | Transposing-instrument input pitch toggle (Write > Input Pitch) | Menu only, no key |
 | Engrave-mode nudging (Opt/Shift-Opt/Cmd-Opt + arrows) and graphic editing | MuseScore edit-mode differs |
 | Home/Setup features: instruments panel flows (Shift-F add flow, Shift-E ensemble, Shift-L layout) | Out of the three requested areas |
-| Page/Galley/Fill view parity beyond mapping to `mode-page` / `mode-continuous` / `mode-float` | Approximation only |
+| Page/Galley/Fill exact parity, Spreads / horizontal page arrangements | Spec 51 maps Page/Galley/Fill to `mode-page` / `mode-continuous` / `mode-float`; the rest is approximated or stubbed |
 | Windows key set | Mac only for now |
 | Scrubbing (hold Opt-Space), MIDI record (Cmd-R), solo (Opt-S) | No MuseScore equivalent yet |
 
