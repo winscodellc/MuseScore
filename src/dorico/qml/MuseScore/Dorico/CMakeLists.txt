@@ -40,6 +40,8 @@ qt_add_qml_module(dorico_qml
         printmodel.h
         trackinspectormodel.cpp
         trackinspectormodel.h
+        trackoverviewmodel.cpp
+        trackoverviewmodel.h
     QML_FILES
         DoricoButton.qml
         DoricoPage.qml
@@ -58,6 +60,7 @@ qt_add_qml_module(dorico_qml
         PrintPage.qml
         SetupPage.qml
         ToolSection.qml
+        TrackOverview.qml
         WritePage.qml
     IMPORTS
         TARGET muse_ui_qml

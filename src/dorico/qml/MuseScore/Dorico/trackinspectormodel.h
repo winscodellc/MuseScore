@@ -37,13 +37,14 @@ namespace mu::dorico {
 //! Play mode's Track Inspector (spec 57): a one-row view of a MixerPanelModel holding just the mixer channel of the
 //! selected instrument. MuseScore's mixer section components (sound, audio FX, fader, mute/solo) take any list
 //! model with a "channelItem" role, so they render this one channel unchanged. With nothing selected it keeps the
-//! last instrument, like Dorico's inspector.
+//! last instrument, like Dorico's inspector. The track overview picks a track by setting partId.
 class TrackInspectorModel : public QAbstractListModel, public muse::Contextable, public muse::async::Asyncable
 {
     Q_OBJECT
 
     Q_PROPERTY(QAbstractItemModel * sourceModel READ sourceModel WRITE setSourceModel NOTIFY sourceModelChanged)
     Q_PROPERTY(QString trackTitle READ trackTitle NOTIFY channelChanged)
+    Q_PROPERTY(QString partId READ partId WRITE setPartId NOTIFY channelChanged)
 
     QML_ELEMENT
 
@@ -56,6 +57,9 @@ public:
     void setSourceModel(QAbstractItemModel* model);
 
     QString trackTitle() const;
+
+    QString partId() const;
+    void setPartId(const QString& partId);
 
     QVariant data(const QModelIndex& index, int role) const override;
     int rowCount(const QModelIndex& parent = QModelIndex()) const override;
@@ -71,6 +75,7 @@ private:
     static constexpr int ChannelItemRole = Qt::UserRole + 1;
 
     void listenToSelection();
+    void onSelectionChanged();
     void update();
 
     QPointer<QAbstractItemModel> m_source;

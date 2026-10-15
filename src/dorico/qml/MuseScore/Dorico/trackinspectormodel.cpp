@@ -72,13 +72,13 @@ void TrackInspectorModel::listenToSelection()
     m_notation = globalContext()->currentNotation();
     if (m_notation) {
         m_notation->interaction()->selectionChanged().onNotify(this, [this]() {
-            update();
+            onSelectionChanged();
         });
     }
-    update();
+    onSelectionChanged();
 }
 
-void TrackInspectorModel::update()
+void TrackInspectorModel::onSelectionChanged()
 {
     if (m_notation) {
         for (const engraving::EngravingItem* item : m_notation->interaction()->selection()->elements()) {
@@ -88,7 +88,22 @@ void TrackInspectorModel::update()
             }
         }
     }
+    update();
+}
 
+void TrackInspectorModel::setPartId(const QString& partId)
+{
+    m_partId = muse::ID(partId);
+    update();
+}
+
+QString TrackInspectorModel::partId() const
+{
+    return m_channel ? m_channel->instrumentTrackId().partId.toQString() : QString();
+}
+
+void TrackInspectorModel::update()
+{
     MixerChannelItem* found = nullptr;
     for (int row = 0; m_source && row < m_source->rowCount(); ++row) {
         const QVariant value = m_source->data(m_source->index(row, 0), ChannelItemRole);
@@ -110,7 +125,14 @@ void TrackInspectorModel::update()
     }
 
     beginResetModel();
+    if (m_channel) {
+        m_channel->disconnect(this);
+    }
     m_channel = found;
+    if (m_channel) {
+        // The mixer fills in channel titles asynchronously
+        connect(m_channel, &MixerChannelItem::titleChanged, this, &TrackInspectorModel::channelChanged);
+    }
     endResetModel();
     emit channelChanged();
 }

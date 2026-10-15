@@ -292,6 +292,30 @@ void MixerPanelModel::setupConnections()
         }
     });
 
+    // Volume, pan and mute changed elsewhere (e.g. another mixer view of the same tracks)
+    playback()->controlParamsChanged().onReceive(this, [this](const TrackId trackId, const ControlParams& params) {
+        if (MixerChannelItem* item = findChannelItem(trackId)) {
+            AudioOutputParams outParams = item->outputParams();
+            outParams.setControl(params);
+            loadOutputParams(item, outParams);
+        }
+        // params.muted includes the force-mute caused by a solo, and soloing a track changes the others' params,
+        // not its own: show every track's own mute/solo state
+        for (MixerChannelItem* item : m_mixerChannelList) {
+            if (item->instrumentTrackId().isValid()) {
+                item->loadSoloMuteState(controller()->trackSoloMuteState(item->instrumentTrackId()));
+            }
+        }
+    });
+
+    playback()->masterControlParamsChanged().onReceive(this, [this](const ControlParams& params) {
+        if (m_masterChannelItem) {
+            AudioOutputParams outParams = m_masterChannelItem->outputParams();
+            outParams.setControl(params);
+            loadOutputParams(m_masterChannelItem, outParams);
+        }
+    }, Asyncable::Mode::SetReplace);
+
     playback()->masterFxChainParamsChanged().onReceive(this, [this](const AudioFxChain& params) {
         if (m_masterChannelItem) {
             AudioOutputParams outParams = audioSettings()->masterAudioOutputParams();

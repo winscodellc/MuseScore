@@ -30,10 +30,9 @@ import Muse.Ui
 import Muse.UiComponents
 import Muse.Dock
 
-import MuseScore.NotationScene
 import MuseScore.Playback
 
-//! Play mode (spec 57): left zone (Track Inspector / VST and MIDI), the timeline as the track overview in the centre,
+//! Play mode (spec 57): left zone (Track Inspector / VST and MIDI), the track overview in the centre,
 //! lower zone (Mixer, Key Editor). No toolbox and no right zone (Cmd-9 does nothing here).
 DoricoPage {
     id: root
@@ -43,11 +42,18 @@ DoricoPage {
 
     statusItems: ["pitch", "summary", "zoneArrow", "zoom", "midi"]
 
-    // Dorico shows a track overview instead of the music; MuseScore's timeline (one row per instrument) is the
-    // closest thing. Selecting in it selects in the score, which the Track Inspector follows.
-    central: Timeline {
+    // The track overview (centre) and the Track Inspector (left zone content) live in separate components, so they
+    // talk through the page: the inspector publishes its track, the overview asks for another one.
+    property string inspectedPartId: ""
+    signal trackPicked(string partId)
+
+    // Dorico shows a track overview instead of the music. Clicking a track shows it in the Track Inspector.
+    central: TrackOverview {
         navigationSection: root.keynavTopPanelSec
         contentNavigationPanelOrderStart: 1
+
+        selectedPartId: root.inspectedPartId
+        onTrackClicked: function(partId) { root.trackPicked(partId) }
     }
 
     panels: [
@@ -128,6 +134,12 @@ DoricoPage {
 
                     sourceModel: mixerModel
                     Component.onCompleted: inspector.load()
+                    onChannelChanged: root.inspectedPartId = inspector.partId
+                }
+
+                Connections {
+                    target: root
+                    function onTrackPicked(partId) { inspector.partId = partId }
                 }
 
                 StyledFlickable {
@@ -214,6 +226,8 @@ DoricoPage {
 
         LowerZonePanel {
             id: lowerZonePanel
+
+            objectName: root.dockName("lowerZonePanel")
 
             tabs: ["mixer", "keyEditor"]
             notationView: root.notationView

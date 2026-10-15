@@ -26,9 +26,9 @@ See `reference/dorico-ui.md` 4. Left-zone selector switches Track Inspector / VS
 VST/MIDI instance management, endpoint setup, Independent Voice Playback, playback templates, Key Editor, expression maps, track heights and visibility buttons (tempo, markers, chords tracks).
 
 ## As built
-- **Centre**: `PlayPage` overrides `central` with MuseScore's `Timeline` (one row per instrument, plus tempo/time/key/rehearsal rows) as the track overview; notation is not shown, as in Dorico. Selecting in the timeline selects in the score, which the Track Inspector follows. Fallback, if the timeline misbehaves as a central dock: put `NotationView` back by deleting the `central:` override.
+- **Centre**: `PlayPage` overrides `central` with `TrackOverview.qml` + `TrackOverviewModel` (our own; MuseScore's `Timeline` was too small, had no playhead and its instrument names selected nothing). One track per instrument of the **master score** (also when a part is open), a bar ruler, a block per run of bars with notes (`internal/trackblocks.h`), and a playhead from `IPlaybackState::playbackPositionChanged` (no interpolation). Fits the piece to the width, at least 8 px per quarter, and scrolls to follow the playhead. Clicking a track header or row shows it in the Track Inspector; the page relays this (`trackPicked` / `inspectedPartId`) because dock content and `central` are separate components. Not built: mute/solo in track headers, click-to-seek in the ruler, zoom, track heights.
 - **Left zone** (`playLeftPanel`) with a two-button selector:
-  - **Track Inspector**: `TrackInspectorModel` (`qml/MuseScore/Dorico/trackinspectormodel.{h,cpp}`) is a one-row list over its own `MixerPanelModel`, holding the channel of the selected instrument (first selected element's part, matched by `MixerChannelItem::instrumentTrackId().partId`). It keeps the last instrument when nothing is selected and starts on the first one. MuseScore's mixer section components render it unchanged:
+  - **Track Inspector**: `TrackInspectorModel` (`qml/MuseScore/Dorico/trackinspectormodel.{h,cpp}`) is a one-row list over its own `MixerPanelModel`, holding the channel of the selected instrument (first selected element's part, matched by `MixerChannelItem::instrumentTrackId().partId`). It keeps the last instrument when nothing is selected and starts on the first one; `partId` is writable so the track overview can pick a track. MuseScore's mixer section components render it unchanged:
     - Routing = sound picker (`MixerSoundSection`).
     - Insert Effects = audio FX slots (`MixerFxSection`).
     - Channel = balance, volume, fader, mute/solo.
@@ -39,7 +39,8 @@ VST/MIDI instance management, endpoint setup, Independent Voice Playback, playba
 - Transport works on Play because of the page-gating fix (playback commands used to be disabled outside Write).
 
 ## Verification status
-Built and unit-tested (`dorico_tests` 34/34), QML linted. Manual check in the app pending. Things to look at: that the timeline renders as the central dock, and that two mixer models (inspector + lower zone) stay in sync (they share the audio tracks, so they should).
+Built and unit-tested (`dorico_tests` 41/41), QML linted. Manual check in the app pending.
+Mixer sync: `MixerPanelModel` (upstream, `setupConnections`) now also applies `controlParamsChanged` / `masterControlParamsChanged` and refreshes every track's mute/solo state, so the inspector and the lower-zone mixer (two models over the same tracks) agree on volume, pan, mute and solo, not only on FX.
 
 ## Acceptance criteria
 - [ ] Play page matches `dorico-ui.md` 4 in zones.
