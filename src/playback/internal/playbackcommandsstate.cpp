@@ -34,6 +34,14 @@ using namespace mu::notation;
 
 static const muse::Uri PROJECT_PAGE_URI("musescore://notation");
 
+// Dorico fork: the Dorico mode pages (musescore://dorico/*) also show the open project.
+static bool isProjectPageOpened(const muse::IInteractive& interactive)
+{
+    const std::vector<muse::Uri> stack = interactive.stack();
+    return interactive.isOpened(PROJECT_PAGE_URI).val
+           || (!stack.empty() && stack.front().toString().starts_with("musescore://dorico/"));
+}
+
 std::string PlaybackCommandsState::moduleName() const
 {
     return "playback";
@@ -216,7 +224,7 @@ bool PlaybackCommandsState::isProjectOpened() const
         return false;
     }
 
-    if (!interactive() || !interactive()->isOpened(PROJECT_PAGE_URI).val) {
+    if (!interactive() || !isProjectPageOpened(*interactive())) {
         return false;
     }
 

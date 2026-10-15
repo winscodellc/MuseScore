@@ -37,6 +37,7 @@ The Dorico manual is the behavioural reference: <https://www.steinberg.help/r/do
 Namespace `mu::dorico`, commands `command://dorico/<name>`. It is created in spec 00 by copying the layout of `src/palette/`. Upstream touch points are the 4 standard ones in `CLAUDE.md` ("Adding a new module") plus:
 - a single QML `Loader` in `src/notationscene/qml/MuseScore/NotationScene/NotationView.qml` (next to `SearchPopup`, ~L344) that hosts the popover / Jump-bar overlay (spec 20);
 - `shortcuts.cfg` + `app.qrc` entries for the `dorico` shortcut preset (spec 10).
+- the "is the score page open" checks, so commands also work on the `musescore://dorico/*` mode pages (fix after spec 50): `notationscene/internal/notationcommandsstate.cpp`, `playback/internal/playbackcommandsstate.cpp`, `appshell/internal/appshellcommandsstate.cpp` (`isProjectPageOpened`) and `context/internal/uicontextresolver.cpp` (legacy shortcut context). Each is marked `// Dorico fork:`.
 
 ### 2. Changing behaviour = new commands, not overriding old ones
 The command dispatcher allows **one handler per command** (`muse/framework/rcommand/internal/commanddispatcher.cpp:135` refuses duplicates), so a module cannot replace `command://notation/paste`. Instead:

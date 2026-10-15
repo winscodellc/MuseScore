@@ -60,7 +60,7 @@ Risk: page layouts are saved per page name. If the page `objectName` of the old 
 - Page `objectName`s are new (`DoricoWrite`, `DoricoSetup`, ...), so MuseScore's saved "Notation" layout is not restored.
 - View menu holds the six score display toggles (invisible, unprintable, frames, page borders, sound flags, irregular measures). Help opens the online handbook.
 - `dorico/mode-*` keys are enabled only while a project is open and no text is being edited (so Ctrl+digit keeps its `edittext-advance-*` meaning).
-- Pages with URI `musescore://dorico/*` resolve to `UiCtxUnknown` in `UiContextResolver` (upstream code, unchanged). Legacy actions with `UiCtxProjectOpened` still match when a notation is open; check on the manual run that note editing keys work on Engrave.
+- **Fixed after spec 50:** notation, playback and app-shell command states only counted `musescore://notation` as the project page (`interactive()->isOpened(...)`), and `UiContextResolver` returned `UiCtxUnknown` on the other pages, so every notation/playback command and legacy shortcut was disabled on Setup/Engrave/Play/Print. Four small upstream edits (marked `// Dorico fork:`) also accept a `musescore://dorico/*` page; see README, cross-cutting design 1.
 
 ## Deferred / unsupported
 | Item | Reason |
