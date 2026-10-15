@@ -1,5 +1,5 @@
 # 54 - Write mode: lower zone
-Status: pending review  -  Depends on: 50  -  Dorico refs: `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/write_mode/write_mode_panels/write_mode_lower_zone_r.html`, `.../write_mode_keyboard_panel_r.html`, `.../write_mode_fretboard_panel_r.html`, `.../write_mode_drum_pads_panel_r.html`, `.../properties/properties_panel_r.html`
+Status: done  -  Depends on: 50  -  Dorico refs: `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/write_mode/write_mode_panels/write_mode_lower_zone_r.html`, `.../write_mode_keyboard_panel_r.html`, `.../write_mode_fretboard_panel_r.html`, `.../write_mode_drum_pads_panel_r.html`, `.../properties/properties_panel_r.html`
 
 Implementer: Sonnet is fine.
 
@@ -31,10 +31,10 @@ See `reference/dorico-ui.md` 2.4. One zone, one visible panel at a time, chosen 
 Fretboard and Key Editor (stubs); Properties panel layout is MuseScore's (no horizontal group scroll, no Active/Local scope filters); Keyboard panel "respell using name above/below" buttons until spec 12; MuseScore's automatic opening of the percussion panel on drum staves (it targets a dock that no longer exists on Write); View-menu check marks for these panels; dragging a tab out of the zone.
 
 ## Acceptance criteria
-- [ ] Cmd-8 / status-bar arrow open and close the lower zone.
-- [ ] Six tabs in manual order; each real tab shows the matching MuseScore panel and works.
-- [ ] Stub tabs show a "Not available yet" message.
-- [ ] Open tab and size persist across restart.
+- [x] Cmd-8 / status-bar arrow open and close the lower zone.
+- [x] Six tabs in manual order; each real tab shows the matching MuseScore panel and works.
+- [x] Stub tabs show a "Not available yet" message.
+- [x] Open tab and size persist across restart.
 
 ## As built
 - **One custom panel, not native dock tabs.** The dock library cannot report or set the current tab (KDDockWidgets makes the last-added tab current), so a reopened zone would always land on the last tab. `LowerZonePanel.qml` is a single `DockPanel` (`lowerZonePanel`) with its own selector row and lazily loaded `Loader`s (a visited tab stays alive). Its `tabs` property lets specs 56/57 reuse it with fewer tabs.
@@ -47,7 +47,7 @@ Fretboard and Key Editor (stubs); Properties panel layout is MuseScore's (no hor
 - **QML snags (read before reusing the panel in specs 56/57):** the build uses `muse/framework/dockwindow_v2` (not `dockwindow/`). `DockPanel`'s default property is ONE lazily loaded `Component` (`contentComponent`) with its own id scope. So: (1) the panel body must hold exactly one object, the content `Item` (a `Component {}` declared beside it silently replaces it; the last one wins, which made the first build show only Timeline); (2) ids inside the content are invisible to root-level bindings, so `LowerZoneModel` is a root property and the loaders `Repeater` is handed to the root on load. The dock title is fixed ("Lower zone") because `DockBase` passes the title to the title bar only once, at creation.
 
 ## Verification status
-Built, unit-tested (`dorico_tests` 24/24, `check_keymap.py` 0 failures) and the app starts cleanly. **Not yet checked by eye**: layout, tab switching, shortcuts, persistence. Acceptance boxes stay open until that manual check.
+Built, unit-tested (`dorico_tests` 24/24, `check_keymap.py` 0 failures) and checked by hand in the app: all acceptance criteria pass.
 
 ## Tests
 Manual for the UI. GoogleTest (`tests/doricoshell_tests.cpp`): the lower zone is one dock, `lowerZoneTab` default and change notification, and the MuseScore-toggle-to-tab mapping.
