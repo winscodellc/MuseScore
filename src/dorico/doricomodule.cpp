@@ -23,6 +23,8 @@
 #include "doricomodule.h"
 
 #include "modularity/ioc.h"
+#include "settings.h"
+#include "shortcuts_v2/ishortcutsconfiguration.h"
 #include "rcommand/icommandsregister.h"
 #include "rcommand/icommandsstate.h"
 
@@ -37,6 +39,7 @@ using namespace muse;
 using namespace muse::modularity;
 
 static const std::string mname("dorico");
+static const Settings::Key KEYMAP_APPLIED_KEY(mname, "dorico/keymapApplied");
 
 std::string DoricoModule::moduleName() const
 {
@@ -54,6 +57,17 @@ void DoricoModule::resolveImports()
 void DoricoModule::onInit(const IApplication::RunMode&)
 {
     LOGI() << "dorico module init";
+
+    settings()->setDefaultValue(KEYMAP_APPLIED_KEY, Val(false));
+
+    // ponytail: runs once; if the user later picks another preset we never touch it again
+    if (!settings()->value(KEYMAP_APPLIED_KEY).toBool()) {
+        auto shortcutsConfig = globalIoc()->resolve<muse::shortcuts::IShortcutsConfiguration>(mname);
+        if (shortcutsConfig) {
+            shortcutsConfig->setCurrentShortcutsPresetName("shortcuts_dorico");
+        }
+        settings()->setSharedValue(KEYMAP_APPLIED_KEY, Val(true));
+    }
 }
 
 IContextSetup* DoricoModule::newContext(const muse::modularity::ContextPtr& ctx) const

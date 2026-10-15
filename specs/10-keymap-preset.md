@@ -1,5 +1,5 @@
 # 10 - Keymap preset (Dorico key commands replace MuseScore's)
-Status: todo  -  Depends on: 00  -  Dorico refs: key conventions <https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/introduction/key_command_conventions_c.html>, key commands concept `.../program_concepts/program_concepts_key_commands_in_dorico_r.html`; per-row sources are in [reference/dorico-key-commands.md](reference/dorico-key-commands.md)
+Status: done  -  Depends on: 00  -  Dorico refs: key conventions <https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/introduction/key_command_conventions_c.html>, key commands concept `.../program_concepts/program_concepts_key_commands_in_dorico_r.html`; per-row sources are in [reference/dorico-key-commands.md](reference/dorico-key-commands.md)
 
 ## Goal
 Ship a built-in shortcut preset `shortcuts_dorico`, selected automatically on first run, that:
@@ -387,23 +387,38 @@ Python 3 standard library only; run as `python3 -I src/dorico/tools/check_keymap
 5. Print a summary: keys bound, keys reserved, keys deferred, conflicts (must be 0), and a list of Dorico keys in `dorico_keys.json` that are still unmapped.
 
 ## Deferred / unsupported
-See the `deferred` rows in the table. Also: Tab / Shift-Tab item cycling, Opt-Space scrubbing, Shift-Space "play from last start", numeric-keypad transport keys, hide-all-zones, per-mode letter meanings, Windows key set, Dorico's per-language key command files (only US English is specced).
+- `N` / `M` cross-staff move only works between staves of the same instrument (`EditCrossStaff` in `src/engraving/editing/editcrossstaff.cpp` is limited to the part's staves). Checked in an orchestral score on Violins I (one staff): nothing moves, same as the old `Ctrl+Shift+Up/Down`. Re-test on a piano part. Dorico's cross-instrument behaviour would need an engraving change and is not planned.
+
+See also the `deferred` rows in the table. Also: Tab / Shift-Tab item cycling, Opt-Space scrubbing, Shift-Space "play from last start", numeric-keypad transport keys, hide-all-zones, per-mode letter meanings, Windows key set, Dorico's per-language key command files (only US English is specced).
 
 ## Acceptance criteria
-- [ ] `python3 -I src/dorico/tools/check_keymap.py` exits 0 with 0 conflicts and every `owner: 10` row bound exactly as in the table.
-- [ ] A fresh profile (delete the app's settings/shortcuts dir or use `-profile` if available) starts with preset `shortcuts_dorico` active (Preferences > Shortcuts shows it selected); choosing the default preset restores MuseScore's keys and Dorico's is not re-applied on restart.
-- [ ] Manual, score open, note selected: `6` makes quarter notes (not half), `5` eighths, `8` whole, `9` double whole, `1` 128th; `0` toggles natural, `=` sharp, `-` flat; `,` rest; `]` staccato, `[` accent, `'` marcato, `\` tenuto.
-- [ ] Opt-Up/Down moves a note by a step, Shift-Opt-Up/Down by a semitone, Cmd-Opt-Up/Down by an octave; Opt-Right/Left no longer jumps selection (reserved for 13).
-- [ ] Shift-N starts and stops note input; Esc stops it; `N` / `M` push a note to the staff above / below.
-- [ ] `P` plays from the selection; Cmd-Opt-1/2/3 switch page / continuous / float view; Cmd-7/8/9 and F3 toggle panels; Cmd-= / Cmd-- / Z / X zoom.
-- [ ] Shift-X opens staff text, Shift-Opt-X system text, Shift-A rehearsal mark.
-- [ ] No Shift+letter, bare letter or Space still performs a MuseScore action that Dorico assigns elsewhere (spot-check: Shift-D does nothing yet until spec 21; Space does nothing until spec 11).
-- [ ] Option dead-key results table (Design 4) is filled in for every Opt key used by specs 11-13 and 41.
-- [ ] Upstream diff is exactly `shortcuts.cfg`, `app.qrc` plus the new files.
+- [x] `python3 -I src/dorico/tools/check_keymap.py` exits 0 with 0 conflicts and every `owner: 10` row bound exactly as in the table.
+- [x] A fresh profile (delete the app's settings/shortcuts dir or use `-profile` if available) starts with preset `shortcuts_dorico` active (Preferences > Shortcuts shows it selected); choosing the default preset restores MuseScore's keys and Dorico's is not re-applied on restart.
+- [x] Manual, score open, note selected: `6` makes quarter notes (not half), `5` eighths, `8` whole, `9` double whole, `1` 128th; `0` toggles natural, `=` sharp, `-` flat; `,` rest; `]` staccato, `[` accent, `'` marcato, `\` tenuto.
+- [x] Opt-Up/Down moves a note by a step, Shift-Opt-Up/Down by a semitone, Cmd-Opt-Up/Down by an octave; Opt-Right/Left no longer jumps selection (reserved for 13).
+- [x] Shift-N starts and stops note input; Esc stops it.
+- [ ] `N` / `M` push a note to the staff above / below. Bound and conflict-free (checker), but not observed working: see Deferred.
+- [x] `P` plays from the selection; Cmd-Opt-1/2/3 switch page / continuous / float view; Cmd-7/8/9 and F3 toggle panels; Cmd-= / Cmd-- / Z / X zoom.
+- [x] Shift-X opens staff text, Shift-Opt-X system text, Shift-A rehearsal mark.
+- [x] No Shift+letter, bare letter or Space still performs a MuseScore action that Dorico assigns elsewhere (spot-check: Shift-D does nothing yet until spec 21; Space does nothing until spec 11).
+- [x] Option dead-key results table (Design 4) is filled in for every Opt key used by specs 11-13 and 41.
+- [x] Upstream diff is exactly `shortcuts.cfg`, `app.qrc` plus the new files.
 
 ## Tests
 - `check_keymap.py` (above) is the automated test; run it in CI/manually after every spec that edits `shortcuts_dorico.json`.
 - Manual script: the acceptance list. For regressions, `git stash` the preset and compare behaviour with MuseScore defaults.
 
 ## Results
-(Option dead-key table to be filled in by the implementer.)
+Option dead-key test, 2026-10-14, macOS, US layout, score focused. Each key was temporarily bound to `command://dorico/noop` and pressed about 3 s apart. All 13 reached the dispatcher (13 log lines, evenly spaced). No fallback bindings are needed.
+
+| Key | Result |
+|---|---|
+| Opt-N, Opt-M, Opt-U, Opt-I (dead keys) | works |
+| Opt-[, Opt-], Opt-=, Opt--, Opt-., Opt-/ | works |
+| Opt-T, Opt-H, Opt-S | works |
+
+Corrections made to this spec while implementing:
+- The preset also unbinds `notation/append-measures` (Alt+Shift+B), because Shift-Opt-B is "input note above" in spec 11 and Dorico wins.
+- `dorico_keys.json` has no row for Opt-8 (Alt+8 stays `add-interval-plus8`, as the "MuseScore-only bindings stay" note says), no numpad transport rows (Num+ / Num- / Num0 are the numpad accidentals and natural), and no Tab / Shift-Tab rows (Tab belongs to the `navigation/*` scope).
+- `A`-`G` and `/` stay on `enter-note-*` and `add-acciaccatura` until spec 11 (`owner: 10-interim` in `dorico_keys.json`).
+- The checker ignores `command://none`, `edittext-*`, `editlyrics-*`, `*-tab` and `enter-fret-*` when looking for clashes.
