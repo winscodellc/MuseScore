@@ -71,6 +71,10 @@ else()
     add_subdirectory(stubs/palette)
 endif()
 
+if (MUE_BUILD_DORICO_MODULE)
+    add_subdirectory(dorico)
+endif()
+
 if (MUE_BUILD_PLAYBACK_MODULE)
     add_subdirectory(playback)
 else()

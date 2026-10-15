@@ -1,5 +1,5 @@
 # 00 - Module skeleton (`src/dorico/`)
-Status: todo  -  Depends on: none  -  Dorico refs: none (infrastructure)
+Status: done  -  Depends on: none  -  Dorico refs: none (infrastructure)
 
 ## Goal
 Create the empty fork module that every later spec fills in: it builds, links into the app, registers one no-op command, and has an (empty) QML module and a unit-test target. Nothing user-visible changes.
@@ -94,14 +94,16 @@ inline static const muse::rcommand::Command DORICO_NOOP_COMMAND("command://doric
 - A stub module for `MUE_BUILD_DORICO_MODULE=OFF`: not needed (everything is `#ifdef`-guarded).
 - Renaming the app: out of scope (see `CLAUDE.md`).
 
+- Not verified by a build (user chose incremental verification): the clean-configure build and the `MUE_BUILD_DORICO_MODULE=OFF` build. The OFF case was checked by inspection only: the `appfactory.cpp` include and `addModule`, and the `src/CMakeLists.txt` subdirectory, are all under `MUE_BUILD_DORICO_MODULE` guards. Run both builds before relying on them.
+
 ## Acceptance criteria
 - [ ] `cmake -P build.cmake build install` succeeds from a clean configure (delete the build dir first: `cmake -P build.cmake clean`).
-- [ ] `cmake -P build.cmake run` starts the app. The log has a line from `DoricoModule::onInit` ("dorico module init").
-- [ ] Preferences > Shortcuts lists "Dorico no-op" with an empty shortcut.
-- [ ] Dispatching `command://dorico/noop` logs "dorico noop" (assign a temporary shortcut in Preferences and press it).
+- [x] `cmake -P build.cmake run` starts the app. The log has a line from `DoricoModule::onInit` ("dorico module init").
+- [x] Preferences > Shortcuts lists "Dorico no-op" with an empty shortcut.
+- [x] Dispatching `command://dorico/noop` logs "dorico noop" (assign a temporary shortcut in Preferences and press it).
 - [ ] Configuring with `-DMUE_BUILD_DORICO_MODULE=OFF` still builds and runs (upstream edits are guarded).
-- [ ] `git diff --stat` for upstream (non-`src/dorico`) files touches exactly: `CMakeLists.txt`, `src/CMakeLists.txt`, `src/app/CMakeLists.txt`, `src/app/app_config.h.in`, `src/app/appfactory.cpp`.
-- [ ] `cmake -P build.cmake -DMUSE_ENABLE_UNIT_TESTS=ON build` builds `dorico_tests`, and its one smoke test passes.
+- [x] `git diff --stat` for upstream (non-`src/dorico`) files touches exactly: `CMakeLists.txt`, `src/CMakeLists.txt`, `src/app/CMakeLists.txt`, `src/app/app_config.h.in`, `src/app/appfactory.cpp`.
+- [x] `cmake -P build.cmake -DMUSE_ENABLE_UNIT_TESTS=ON build` builds `dorico_tests`, and its one smoke test passes.
 
 ## Tests
 `dorico_tests` contains one GoogleTest: `TEST(DoricoModule, CommandListContainsNoop)` constructs `DoricoCommandsRegister` and asserts `commandList()` contains `DORICO_NOOP_COMMAND`. Manual: the acceptance items above.

@@ -264,6 +264,10 @@
 #include "stubs/palette/palettestubmodule.h"
 #endif
 
+#ifdef MUE_BUILD_DORICO_MODULE
+#include "dorico/doricomodule.h"
+#endif
+
 #ifdef MUE_BUILD_PLAYBACK_MODULE
 #include "playback/playbackmodule.h"
 #else
@@ -432,6 +436,9 @@ std::shared_ptr<muse::IApplication> AppFactory::newGuiApp(const std::shared_ptr<
     app->addModule(new mu::notation::NotationModule());
     app->addModule(new mu::notation::NotationSceneModule());
     app->addModule(new mu::palette::PaletteModule());
+#ifdef MUE_BUILD_DORICO_MODULE
+    app->addModule(new mu::dorico::DoricoModule());
+#endif
     app->addModule(new mu::playback::PlaybackModule());
 #ifdef MUE_BUILD_PREFERENCES_MODULE
     app->addModule(new mu::preferences::PreferencesModule());

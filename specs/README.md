@@ -82,7 +82,7 @@ Status: todo | in-progress | done  -  Depends on: NN, NN  -  Dorico refs: <urls>
 
 | # | Spec | Status | Depends on |
 |---|---|---|---|
-| 00 | [Module skeleton](00-module-skeleton.md) | todo | none |
+| 00 | [Module skeleton](00-module-skeleton.md) | done | none |
 | 10 | [Keymap preset](10-keymap-preset.md) | todo | 00 |
 | 11 | [Note-input modes](11-note-input-modes.md) | todo | 00, 10 (land with 10) |
 | 12 | [Caret and navigation](12-caret-and-navigation.md) | todo | 00, 10, 11 |
