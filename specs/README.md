@@ -9,7 +9,7 @@ Make this fork (MuseScore Studio 5.0-dev) behave as close as possible to **Doric
 1. **Key commands**: Dorico's default macOS key set replaces MuseScore's.
 2. **Popovers**: the Shift+letter text-entry boxes (dynamics, time signatures, ...).
 3. **Editing**: copy / paste / paste special / duplicate / repeat / delete / selection / filters / search (Jump bar).
-4. **UI shell**: Dorico's window layout (mode tabs, toolboxes, zones, status bar, menus) for all five modes (specs 50-59).
+4. **UI shell**: Dorico's window layout (mode tabs, toolboxes, zones, status bar, menus) for all five modes (specs 50-59), and its look: colors and icons (spec 60).
 
 The Dorico manual is the behavioural reference: <https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/introduction/introduction_c.html> (popover syntax is in the separate *Dorico Popover Reference 6.2*).
 
@@ -24,7 +24,7 @@ The Dorico manual is the behavioural reference: <https://www.steinberg.help/r/do
 
 ## Hard constraints (from `CLAUDE.md`)
 
-- **No Dorico code, assets, icons or proprietary file formats.** Work from MuseScore's code plus the *publicly documented behaviour*. Key bindings and entry-syntax tokens are facts, so they are fine. Popover icons reuse MuseScore palette icons.
+- **No Dorico code, assets, icons or proprietary file formats.** Work from MuseScore's code plus the *publicly documented behaviour*. Key bindings, entry-syntax tokens and color values are facts, so they are fine. Icons are MuseScore's, Bravura SMuFL glyphs (OFL) or Lucide (ISC); never Dorico's.
 - Fork stays **GPLv3**. Keep all copyright / SPDX headers. New files get the same SPDX header as their neighbours (copy it from `src/palette/palettemodule.cpp`).
 - **Keep fork code isolated**: new features go in `src/dorico/`. Edits to upstream files must be tiny and obvious (each spec lists them under "upstream edits"). Merge upstream regularly (`git fetch upstream && git merge upstream/main`), then run `python3 -I src/dorico/tools/check_keymap.py --fix` to unbind any new MuseScore keys.
 - If distributed it needs its own name (not "MuseScore"). Not in scope for these specs.
@@ -42,6 +42,7 @@ Namespace `mu::dorico`, commands `command://dorico/<name>`. It is created in spe
 - Setup-mode layout deletion (spec 55): `notation/internal/masternotation.cpp` (`updatePotentialExcerpts` skips the `deletedPartLayouts` meta tag), `notation/iexcerptnotation.h` + `internal/excerptnotation.{h,cpp}` (`initialPartId()`), and `engraving/dom/excerpt.cpp` (plain-text part names).
 - Note-input articulation latch (spec 11): `engraving/dom/articulation.cpp` `updateArticulations` toggles any articulation, not only accent / marcato / tenuto / staccato.
 - Play mode (spec 57): `playback/qml/MuseScore/Playback/mixerpanelmodel.cpp` applies control / mute / solo changes from other models, so two mixers over the same tracks stay in sync.
+- Appearance (spec 60): `app/configs/dark.cfg` and `light.cfg` hold Dorico's measured colors (values only).
 
 ### 2. Changing behaviour = new commands, not overriding old ones
 The command dispatcher allows **one handler per command** (`muse/framework/rcommand/internal/commanddispatcher.cpp:135` refuses duplicates), so a module cannot replace `command://notation/paste`. Instead:
@@ -65,7 +66,7 @@ Every popover is `parse(QString) -> Result` (no UI, no score) plus `apply(Result
 - One `DockPage` per mode in `src/dorico/qml/MuseScore/Dorico/`. `WritePage` keeps `uri: "musescore://notation"` (so the Score tab and project opening need no change); the other four use `musescore://dorico/<mode>`. Switching mode = loading a page; the dock framework saves each page's layout separately.
 - The only upstream edit for the shell is in `WindowContent.qml` (import `MuseScore.Dorico`, list the five pages, hide the Home/Score/Publish bar on Dorico pages). Spec 59 adds one hook in `appmenumodel.cpp`.
 - Shared parts (`DoricoTopBar`, `DoricoStatusBar`, toolbox/panel button grid) are reused by all pages; existing MuseScore panels (palettes, instruments, properties, mixer, piano keyboard, timeline, percussion) are embedded, not copied.
-- Dorico panels with no MuseScore backing are **stubs** ("Not available yet", disabled buttons with a tooltip) and are listed under each spec's Deferred section; nothing is silently dropped. Icons are MuseScore's, never Dorico's.
+- Dorico panels with no MuseScore backing are **stubs** ("Not available yet", disabled buttons with a tooltip) and are listed under each spec's Deferred section; nothing is silently dropped. Icons are MuseScore's, Bravura glyphs or Lucide (spec 60), never Dorico's.
 
 ## Spec template (every `NN-*.md`)
 
@@ -135,6 +136,7 @@ Status: todo | in-progress | pending review | done  -  Depends on: NN, NN  -  Do
 | 57 | [Play mode](57-play-mode.md) | pending review | 50 |
 | 58 | [Print mode](58-print-mode.md) | pending review | 50, 55 |
 | 59 | [Menus](59-menus.md) | pending review | 50 |
+| 60 | [Appearance: colors, score canvas, icons](60-appearance.md) | pending review | 50 |
 
 Specs 20-36 and 40-47 are listed here but written in a later pass. Specs 50-59 (UI shell) are all written; **implement 50 first**, then the rest in any order (58 after 55). Suggested model: Opus for 50, 53, 59; Sonnet is enough for 51, 52, 54-58. A spec file that does not exist yet is just not started.
 
