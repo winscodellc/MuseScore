@@ -92,6 +92,8 @@ Column {
     padding: 4
 
     FlatButton {
+        id: modeButton
+
         icon: root.popoversMode ? IconCode.EDIT : IconCode.GRID
         transparent: true
         toolTipTitle: root.popoversMode ? qsTrc("dorico", "Popovers") : qsTrc("dorico", "Panels")
@@ -101,7 +103,13 @@ Column {
         onClicked: root.popoversMode = !root.popoversMode
     }
 
-    SeparatorLine {}
+    // Not SeparatorLine: it anchors to the parent's edges, which fights this padded Column's positioning (endless
+    // polish loop, laggy UI).
+    Rectangle {
+        width: modeButton.width
+        height: 1
+        color: ui.theme.strokeColor
+    }
 
     Repeater {
         model: root.popoversMode ? [] : root.panels
