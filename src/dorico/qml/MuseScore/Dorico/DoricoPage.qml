@@ -85,6 +85,13 @@ DockPage {
         return null
     }
 
+    // Docks every mode page has need a distinct name per page: KDDockWidgets looks docks up by name when it restores
+    // a page layout, and a shared name lets one page grab another page's dock. Write keeps MuseScore's names (the
+    // View menu toggles them). Must match pageDockName() in doricoshell.h.
+    function dockName(name) {
+        return root.objectName === "DoricoWrite" ? name : root.objectName + "_" + name
+    }
+
     property var notationView: null
 
     // Print mode shows the score as a non-editable preview.
@@ -112,7 +119,7 @@ DockPage {
         DockToolBar {
             id: doricoTopBar
 
-            objectName: "doricoTopBar"
+            objectName: root.dockName("doricoTopBar")
             title: qsTrc("dorico", "Top bar")
 
             floatable: false
@@ -134,7 +141,7 @@ DockPage {
         DockToolBar {
             id: playbackToolBar
 
-            objectName: "playbackToolBar"
+            objectName: root.dockName("playbackToolBar")
             title: qsTrc("appshell", "Playback controls")
 
             separatorsVisible: false
@@ -157,7 +164,7 @@ DockPage {
         DockToolBar {
             id: undoRedoToolBar
 
-            objectName: "undoRedoToolBar"
+            objectName: root.dockName("undoRedoToolBar")
             title: qsTrc("appshell", "Undo/redo")
 
             floatable: false
@@ -224,7 +231,7 @@ DockPage {
     }
 
     statusBar: DockStatusBar {
-        objectName: "notationStatusBar"
+        objectName: root.dockName("notationStatusBar")
 
         navigationSection: content.navigationSection
 

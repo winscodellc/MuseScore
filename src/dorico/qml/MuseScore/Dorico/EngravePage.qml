@@ -294,6 +294,8 @@ DoricoPage {
         LowerZonePanel {
             id: lowerZonePanel
 
+            objectName: root.dockName("lowerZonePanel")
+
             tabs: ["properties", "mixer"]
             notationView: root.notationView
 

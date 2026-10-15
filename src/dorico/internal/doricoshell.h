@@ -72,8 +72,24 @@ inline std::optional<Mode> modeFromUri(const muse::Uri& uri)
     return std::nullopt;
 }
 
-// The single Write-mode lower-zone dock (spec 54); its tabs are chosen by IDoricoModeState::lowerZoneTab().
+// The single lower-zone dock (spec 54); its tabs are chosen by IDoricoModeState::lowerZoneTab().
 inline constexpr const char* LOWER_ZONE_PANEL = "lowerZonePanel";
+
+// Docks every mode page has (top bars, status bar, lower zone) need a distinct name per page: KDDockWidgets looks docks
+// up by name when it restores a page layout, so a shared name lets one page grab another page's dock (broken layout,
+// crash on mode switch). Write keeps MuseScore's names (the View menu toggles them); the other pages prefix their
+// objectName, like PublishPage does. Must match DoricoPage.qml dockName().
+inline QString pageDockName(Mode mode, const QString& name)
+{
+    switch (mode) {
+    case Mode::Write: return name;
+    case Mode::Setup: return "DoricoSetup_" + name;
+    case Mode::Engrave: return "DoricoEngrave_" + name;
+    case Mode::Play: return "DoricoPlay_" + name;
+    case Mode::Print: return "DoricoPrint_" + name;
+    }
+    return name;
+}
 
 // MuseScore's own panel toggles that now select a lower-zone tab instead (spec 54).
 inline std::optional<QString> lowerZoneTabForCommand(const std::string& uri)
@@ -124,14 +140,14 @@ inline std::vector<QString> zoneDocks(Mode mode, Zone zone)
         switch (zone) {
         case Zone::Left: return { "engraveLeftPanel" };
         case Zone::Right: return { "pagesPanel" };
-        case Zone::Lower: return { LOWER_ZONE_PANEL };
+        case Zone::Lower: return { pageDockName(mode, LOWER_ZONE_PANEL) };
         }
         break;
     case Mode::Play:
         // No right zone in Play mode.
         switch (zone) {
         case Zone::Left: return { "playLeftPanel" };
-        case Zone::Lower: return { LOWER_ZONE_PANEL };
+        case Zone::Lower: return { pageDockName(mode, LOWER_ZONE_PANEL) };
         case Zone::Right: return {};
         }
         break;
@@ -160,8 +176,8 @@ inline project::INotationWriter::UnitType exportUnitType(const QString& suffix, 
 }
 
 // Top-level toolbars of every Dorico page (Cmd-6 toggles them).
-inline std::vector<QString> toolbarDocks()
+inline std::vector<QString> toolbarDocks(Mode mode)
 {
-    return { "doricoTopBar", "playbackToolBar", "undoRedoToolBar" };
+    return { pageDockName(mode, "doricoTopBar"), pageDockName(mode, "playbackToolBar"), pageDockName(mode, "undoRedoToolBar") };
 }
 }

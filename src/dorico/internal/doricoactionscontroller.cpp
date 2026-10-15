@@ -118,7 +118,7 @@ bool DoricoActionsController::selectLowerZoneTab(const QString& tab)
 {
     muse::dock::IDockWindow* window = dockWindowProvider()->window();
     const std::vector<QString> docks = zoneDocks(modes()->mode(), Zone::Lower);
-    if (!window || docks.size() != 1 || docks.front() != LOWER_ZONE_PANEL) {
+    if (!window || docks.size() != 1 || docks.front() != pageDockName(modes()->mode(), LOWER_ZONE_PANEL)) {
         return false;
     }
 
@@ -179,7 +179,7 @@ void DoricoActionsController::toggleToolbar()
         return;
     }
 
-    const std::vector<QString> names = toolbarDocks();
+    const std::vector<QString> names = toolbarDocks(modes()->mode());
     bool anyOpen = false;
     for (const QString& name : names) {
         anyOpen = anyOpen || window->isDockOpen(name);

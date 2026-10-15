@@ -21,6 +21,8 @@
  */
 
 
+#include <set>
+
 #include <gtest/gtest.h>
 
 #include "global/async/asyncable.h"
@@ -87,13 +89,13 @@ TEST(DoricoShell, EngraveZones)
 {
     EXPECT_EQ(zoneDocks(Mode::Engrave, Zone::Left), std::vector<QString>({ "engraveLeftPanel" }));
     EXPECT_EQ(zoneDocks(Mode::Engrave, Zone::Right), std::vector<QString>({ "pagesPanel" }));
-    EXPECT_EQ(zoneDocks(Mode::Engrave, Zone::Lower), std::vector<QString>({ LOWER_ZONE_PANEL }));
+    EXPECT_EQ(zoneDocks(Mode::Engrave, Zone::Lower), std::vector<QString>({ "DoricoEngrave_lowerZonePanel" }));
 }
 
 TEST(DoricoShell, PlayHasNoRightZone)
 {
     EXPECT_EQ(zoneDocks(Mode::Play, Zone::Left), std::vector<QString>({ "playLeftPanel" }));
-    EXPECT_EQ(zoneDocks(Mode::Play, Zone::Lower), std::vector<QString>({ LOWER_ZONE_PANEL }));
+    EXPECT_EQ(zoneDocks(Mode::Play, Zone::Lower), std::vector<QString>({ "DoricoPlay_lowerZonePanel" }));
     EXPECT_TRUE(zoneDocks(Mode::Play, Zone::Right).empty());
 }
 
@@ -125,6 +127,19 @@ TEST(DoricoShell, LowerZoneIsOneDock)
     const std::vector<QString> docks = zoneDocks(Mode::Write, Zone::Lower);
     ASSERT_EQ(docks.size(), 1u);
     EXPECT_EQ(docks.front(), QString(LOWER_ZONE_PANEL));
+}
+
+// KDDockWidgets finds docks by name, so docks shared by every mode page must get a distinct name per page.
+TEST(DoricoShell, SharedDocksHaveUniqueNamesPerPage)
+{
+    std::set<QString> names;
+    for (int i = 0; i < MODE_COUNT; ++i) {
+        for (const QString& name : toolbarDocks(static_cast<Mode>(i))) {
+            EXPECT_TRUE(names.insert(name).second) << name.toStdString();
+        }
+    }
+    EXPECT_EQ(toolbarDocks(Mode::Write).front(), QString("doricoTopBar"));
+    EXPECT_EQ(toolbarDocks(Mode::Play).front(), QString("DoricoPlay_doricoTopBar"));
 }
 
 TEST(DoricoShell, LowerZoneTabDefaultsAndNotifiesOncePerChange)
