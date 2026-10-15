@@ -44,12 +44,18 @@ void DoricoCommandsState::init()
         updateCommandStates();
     });
 
+    // Keys like Space, Return and the letters must reach the text editor while text is being edited.
+    notationController()->textEditingChanged().onReceive(this, [this](bool) {
+        updateCommandStates();
+    });
+
     updateCommandStates();
 }
 
 void DoricoCommandsState::deinit()
 {
     globalContext()->currentProjectChanged().disconnect(this);
+    notationController()->textEditingChanged().disconnect(this);
 }
 
 void DoricoCommandsState::updateCommandStates()
@@ -69,7 +75,8 @@ void DoricoCommandsState::updateCommandStates()
 
 CommandState DoricoCommandsState::commandState(const Command&) const
 {
-    return CommandState(globalContext()->currentProject() != nullptr, false);
+    const bool editingText = notationController()->isTextEditing() || notationController()->isLyricsEditing();
+    return CommandState(globalContext()->currentProject() != nullptr && !editingText, false);
 }
 
 async::Channel<Command, CommandState> DoricoCommandsState::commandStateChanged() const

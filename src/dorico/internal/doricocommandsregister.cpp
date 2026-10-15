@@ -29,15 +29,58 @@ using namespace muse;
 using namespace muse::rcommand;
 using namespace mu::dorico;
 
-static const std::vector<CommandInfo> s_commandInfos = {
-    CommandInfo{
+static CommandInfo info(const Command& command, const std::string& title, const std::string& description)
+{
+    return CommandInfo{
+        command,
+        TranslatableString::untranslatable(title.c_str()),
+        TranslatableString::untranslatable(description.c_str()),
+        InputSchema(),
+        Decoration()
+    };
+}
+
+static std::vector<CommandInfo> makeCommandInfos()
+{
+    std::vector<CommandInfo> v;
+    v.push_back(CommandInfo{
         DORICO_NOOP_COMMAND,
         TranslatableString("dorico", "Dorico no-op"),
         TranslatableString("dorico", "Does nothing; proves the dorico module is wired"),
         InputSchema(),
         Decoration()
-    },
-};
+    });
+
+    static const char* LETTERS = "CDEFGAB";
+    for (int i = 0; i < 7; ++i) {
+        const std::string l(1, LETTERS[i]);
+        v.push_back(info(DORICO_PITCH_COMMANDS[i], "Dorico: input " + l, "Enters pitch " + l + " during note input"));
+        v.push_back(info(DORICO_PITCH_ABOVE_COMMANDS[i], "Dorico: input " + l + " above",
+                         "Enters pitch " + l + " in the octave above the previous note"));
+        v.push_back(info(DORICO_PITCH_BELOW_COMMANDS[i], "Dorico: input " + l + " below",
+                         "Enters pitch " + l + " in the octave below the previous note"));
+    }
+    for (int i = 0; i < 9; ++i) {
+        v.push_back(info(DORICO_SET_DURATION_COMMANDS[i], "Dorico: duration " + std::to_string(i + 1),
+                         "Sets the duration; pressing the same digit twice quickly toggles a dot"));
+    }
+
+    v.push_back(info(DORICO_RETURN_COMMAND, "Dorico: Return", "Starts or stops note input"));
+    v.push_back(info(DORICO_SPACE_COMMAND, "Dorico: Space", "Advances the caret during note input, otherwise plays/stops"));
+    v.push_back(info(DORICO_REST_COMMAND, "Dorico: input rest", "Enters a rest during note input"));
+    v.push_back(info(DORICO_TOGGLE_CHORD_MODE_COMMAND, "Dorico: chord mode", "Toggles chord mode"));
+    v.push_back(info(DORICO_TOGGLE_INSERT_MODE_COMMAND, "Dorico: insert mode", "Toggles insert mode"));
+    v.push_back(info(DORICO_CYCLE_DOTS_COMMAND, "Dorico: cycle dots", "Cycles 0-4 rhythm dots"));
+    v.push_back(info(DORICO_NEXT_VOICE_COMMAND, "Dorico: next voice", "Moves to the next existing voice"));
+    v.push_back(info(DORICO_NEW_VOICE_COMMAND, "Dorico: new voice", "Moves to the first unused voice"));
+    v.push_back(info(DORICO_TOGGLE_STRESSED_COMMAND, "Dorico: stressed", "Toggles the stressed articulation"));
+    v.push_back(info(DORICO_TOGGLE_STACCATISSIMO_COMMAND, "Dorico: staccatissimo", "Toggles the staccatissimo articulation"));
+    v.push_back(info(DORICO_TOGGLE_UNSTRESSED_COMMAND, "Dorico: unstressed", "Toggles the unstressed articulation"));
+    v.push_back(info(DORICO_TOGGLE_TENUTO_STACCATO_COMMAND, "Dorico: tenuto-staccato", "Toggles the tenuto-staccato articulation"));
+    return v;
+}
+
+static const std::vector<CommandInfo> s_commandInfos = makeCommandInfos();
 
 std::string DoricoCommandsRegister::moduleName() const
 {

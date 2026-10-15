@@ -31,6 +31,12 @@ target_sources(dorico PRIVATE
     internal/doricocommandsstate.h
     internal/doricoactionscontroller.cpp
     internal/doricoactionscontroller.h
+    internal/doricomodestate.cpp
+    internal/doricomodestate.h
+    internal/doriconoteinputcontroller.cpp
+    internal/doriconoteinputcontroller.h
+    internal/noteinpututils.h
+    idoricomodestate.h
 )
 
 target_link_libraries(dorico PRIVATE engraving)

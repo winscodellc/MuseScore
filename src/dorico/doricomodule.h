@@ -28,6 +28,8 @@
 
 namespace mu::dorico {
 class DoricoActionsController;
+class DoricoModeState;
+class DoricoNoteInputController;
 
 class DoricoModule : public muse::modularity::IModuleSetup
 {
@@ -52,5 +54,7 @@ public:
 
 private:
     std::shared_ptr<DoricoActionsController> m_actionsController;
+    std::shared_ptr<DoricoModeState> m_modeState;
+    std::shared_ptr<DoricoNoteInputController> m_noteInputController;
 };
 }

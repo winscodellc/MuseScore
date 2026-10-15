@@ -30,12 +30,14 @@
 #include "global/modularity/ioc.h"
 #include "rcommand/icommandsregister.h"
 #include "context/iglobalcontext.h"
+#include "notationscene/inotationcommandscontroller.h"
 
 namespace mu::dorico {
 class DoricoCommandsState : public muse::rcommand::IModuleCommandsState, public muse::Contextable, public muse::async::Asyncable
 {
     muse::GlobalInject<muse::rcommand::ICommandsRegister> commandsRegister;
     muse::ContextInject<context::IGlobalContext> globalContext = { this };
+    muse::ContextInject<notation::INotationCommandsController> notationController = { this };
 
 public:
     DoricoCommandsState(const muse::modularity::ContextPtr& ctx)

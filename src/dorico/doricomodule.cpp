@@ -31,6 +31,8 @@
 #include "internal/doricoactionscontroller.h"
 #include "internal/doricocommandsregister.h"
 #include "internal/doricocommandsstate.h"
+#include "internal/doricomodestate.h"
+#include "internal/doriconoteinputcontroller.h"
 
 #include "log.h"
 
@@ -78,6 +80,10 @@ IContextSetup* DoricoModule::newContext(const muse::modularity::ContextPtr& ctx)
 void DoricoContext::registerExports()
 {
     m_actionsController = std::make_shared<DoricoActionsController>(iocContext());
+    m_modeState = std::make_shared<DoricoModeState>();
+    m_noteInputController = std::make_shared<DoricoNoteInputController>(iocContext());
+
+    ioc()->registerExport<IDoricoModeState>(mname, m_modeState);
 }
 
 void DoricoContext::resolveImports()
@@ -91,4 +97,5 @@ void DoricoContext::resolveImports()
 void DoricoContext::onInit(const IApplication::RunMode&)
 {
     m_actionsController->init();
+    m_noteInputController->init();
 }
