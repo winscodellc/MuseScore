@@ -47,7 +47,14 @@ DockPanel {
     property var tabs: ["properties", "keyboard", "fretboard", "drumPads", "mixer", "keyEditor", "timeline"]
     property var notationView: null
 
-    readonly property string currentTab: root.tabs.indexOf(model.currentTab) !== -1 ? model.currentTab : root.tabs[0]
+    // NOTE: DockPanel's default property is a lazily loaded Component with its own id scope, so anything the
+    // root-level bindings/functions use must live on the root, not inside the content Item.
+    property LowerZoneModel zoneModel: LowerZoneModel {
+        Component.onCompleted: load()
+    }
+    property var loadersRepeater: null
+
+    readonly property string currentTab: root.tabs.indexOf(root.zoneModel.currentTab) !== -1 ? root.zoneModel.currentTab : root.tabs[0]
 
     function tabTitle(id) {
         switch (id) {
@@ -64,7 +71,7 @@ DockPanel {
 
     // Applies the current tab's title-bar extras (mixer/percussion toolbars, keyboard context menu) and size to the dock.
     function syncChrome() {
-        const loader = tabsRepeater.itemAt(root.tabs.indexOf(root.currentTab))
+        const loader = root.loadersRepeater?.itemAt(root.tabs.indexOf(root.currentTab))
         if (loader) {
             loader.sync()
         }
@@ -87,11 +94,11 @@ DockPanel {
     Item {
         id: content
 
-        LowerZoneModel {
-            id: model
-
-            Component.onCompleted: model.load()
+        Component.onCompleted: {
+            root.loadersRepeater = tabsRepeater
+            root.syncChrome()
         }
+        Component.onDestruction: root.loadersRepeater = null
 
         NavigationPanel {
             name: "LowerZoneTabs"
@@ -132,7 +139,7 @@ DockPanel {
                     navigation.panel: tabsNav
                     navigation.order: tabButton.index
 
-                    onClicked: model.currentTab = modelData
+                    onClicked: root.zoneModel.currentTab = tabButton.modelData
                 }
             }
         }
