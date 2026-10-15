@@ -47,54 +47,54 @@ Column {
     signal panelClicked(string panelId)
 
     readonly property var panels: [
-        { "id": "clefs", "title": qsTrc("dorico", "Clefs"), "icon": IconCode.CLEF_TREBLE },
-        { "id": "keySignatures", "title": qsTrc("dorico", "Key Signatures, Tonality Systems, and Accidentals"), "icon": IconCode.KEY_SIGNATURE },
-        { "id": "timeSignatures", "title": qsTrc("dorico", "Time Signatures"), "icon": IconCode.TIME_SIGNATURE },
-        { "id": "tempo", "title": qsTrc("dorico", "Tempo"), "icon": IconCode.TEMPO_CHANGE },
-        { "id": "dynamics", "title": qsTrc("dorico", "Dynamics"), "icon": IconCode.DYNAMIC_FORTE },
-        { "id": "ornaments", "title": qsTrc("dorico", "Ornaments"), "icon": IconCode.ORNAMENT },
-        { "id": "repeatStructures", "title": qsTrc("dorico", "Repeat Structures"), "icon": IconCode.REPEAT_START },
-        { "id": "barsAndBarlines", "title": qsTrc("dorico", "Bars and Barlines"), "icon": IconCode.DOUBLE_BAR_LINE },
-        { "id": "holdsAndPauses", "title": qsTrc("dorico", "Holds and Pauses"), "icon": IconCode.FERMATA },
-        { "id": "playingTechniques", "title": qsTrc("dorico", "Playing Techniques"), "icon": IconCode.ARTICULATION },
-        { "id": "lines", "title": qsTrc("dorico", "Lines"), "icon": IconCode.LINE_NORMAL },
-        { "id": "cues", "title": qsTrc("dorico", "Cues"), "icon": IconCode.MICROPHONE },
-        { "id": "video", "title": qsTrc("dorico", "Video"), "icon": IconCode.VIDEO },
-        { "id": "comments", "title": qsTrc("dorico", "Comments"), "icon": IconCode.FEEDBACK },
-        { "id": "proofreading", "title": qsTrc("dorico", "Proofreading"), "icon": IconCode.TICK }
+        { "id": "clefs", "title": qsTrc("dorico", "Clefs"), "icon": "\uE050" },
+        { "id": "keySignatures", "title": qsTrc("dorico", "Key Signatures, Tonality Systems, and Accidentals"), "icon": "\uE262\uE262" },
+        { "id": "timeSignatures", "title": qsTrc("dorico", "Time Signatures"), "icon": "\uE08A" },
+        { "id": "tempo", "title": qsTrc("dorico", "Tempo"), "icon": "svg:gauge" },
+        { "id": "dynamics", "title": qsTrc("dorico", "Dynamics"), "icon": "\uE522" },
+        { "id": "ornaments", "title": qsTrc("dorico", "Ornaments"), "icon": "\uE566" },
+        { "id": "repeatStructures", "title": qsTrc("dorico", "Repeat Structures"), "icon": "\uE040" },
+        { "id": "barsAndBarlines", "title": qsTrc("dorico", "Bars and Barlines"), "icon": "\uE031" },
+        { "id": "holdsAndPauses", "title": qsTrc("dorico", "Holds and Pauses"), "icon": "\uE4C0" },
+        { "id": "playingTechniques", "title": qsTrc("dorico", "Playing Techniques"), "icon": "\uE610" },
+        { "id": "lines", "title": qsTrc("dorico", "Lines"), "icon": "svg:spline" },
+        { "id": "cues", "title": qsTrc("dorico", "Cues"), "icon": "svg:mic" },
+        { "id": "video", "title": qsTrc("dorico", "Video"), "icon": "svg:film" },
+        { "id": "comments", "title": qsTrc("dorico", "Comments"), "icon": "svg:message-square" },
+        { "id": "proofreading", "title": qsTrc("dorico", "Proofreading"), "icon": "svg:check-check" }
     ]
 
     // Popover ids follow spec 20. Rehearsal Marks inputs a mark directly and Text opens the text editor, as in
     // Dorico, so those two are MuseScore's own commands and already work.
     readonly property var popovers: [
-        { "code": "command://dorico/popover/clef", "title": qsTrc("dorico", "Clefs"), "icon": IconCode.CLEF_TREBLE },
-        { "code": "command://dorico/popover/keysig", "title": qsTrc("dorico", "Key Signatures"), "icon": IconCode.KEY_SIGNATURE },
-        { "code": "command://dorico/popover/timesig", "title": qsTrc("dorico", "Time Signatures"), "icon": IconCode.TIME_SIGNATURE },
-        { "code": "command://dorico/popover/tempo", "title": qsTrc("dorico", "Tempo"), "icon": IconCode.TEMPO_CHANGE },
-        { "code": "command://dorico/popover/dynamics", "title": qsTrc("dorico", "Dynamics"), "icon": IconCode.DYNAMIC_FORTE },
-        { "code": "command://dorico/popover/ornaments", "title": qsTrc("dorico", "Ornaments"), "icon": IconCode.ORNAMENT },
-        { "code": "command://dorico/popover/repeats", "title": qsTrc("dorico", "Repeat Structures"), "icon": IconCode.REPEAT_START },
-        { "code": "command://dorico/popover/bars", "title": qsTrc("dorico", "Bars and Barlines"), "icon": IconCode.DOUBLE_BAR_LINE },
-        { "code": "command://dorico/popover/holds", "title": qsTrc("dorico", "Holds and Pauses"), "icon": IconCode.FERMATA },
-        { "code": "command://dorico/popover/techniques", "title": qsTrc("dorico", "Playing Techniques"), "icon": IconCode.ARTICULATION },
-        { "code": "command://dorico/popover/cues", "title": qsTrc("dorico", "Cues"), "icon": IconCode.MICROPHONE },
-        { "code": "command://notation/add-rehearsalmark-text", "title": qsTrc("dorico", "Rehearsal Marks"), "icon": IconCode.MARKER },
-        { "code": "command://notation/add-staff-text", "title": qsTrc("dorico", "Text"), "icon": IconCode.TEXT_BOLD },
-        { "code": "command://dorico/popover/lyrics", "title": qsTrc("dorico", "Lyrics"), "icon": IconCode.LYRICS },
+        { "code": "command://dorico/popover/clef", "title": qsTrc("dorico", "Clefs"), "icon": "\uE050" },
+        { "code": "command://dorico/popover/keysig", "title": qsTrc("dorico", "Key Signatures"), "icon": "\uE262\uE262" },
+        { "code": "command://dorico/popover/timesig", "title": qsTrc("dorico", "Time Signatures"), "icon": "\uE08A" },
+        { "code": "command://dorico/popover/tempo", "title": qsTrc("dorico", "Tempo"), "icon": "svg:gauge" },
+        { "code": "command://dorico/popover/dynamics", "title": qsTrc("dorico", "Dynamics"), "icon": "\uE522" },
+        { "code": "command://dorico/popover/ornaments", "title": qsTrc("dorico", "Ornaments"), "icon": "\uE566" },
+        { "code": "command://dorico/popover/repeats", "title": qsTrc("dorico", "Repeat Structures"), "icon": "\uE040" },
+        { "code": "command://dorico/popover/bars", "title": qsTrc("dorico", "Bars and Barlines"), "icon": "\uE031" },
+        { "code": "command://dorico/popover/holds", "title": qsTrc("dorico", "Holds and Pauses"), "icon": "\uE4C0" },
+        { "code": "command://dorico/popover/techniques", "title": qsTrc("dorico", "Playing Techniques"), "icon": "\uE610" },
+        { "code": "command://dorico/popover/cues", "title": qsTrc("dorico", "Cues"), "icon": "svg:mic" },
+        { "code": "command://notation/add-rehearsalmark-text", "title": qsTrc("dorico", "Rehearsal Marks"), "icon": "svg:flag" },
+        { "code": "command://notation/add-staff-text", "title": qsTrc("dorico", "Text"), "icon": "svg:type" },
+        { "code": "command://dorico/popover/lyrics", "title": qsTrc("dorico", "Lyrics"), "icon": "svg:text" },
         { "code": "command://dorico/popover/chordsymbols", "title": qsTrc("dorico", "Chord Symbols"), "icon": IconCode.CHORD_SYMBOL },
-        { "code": "command://dorico/popover/notetools", "title": qsTrc("dorico", "Note Tools"), "icon": IconCode.NOTE_HEAD },
-        { "code": "command://dorico/popover/fingering", "title": qsTrc("dorico", "Fingering"), "icon": IconCode.FRETBOARD_DIAGRAM },
-        { "code": "command://dorico/popover/figuredbass", "title": qsTrc("dorico", "Figured Bass"), "icon": IconCode.MUSIC_NOTES },
-        { "code": "command://dorico/popover/midi-trigger", "title": qsTrc("dorico", "MIDI Trigger Region"), "icon": IconCode.MIDI_INPUT }
+        { "code": "command://dorico/popover/notetools", "title": qsTrc("dorico", "Note Tools"), "icon": "\uE0A4" },
+        { "code": "command://dorico/popover/fingering", "title": qsTrc("dorico", "Fingering"), "icon": "svg:hand" },
+        { "code": "command://dorico/popover/figuredbass", "title": qsTrc("dorico", "Figured Bass"), "icon": "\uEA5B" },
+        { "code": "command://dorico/popover/midi-trigger", "title": qsTrc("dorico", "MIDI Trigger Region"), "icon": "svg:keyboard-music" }
     ]
 
     spacing: 2
     padding: 4
 
-    FlatButton {
+    DoricoButton {
         id: modeButton
 
-        icon: root.popoversMode ? IconCode.EDIT : IconCode.GRID
+        doricoIcon: root.popoversMode ? "svg:square-pen" : "svg:layout-grid"
         transparent: true
         toolTipTitle: root.popoversMode ? qsTrc("dorico", "Popovers") : qsTrc("dorico", "Panels")
         toolTipDescription: qsTrc("dorico", "Switch between panels and popovers")
@@ -120,7 +120,7 @@ Column {
 
             readonly property bool isActive: root.currentPanelId === modelData.id
 
-            icon: modelData.icon
+            doricoIcon: modelData.icon
             accentButton: isActive
             transparent: !isActive
             toolTipTitle: modelData.title
@@ -148,7 +148,7 @@ Column {
 
             readonly property var spec: root.popovers[index]
 
-            icon: spec.icon
+            doricoIcon: spec.icon
             available: modelData.enabled
             transparent: true
             toolTipTitle: spec.title

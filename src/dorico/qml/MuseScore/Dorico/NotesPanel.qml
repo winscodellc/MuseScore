@@ -42,9 +42,8 @@ Item {
     readonly property var commonDurations: ["half", "quarter", "eighth", "16th", "32nd"]
     readonly property var allDurations: ["breve", "whole", "half", "quarter", "eighth", "16th", "32nd", "64th", "128th"]
     readonly property var durationIcons: ({
-        "breve": IconCode.NOTE_WHOLE_DOUBLE, "whole": IconCode.NOTE_WHOLE, "half": IconCode.NOTE_HALF,
-        "quarter": IconCode.NOTE_QUARTER, "eighth": IconCode.NOTE_8TH, "16th": IconCode.NOTE_16TH,
-        "32nd": IconCode.NOTE_32ND, "64th": IconCode.NOTE_64TH, "128th": IconCode.NOTE_128TH
+        "breve": "\uECA0", "whole": "\uECA2", "half": "\uECA3", "quarter": "\uECA5", "eighth": "\uECA7",
+        "16th": "\uECA9", "32nd": "\uECAB", "64th": "\uECAD", "128th": "\uECAF"
     })
     readonly property var durations: root.showAllDurations ? root.allDurations : root.commonDurations
 
@@ -100,7 +99,7 @@ Item {
                     "command://notation/add-slur"
                 ]
                 labels: [qsTrc("dorico", "Flat"), qsTrc("dorico", "Natural"), qsTrc("dorico", "Sharp"), qsTrc("dorico", "Slur")]
-                icons: [IconCode.FLAT, IconCode.NATURAL, IconCode.SHARP, IconCode.NOTE_SLUR]
+                icons: ["\uE260", "\uE261", "\uE262", IconCode.NOTE_SLUR]
             }
 
             SeparatorLine {}
@@ -125,7 +124,7 @@ Item {
                     qsTrc("dorico", "Accent"), qsTrc("dorico", "Marcato"), qsTrc("dorico", "Stressed"), qsTrc("dorico", "Unstressed"),
                     qsTrc("dorico", "Staccato"), qsTrc("dorico", "Tenuto"), qsTrc("dorico", "Staccatissimo"), qsTrc("dorico", "Tenuto-staccato")
                 ]
-                icons: [IconCode.ACCENT, IconCode.MARCATO, IconCode.NONE, IconCode.NONE, IconCode.STACCATO, IconCode.TENUTO, IconCode.NONE, IconCode.NONE]
+                icons: ["\uE4A0", "\uE4AC", IconCode.NONE, IconCode.NONE, "\uE4A2", "\uE4A4", IconCode.NONE, IconCode.NONE]
             }
         }
     }

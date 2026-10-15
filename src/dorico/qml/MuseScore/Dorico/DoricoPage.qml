@@ -191,10 +191,10 @@ DockPage {
                     navigationPanel.order: 5
                 }
 
-                FlatButton {
+                DoricoButton {
                     anchors.verticalCenter: parent.verticalCenter
 
-                    icon: IconCode.QUESTION_MARK
+                    doricoIcon: "svg:circle-help"
                     toolTipTitle: qsTrc("dorico", "Help")
 
                     navigation.panel: NavigationPanel {

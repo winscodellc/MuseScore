@@ -45,12 +45,12 @@ Column {
     // ponytail: command ids for features no spec has built yet (select tool, force duration, scissors, insert
     // scopes, slash voices) are unregistered on purpose: DoricoToolsModel turns them into unavailable buttons.
     readonly property var buttons: [
-        { "code": "command://dorico/toggle-zone-left", "title": qsTrc("dorico", "Show Left Zone"), "icon": IconCode.SPLIT_VIEW_HORIZONTAL },
-        { "code": "command://dorico/select-tool", "title": qsTrc("dorico", "Select"), "icon": IconCode.PAN_SCORE },
-        { "code": "command://dorico/return", "title": qsTrc("dorico", "Start Note Input"), "icon": IconCode.EDIT },
-        { "code": "command://notation/toggle-note-input-by-duration", "title": qsTrc("dorico", "Pitch Before Duration"), "icon": IconCode.NOTE_TO_RIGHT },
-        { "code": "command://dorico/toggle-chord-mode", "title": qsTrc("dorico", "Chords"), "icon": IconCode.NOTE_PLUS },
-        { "code": "command://dorico/toggle-insert-mode", "title": qsTrc("dorico", "Insert"), "icon": IconCode.INSERT_ONE_MEASURE,
+        { "code": "command://dorico/toggle-zone-left", "title": qsTrc("dorico", "Show Left Zone"), "icon": "svg:panel-left" },
+        { "code": "command://dorico/select-tool", "title": qsTrc("dorico", "Select"), "icon": "svg:mouse-pointer-2" },
+        { "code": "command://dorico/return", "title": qsTrc("dorico", "Start Note Input"), "icon": "svg:pencil" },
+        { "code": "command://notation/toggle-note-input-by-duration", "title": qsTrc("dorico", "Pitch Before Duration"), "icon": "svg:pencil-line" },
+        { "code": "command://dorico/toggle-chord-mode", "title": qsTrc("dorico", "Chords"), "icon": "svg:layers" },
+        { "code": "command://dorico/toggle-insert-mode", "title": qsTrc("dorico", "Insert"), "icon": "svg:between-vertical-start",
             "menu": [
                 { "code": "command://dorico/toggle-insert-mode", "title": qsTrc("dorico", "Voice") },
                 { "code": "command://dorico/insert-scope-player", "title": qsTrc("dorico", "Player") },
@@ -58,23 +58,23 @@ Column {
                 { "code": "command://dorico/insert-scope-global-adjustment", "title": qsTrc("dorico", "Global Adjustment") }
             ] },
         // Spec 11 maps Lock Duration (L) to MuseScore's re-pitch input method.
-        { "code": "command://notation/toggle-note-input-repitch", "title": qsTrc("dorico", "Lock Duration"), "icon": IconCode.RE_PITCH },
-        { "code": "command://dorico/force-duration", "title": qsTrc("dorico", "Force Duration"), "icon": IconCode.LOCK_CLOSED },
-        { "code": "command://dorico/next-voice", "title": qsTrc("dorico", "Create Voice"), "icon": IconCode.VOICE_1,
+        { "code": "command://notation/toggle-note-input-repitch", "title": qsTrc("dorico", "Lock Duration"), "icon": "svg:lock" },
+        { "code": "command://dorico/force-duration", "title": qsTrc("dorico", "Force Duration"), "icon": "svg:lock-keyhole" },
+        { "code": "command://dorico/next-voice", "title": qsTrc("dorico", "Create Voice"), "icon": "svg:split",
             "menu": [
                 { "code": "command://dorico/new-voice", "title": qsTrc("dorico", "Create Voice") },
                 { "code": "command://dorico/new-slash-voice", "title": qsTrc("dorico", "Create Slash Voice") },
                 { "code": "command://dorico/next-voice", "title": qsTrc("dorico", "Next Voice") }
             ] },
-        { "code": "command://dorico/cycle-dots", "title": qsTrc("dorico", "Dotted Notes"), "icon": IconCode.NOTE_DOTTED,
+        { "code": "command://dorico/cycle-dots", "title": qsTrc("dorico", "Dotted Notes"), "icon": "\uECA5\uECB7",
             "menu": [
                 { "code": "command://notation/toggle-dot", "title": qsTrc("dorico", "One Rhythm Dot") },
                 { "code": "command://notation/toggle-dot2", "title": qsTrc("dorico", "Two Rhythm Dots") },
                 { "code": "command://notation/toggle-dot3", "title": qsTrc("dorico", "Three Rhythm Dots") },
                 { "code": "command://notation/toggle-dot4", "title": qsTrc("dorico", "Four Rhythm Dots") }
             ] },
-        { "code": "command://dorico/rest", "title": qsTrc("dorico", "Rests"), "icon": IconCode.REST },
-        { "code": "command://notation/add-triplet", "title": qsTrc("dorico", "Tuplets"), "icon": IconCode.NOTE_TUPLET,
+        { "code": "command://dorico/rest", "title": qsTrc("dorico", "Rests"), "icon": "\uE4E5" },
+        { "code": "command://notation/add-triplet", "title": qsTrc("dorico", "Tuplets"), "icon": "\uE883",
             "menu": [
                 { "code": "command://notation/add-duplet", "title": "2:3" },
                 { "code": "command://notation/add-triplet", "title": "3:2" },
@@ -85,13 +85,13 @@ Column {
                 // Until the tuplets popover (spec 31) exists, x:y opens MuseScore's custom tuplet dialog.
                 { "code": "command://notation/open-tuplet-configure", "title": "x:y" }
             ] },
-        { "code": "command://notation/add-appoggiatura", "title": qsTrc("dorico", "Grace Notes"), "icon": IconCode.APPOGGIATURA,
+        { "code": "command://notation/add-appoggiatura", "title": qsTrc("dorico", "Grace Notes"), "icon": "\uE560",
             "menu": [
                 { "code": "command://notation/add-appoggiatura", "title": qsTrc("dorico", "Unslashed") },
                 { "code": "command://notation/add-acciaccatura", "title": qsTrc("dorico", "Slashed") }
             ] },
         { "code": "command://notation/toggle-tie", "title": qsTrc("dorico", "Tie"), "icon": IconCode.NOTE_TIE },
-        { "code": "command://dorico/scissors", "title": qsTrc("dorico", "Scissors"), "icon": IconCode.SPLIT_TOOL }
+        { "code": "command://dorico/scissors", "title": qsTrc("dorico", "Scissors"), "icon": "svg:scissors" }
     ]
 
     spacing: 2
@@ -115,7 +115,7 @@ Column {
             readonly property var spec: root.buttons[index]
             readonly property bool hasMenu: spec.menu !== undefined
 
-            icon: spec.icon
+            doricoIcon: spec.icon
             available: modelData.enabled
             accentButton: modelData.checked
             transparent: !modelData.checked

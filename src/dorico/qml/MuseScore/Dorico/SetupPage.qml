@@ -110,7 +110,7 @@ DoricoPage {
                         qsTrc("dorico", "Sort Players"),
                         qsTrc("dorico", "Player Settings")
                     ]
-                    icons: [IconCode.PLUS, IconCode.ACCOUNT, IconCode.MUSIC_NOTES, IconCode.BRACKET, IconCode.LIST, IconCode.SETTINGS_COG]
+                    icons: ["svg:plus", "svg:user-plus", "svg:music", IconCode.BRACKET, "svg:list", "svg:settings"]
                 }
             }
         },
@@ -215,7 +215,7 @@ DoricoPage {
                         qsTrc("dorico", "Flow Settings"),
                         qsTrc("dorico", "Delete Flow")
                     ]
-                    icons: [IconCode.PLUS, IconCode.CONFIGURE, IconCode.SETTINGS_COG, IconCode.DELETE_TANK]
+                    icons: ["svg:plus", "svg:sliders-horizontal", "svg:settings", "svg:trash-2"]
                 }
             }
         }

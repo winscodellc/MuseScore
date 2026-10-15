@@ -167,10 +167,10 @@ Item {
             }
         }
 
-        FlatButton {
+        DoricoButton {
             anchors.verticalCenter: parent.verticalCenter
 
-            icon: IconCode.EYE_OPEN
+            doricoIcon: "svg:eye"
             toolTipTitle: qsTrc("dorico", "Hide/Restore Zones")
             navigation.panel: root.navigationPanel
             navigation.order: 12
@@ -178,10 +178,10 @@ Item {
             onClicked: topBar.dispatch("command://dorico/toggle-all-zones")
         }
 
-        FlatButton {
+        DoricoButton {
             anchors.verticalCenter: parent.verticalCenter
 
-            icon: IconCode.MIXER
+            doricoIcon: "svg:sliders-vertical"
             toolTipTitle: qsTrc("dorico", "Mixer")
             navigation.panel: root.navigationPanel
             navigation.order: 13

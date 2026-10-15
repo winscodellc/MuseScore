@@ -171,7 +171,7 @@ Item {
         spacing: 4
 
         DoricoButton {
-            icon: IconCode.SCORE
+            doricoIcon: "svg:music"
             toolTipTitle: qsTrc("dorico", "Add Full Score Layout")
             available: false
             transparent: true
@@ -180,7 +180,7 @@ Item {
         }
 
         DoricoButton {
-            icon: IconCode.PLUS
+            doricoIcon: "svg:plus"
             toolTipTitle: qsTrc("dorico", "Add Instrumental Part Layout")
             transparent: true
             navigation.panel: navPanel
@@ -189,7 +189,7 @@ Item {
         }
 
         DoricoButton {
-            icon: IconCode.NOTE_PLUS
+            doricoIcon: "svg:user-plus"
             toolTipTitle: qsTrc("dorico", "Add Custom Score Layout")
             available: false
             transparent: true
@@ -198,7 +198,7 @@ Item {
         }
 
         DoricoButton {
-            icon: IconCode.LIST
+            doricoIcon: "svg:list"
             toolTipTitle: qsTrc("dorico", "Sort Layouts")
             available: false
             transparent: true
@@ -207,7 +207,7 @@ Item {
         }
 
         DoricoButton {
-            icon: IconCode.CONFIGURE
+            doricoIcon: "svg:sliders-horizontal"
             toolTipTitle: qsTrc("dorico", "Layout Options")
             transparent: true
             navigation.panel: navPanel
@@ -216,7 +216,7 @@ Item {
         }
 
         DoricoButton {
-            icon: IconCode.EDIT
+            doricoIcon: "svg:pencil"
             toolTipTitle: qsTrc("dorico", "Layout Settings")
             toolTipDescription: available ? qsTrc("dorico", "Rename the selected part") : qsTrc("dorico", "The full score is named after the project")
             available: root.selectedIndex > 0
@@ -227,7 +227,7 @@ Item {
         }
 
         DoricoButton {
-            icon: IconCode.DELETE_TANK
+            doricoIcon: "svg:trash-2"
             toolTipTitle: qsTrc("dorico", "Delete Layout")
             toolTipDescription: available ? "" : qsTrc("dorico", "The full score cannot be deleted")
             available: root.selectedIndex > 0

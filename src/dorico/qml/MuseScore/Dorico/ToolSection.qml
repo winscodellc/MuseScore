@@ -29,7 +29,7 @@ import Muse.UiComponents
 
 //! A titled group of tool buttons (used by every Dorico toolbox, panel and action bar). `codes` are command URIs or
 //! legacy action codes; enabled/checked follow the command state (DoricoToolsModel). `labels`/`icons` run parallel
-//! to `codes`: an entry with an icon is drawn as an icon button, otherwise as a text button. A code nobody handles
+//! to `codes` (IconCode, SMuFL glyph or "svg:<name>", see DoricoButton): an entry with an icon is drawn as an icon button, otherwise as a text button. A code nobody handles
 //! yet is an unavailable button with a "Not available yet" tooltip.
 Column {
     id: root
@@ -82,11 +82,11 @@ Column {
                 required property int index
 
                 readonly property string label: root.labels[index] ?? modelData.title
-                readonly property int iconCode: root.icons[index] ?? IconCode.NONE
+                readonly property var iconSpec: root.icons[index] ?? IconCode.NONE
 
                 visible: modelData.id !== ""
-                icon: iconCode
-                text: iconCode === IconCode.NONE ? label : ""
+                doricoIcon: iconSpec
+                text: iconSpec === IconCode.NONE ? label : ""
                 available: modelData.enabled
                 accentButton: modelData.checked
                 transparent: !modelData.checked

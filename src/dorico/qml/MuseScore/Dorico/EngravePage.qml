@@ -68,12 +68,12 @@ DoricoPage {
                 padding: 4
 
                 readonly property var tools: [
-                    { "id": "", "title": qsTrc("dorico", "Show Left Zone"), "icon": IconCode.SPLIT_VIEW_HORIZONTAL, "available": true },
-                    { "id": "formatting", "title": qsTrc("dorico", "Graphic Editing"), "icon": IconCode.EDIT, "available": true },
-                    { "id": "frames", "title": qsTrc("dorico", "Frames"), "icon": IconCode.FRAME_SQUARE, "available": true },
-                    { "id": "staffSpacing", "title": qsTrc("dorico", "Staff Spacing"), "icon": IconCode.VERTICAL, "available": false },
-                    { "id": "noteSpacing", "title": qsTrc("dorico", "Note Spacing"), "icon": IconCode.HORIZONTAL, "available": false },
-                    { "id": "slices", "title": qsTrc("dorico", "Graphic Slices"), "icon": IconCode.CAMERA, "available": true }
+                    { "id": "", "title": qsTrc("dorico", "Show Left Zone"), "icon": "svg:panel-left", "available": true },
+                    { "id": "formatting", "title": qsTrc("dorico", "Graphic Editing"), "icon": "svg:pen-tool", "available": true },
+                    { "id": "frames", "title": qsTrc("dorico", "Frames"), "icon": "svg:frame", "available": true },
+                    { "id": "staffSpacing", "title": qsTrc("dorico", "Staff Spacing"), "icon": "svg:move-vertical", "available": false },
+                    { "id": "noteSpacing", "title": qsTrc("dorico", "Note Spacing"), "icon": "svg:move-horizontal", "available": false },
+                    { "id": "slices", "title": qsTrc("dorico", "Graphic Slices"), "icon": "svg:camera", "available": true }
                 ]
 
                 NavigationPanel {
@@ -97,7 +97,7 @@ DoricoPage {
 
                         readonly property bool isActive: modelData.id !== "" && root.tool === modelData.id
 
-                        icon: modelData.icon
+                        doricoIcon: modelData.icon
                         available: modelData.available
                         accentButton: isActive
                         transparent: !isActive

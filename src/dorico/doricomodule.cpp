@@ -29,6 +29,7 @@
 #include "rcommand/icommandsstate.h"
 
 #include "interactive/iinteractiveuriregister.h"
+#include "ui/iuiconfiguration.h"
 
 #include "internal/doricoactionscontroller.h"
 #include "internal/doricocommandsregister.h"
@@ -47,6 +48,38 @@ using namespace muse::modularity;
 
 static const std::string mname("dorico");
 static const Settings::Key KEYMAP_APPLIED_KEY(mname, "dorico/keymapApplied");
+static const Settings::Key APPEARANCE_VERSION_KEY(mname, "dorico/appearanceVersion");
+
+// Spec 60: bump to re-apply after the colors below are re-tuned.
+static constexpr int APPEARANCE_VERSION = 1;
+
+//! Dorico's music-area colors (sampled from the Dorico 6.2 manual screenshots), written over the notation and
+//! engraving settings once, so Preferences can still change them afterwards. The UI colors are in app/configs/*.cfg.
+static void applyDoricoAppearance()
+{
+    const QColor background("#0388C5"); // middle of Dorico's blue Write-mode gradient
+    const QColor page("#FFFFFF");
+    const QColor selection("#FF7D00"); // Dorico selects in orange whatever the voice
+
+    for (const char* key : { "ui/canvas/background/darkTheme_score_background_color",
+                             "ui/canvas/background/lightTheme_score_background_color" }) {
+        settings()->setSharedValue(Settings::Key("notation", key), Val(background));
+    }
+    settings()->setSharedValue(Settings::Key("notation", "ui/canvas/background/useColor"), Val(true));
+    settings()->setSharedValue(Settings::Key("notation", "ui/canvas/foreground/useColor"), Val(true));
+    settings()->setSharedValue(Settings::Key("notation", "ui/canvas/foreground/color"), Val(page));
+
+    for (const char* key : { "engraving/colors/voice1", "engraving/colors/voice2", "engraving/colors/voice3",
+                             "engraving/colors/voice4", "engraving/colors/allVoicesColor" }) {
+        settings()->setSharedValue(Settings::Key("engraving", key), Val(selection));
+    }
+
+    // Dorico's default theme is Dark.
+    auto uiConfig = globalIoc()->resolve<muse::ui::IUiConfiguration>(mname);
+    if (uiConfig) {
+        uiConfig->setCurrentTheme(muse::ui::DARK_THEME_CODE);
+    }
+}
 
 std::string DoricoModule::moduleName() const
 {
@@ -82,6 +115,12 @@ void DoricoModule::onInit(const IApplication::RunMode&)
             shortcutsConfig->setCurrentShortcutsPresetName("shortcuts_dorico");
         }
         settings()->setSharedValue(KEYMAP_APPLIED_KEY, Val(true));
+    }
+
+    settings()->setDefaultValue(APPEARANCE_VERSION_KEY, Val(0));
+    if (settings()->value(APPEARANCE_VERSION_KEY).toInt() < APPEARANCE_VERSION) {
+        applyDoricoAppearance();
+        settings()->setSharedValue(APPEARANCE_VERSION_KEY, Val(APPEARANCE_VERSION));
     }
 }
 
