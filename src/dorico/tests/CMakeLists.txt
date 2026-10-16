@@ -25,6 +25,7 @@ set(MODULE_TEST_SRC
     ${CMAKE_CURRENT_LIST_DIR}/doricoshell_tests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/doricomenu_tests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/dynamicsparser_tests.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/keysigparser_tests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/noteinput_tests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/notationspanels_tests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/popoverregistry_tests.cpp
