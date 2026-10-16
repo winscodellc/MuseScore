@@ -79,6 +79,12 @@ static std::vector<CommandInfo> makeCommandInfos()
     v.push_back(info(DORICO_TOGGLE_STACCATISSIMO_COMMAND, "Dorico: staccatissimo", "Toggles the staccatissimo articulation"));
     v.push_back(info(DORICO_TOGGLE_UNSTRESSED_COMMAND, "Dorico: unstressed", "Toggles the unstressed articulation"));
     v.push_back(info(DORICO_TOGGLE_TENUTO_STACCATO_COMMAND, "Dorico: tenuto-staccato", "Toggles the tenuto-staccato articulation"));
+    v.push_back(info(DORICO_CARET_LEFT_COMMAND, "Dorico: caret left",
+                     "Note input: moves the caret back by the rhythmic grid; otherwise selects the previous item"));
+    v.push_back(info(DORICO_CARET_RIGHT_COMMAND, "Dorico: caret right",
+                     "Note input: moves the caret on by the rhythmic grid; otherwise selects the next item"));
+    v.push_back(info(DORICO_GRID_FINER_COMMAND, "Dorico: finer rhythmic grid", "Halves the rhythmic grid (eighth -> 16th)"));
+    v.push_back(info(DORICO_GRID_COARSER_COMMAND, "Dorico: coarser rhythmic grid", "Doubles the rhythmic grid (eighth -> quarter)"));
 
     static const char* MODES[] = { "Setup", "Write", "Engrave", "Play", "Print" };
     for (int i = 0; i < 5; ++i) {

@@ -42,6 +42,22 @@ inline int stepBelow(int ref, int note)
     return s >= ref ? s - 7 : s;
 }
 
+//! Caret step to the right (spec 12), in ticks: the next grid position (counted from the bar start) or the end of the
+//! chord/rest the caret is in, whichever comes first.
+inline int nextCaretTick(int cur, int barStart, int grid, int crEnd)
+{
+    const int next = barStart + ((cur - barStart) / grid + 1) * grid;
+    return next < crEnd ? next : crEnd;
+}
+
+//! Caret step to the left: the previous grid position or the start of the chord/rest that holds it, whichever is
+//! later. Needs cur > crStart >= barStart.
+inline int prevCaretTick(int cur, int barStart, int grid, int crStart)
+{
+    const int prev = barStart + ((cur - barStart - 1) / grid) * grid;
+    return prev > crStart ? prev : crStart;
+}
+
 //! Double-tap detector for duration digits (6 6 = dotted quarter).
 //! The clock is injected by the caller so tests do not sleep.
 class DotTap

@@ -32,6 +32,7 @@
 #include "ui/iuiconfiguration.h"
 
 #include "internal/doricoactionscontroller.h"
+#include "internal/doricocaret.h"
 #include "internal/doricocommandsregister.h"
 #include "internal/doricocommandsstate.h"
 #include "internal/doricomenuarranger.h"
@@ -132,11 +133,13 @@ IContextSetup* DoricoModule::newContext(const muse::modularity::ContextPtr& ctx)
 void DoricoContext::registerExports()
 {
     m_actionsController = std::make_shared<DoricoActionsController>(iocContext());
+    m_caret = std::make_shared<DoricoCaret>(iocContext());
     m_modeState = std::make_shared<DoricoModeState>();
     m_noteInputController = std::make_shared<DoricoNoteInputController>(iocContext());
     m_popoverController = std::make_shared<PopoverController>(iocContext());
 
     ioc()->registerExport<IDoricoModeState>(mname, m_modeState);
+    ioc()->registerExport<IDoricoCaret>(mname, m_caret);
     ioc()->registerExport<IPopoverController>(mname, m_popoverController);
     ioc()->registerExport<IDoricoMenuArranger>(mname, std::make_shared<DoricoMenuArranger>(iocContext()));
 }
@@ -152,6 +155,7 @@ void DoricoContext::resolveImports()
 void DoricoContext::onInit(const IApplication::RunMode&)
 {
     m_actionsController->init();
+    m_caret->init();
     m_noteInputController->init();
     m_popoverController->init();
 }

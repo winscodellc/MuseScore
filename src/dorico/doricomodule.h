@@ -28,6 +28,7 @@
 
 namespace mu::dorico {
 class DoricoActionsController;
+class DoricoCaret;
 class DoricoModeState;
 class DoricoNoteInputController;
 class PopoverController;
@@ -55,6 +56,7 @@ public:
 
 private:
     std::shared_ptr<DoricoActionsController> m_actionsController;
+    std::shared_ptr<DoricoCaret> m_caret;
     std::shared_ptr<DoricoModeState> m_modeState;
     std::shared_ptr<DoricoNoteInputController> m_noteInputController;
     std::shared_ptr<PopoverController> m_popoverController;

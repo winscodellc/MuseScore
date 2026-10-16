@@ -85,6 +85,12 @@ inline static const muse::rcommand::Command DORICO_TOGGLE_STACCATISSIMO_COMMAND(
 inline static const muse::rcommand::Command DORICO_TOGGLE_UNSTRESSED_COMMAND("command://dorico/toggle-articulation-unstressed");
 inline static const muse::rcommand::Command DORICO_TOGGLE_TENUTO_STACCATO_COMMAND("command://dorico/toggle-articulation-tenuto-staccato");
 
+// Caret and rhythmic grid (spec 12).
+inline static const muse::rcommand::Command DORICO_CARET_LEFT_COMMAND("command://dorico/caret-left");
+inline static const muse::rcommand::Command DORICO_CARET_RIGHT_COMMAND("command://dorico/caret-right");
+inline static const muse::rcommand::Command DORICO_GRID_FINER_COMMAND("command://dorico/grid-finer");
+inline static const muse::rcommand::Command DORICO_GRID_COARSER_COMMAND("command://dorico/grid-coarser");
+
 // Project window modes and zones (spec 50). Mode commands are in `Mode` order (Setup, Write, Engrave, Play, Print).
 inline static const std::array<muse::rcommand::Command, 5> DORICO_MODE_COMMANDS = {
     muse::rcommand::Command("command://dorico/mode-setup"),

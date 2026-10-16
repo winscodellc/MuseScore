@@ -48,6 +48,8 @@
 #include "continuouspanel.h"
 #include "abstractelementpopupmodel.h"
 
+#include "dorico/idoricocaret.h" // Dorico fork (spec 12)
+
 namespace mu::notation {
 class AbstractNotationPaintView : public muse::uicomponents::QuickPaintedView, public IControlledView, public muse::Contextable,
     public muse::async::Asyncable
@@ -80,6 +82,8 @@ class AbstractNotationPaintView : public muse::uicomponents::QuickPaintedView, p
     muse::ContextInject<muse::ui::IUiContextResolver> uiContextResolver = { this };
     muse::ContextInject<muse::ui::IMainWindow> mainWindow = { this };
     muse::ContextInject<muse::ui::IUiActionsRegister> actionsRegister = { this };
+    // Dorico fork (spec 12): registered only by the Dorico module; null otherwise.
+    muse::ContextInject<mu::dorico::IDoricoCaret> doricoCaret = { this };
 
 public:
     explicit AbstractNotationPaintView(QQuickItem* parent = nullptr);

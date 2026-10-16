@@ -42,6 +42,7 @@ Namespace `mu::dorico`, commands `command://dorico/<name>`. It is created in spe
 - Setup-mode layout deletion (spec 55): `notation/internal/masternotation.cpp` (`updatePotentialExcerpts` skips the `deletedPartLayouts` meta tag), `notation/iexcerptnotation.h` + `internal/excerptnotation.{h,cpp}` (`initialPartId()`), and `engraving/dom/excerpt.cpp` (plain-text part names).
 - Note-input articulation latch (spec 11): `engraving/dom/articulation.cpp` `updateArticulations` toggles any articulation, not only accent / marcato / tenuto / staccato.
 - Play mode (spec 57): `playback/qml/MuseScore/Playback/mixerpanelmodel.cpp` applies control / mute / solo changes from other models, so two mixers over the same tracks stay in sync.
+- Note-input caret (spec 12): `notationscene/qml/MuseScore/NotationScene/abstractnotationpaintview.{h,cpp}` lets an optional `IDoricoCaret` paint the caret and grid ruler.
 - Appearance (spec 60): `app/configs/dark.cfg` and `light.cfg` hold Dorico's measured colors (values only).
 
 ### 2. Changing behaviour = new commands, not overriding old ones
@@ -99,7 +100,7 @@ Status: todo | in-progress | pending review | done  -  Depends on: NN, NN  -  Do
 | 00 | [Module skeleton](00-module-skeleton.md) | done | none |
 | 10 | [Keymap preset](10-keymap-preset.md) | done | 00 |
 | 11 | [Note-input modes](11-note-input-modes.md) | done | 00, 10 (land with 10) |
-| 12 | [Caret and navigation](12-caret-and-navigation.md) | todo | 00, 10, 11 |
+| 12 | [Caret and navigation](12-caret-and-navigation.md) | in-progress | 00, 10, 11 |
 | 13 | [Duration and rhythmic moves](13-duration-and-rhythmic-moves.md) | todo | 00, 10, 12 (for the grid) |
 | 20 | [Popover framework](20-popover-framework.md) | pending review | 00, 10 |
 | 21 | [Popover: dynamics (Shift-D)](21-popover-dynamics.md) | todo | 20 |

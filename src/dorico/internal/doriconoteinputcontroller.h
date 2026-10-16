@@ -34,6 +34,7 @@
 #include "notation/inotationconfiguration.h"
 #include "notationscene/inotationcommandscontroller.h"
 
+#include "../idoricocaret.h"
 #include "../idoricomodestate.h"
 #include "../ipopovercontroller.h"
 #include "noteinpututils.h"
@@ -49,6 +50,7 @@ class DoricoNoteInputController : public muse::async::Asyncable, public muse::Co
     muse::ContextInject<notation::INotationCommandsController> notationController = { this };
     muse::ContextInject<IDoricoModeState> modes = { this };
     muse::ContextInject<IPopoverController> popovers = { this };
+    muse::ContextInject<IDoricoCaret> caret = { this };
     muse::GlobalInject<notation::INotationConfiguration> notationConfiguration;
     muse::GlobalInject<muse::toast::IToastService> toastService;
 
@@ -78,6 +80,10 @@ private:
     void onNextVoice();
     void onNewVoice();
     void onToggleArticulation(mu::engraving::SymId sym);
+    void onCaretStep(bool right);
+
+    //! Runs a note/rest entry at the caret: cuts the note/rest the caret is inside first, as one undo step.
+    void enterAtCaret(const std::function<void()>& enter);
 
     std::optional<int> referenceStep(bool above) const;
     bool voiceHasContent(size_t staffIdx, size_t voice) const;

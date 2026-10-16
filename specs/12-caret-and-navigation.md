@@ -1,5 +1,5 @@
 # 12 - Caret and navigation
-Status: todo  -  Depends on: 00, 10, 11  -  Dorico refs: `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/write_mode/write_mode_navigation/write_mode_navigation_items_music_area_t.html`, `.../write_mode_caret/write_mode_caret_moving_manually_t.html`, `.../write_mode_rhythmic_grid/write_mode_rhythmic_grid_c.html`, `.../write_mode_rhythmic_grid/write_mode_rhythmic_grid_resolution_changing_t.html`, `.../write_mode_transposing_tools/write_mode_notes_pitch_changing_t.html`, `.../write_mode_transposing_tools/write_mode_notes_respelling_t.html`
+Status: in-progress  -  Depends on: 00, 10, 11  -  Dorico refs: `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/write_mode/write_mode_navigation/write_mode_navigation_items_music_area_t.html`, `.../write_mode_caret/write_mode_caret_moving_manually_t.html`, `.../write_mode_rhythmic_grid/write_mode_rhythmic_grid_c.html`, `.../write_mode_rhythmic_grid/write_mode_rhythmic_grid_resolution_changing_t.html`, `.../write_mode_transposing_tools/write_mode_notes_pitch_changing_t.html`, `.../write_mode_transposing_tools/write_mode_notes_respelling_t.html`
 
 ## Goal
 Arrow keys, Cmd+arrows, Space and the pitch-by-step keys behave as in Dorico, both with a selection and during note input; add the rhythmic grid state (Opt-[ / Opt-]) and directional respelling (Opt-= / Opt--).
@@ -90,12 +90,18 @@ Spec 10 had `Ctrl+Up/Down` and `Up/Down` unbound; check the dead-key results tab
 None.
 
 ## Deferred / unsupported
-- **Caret stepping on grid positions inside long notes/rests** (Right/Left "by grid or next note, whichever is closer"): MuseScore has no segment at arbitrary ticks without splitting rests. Right/Left in note input keep MuseScore's next-chord/rest movement. The grid is used by spec 13 only.
 - Shift-Up/Down caret extension over several staves (README global list).
 - Tab / Shift-Tab item cycling; selection of hidden items behind others (Shift-Opt-click).
-- Grid shown in the status bar and as a ruler above the caret.
+- Grid shown in the status bar.
+- Caret stepping inside tuplets (Right/Left fall back to MuseScore's next-chord/rest move); caret ruler on TAB staves and in input-by-duration mode (MuseScore's own caret/ruler is drawn).
 - Respell in score vs part scoping; reset/propagate spellings; Write > Respell Notes Automatically dialog.
 - Quarter-tone / octave-division arithmetic (12-EDO only).
+
+## As built (partial: caret, grid and ruler only)
+- `IDoricoCaret` (`src/dorico/idoricocaret.h`, impl `internal/doricocaret.cpp`) keeps a virtual caret tick inside the chord/rest at MuseScore's input position. `dorico/caret-left|right` (Left / Right) step by the grid or to the next/previous note/rest (`nextCaretTick` / `prevCaretTick` in `noteinpututils.h`); outside note input they forward to `notation/move-left|right`.
+- Entering a note/rest (letters, Shift-Opt / Ctrl letters, Y, Space) with the caret inside a note/rest first cuts it there with `Score::changeCRlen`, merged into the same undo step as the entry. A cut note becomes note + rests (Dorico would tie).
+- Ruler + caret line are painted by the Dorico module through one optional hook in `AbstractNotationPaintView::paint` (upstream edit). Grid: `dorico/grid-finer|coarser` (Opt-] / Opt-[), persisted as `dorico/gridResolution` (denominator, 1..128).
+- Not done yet: Up/Down/Cmd-Up/Cmd-Down navigation (section 1), respell (section 3).
 
 ## Acceptance criteria
 - [ ] Nothing selected, press Right: first item of the top staff is selected.

@@ -31,6 +31,8 @@ target_sources(dorico PRIVATE
     internal/doricocommandsstate.h
     internal/doricoactionscontroller.cpp
     internal/doricoactionscontroller.h
+    internal/doricocaret.cpp
+    internal/doricocaret.h
     internal/doricomodestate.cpp
     internal/doricomodestate.h
     internal/doriconoteinputcontroller.cpp
@@ -51,6 +53,7 @@ target_sources(dorico PRIVATE
     popover/popoverregistry.cpp
     popover/popoverregistry.h
     popover/popovertypes.h
+    idoricocaret.h
     idoricomenuarranger.h
     idoricomodestate.h
     ipopovercontroller.h

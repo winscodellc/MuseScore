@@ -137,3 +137,26 @@ TEST(DoricoArticulationLatch, StaccatissimoTogglesOnAndOff)
     EXPECT_TRUE(updateArticulations(on, SymId::articStaccatissimoAbove, ArticulationsUpdateMode::Remove).empty());
     EXPECT_EQ(updateArticulations(on, SymId::articStaccatissimoAbove, ArticulationsUpdateMode::Insert), on);
 }
+
+// Ticks: quarter = 480, eighth grid = 240. Bar 2 of 4/4 starts at 1920.
+TEST(DoricoCaretMath, RightStepsByGridInsideARest)
+{
+    EXPECT_EQ(nextCaretTick(1920, 1920, 240, 3840), 2160); // whole rest: bar start -> first eighth
+    EXPECT_EQ(nextCaretTick(2160, 1920, 240, 3840), 2400);
+    EXPECT_EQ(nextCaretTick(3600, 1920, 240, 3840), 3840); // last eighth -> next bar
+}
+
+TEST(DoricoCaretMath, RightStopsAtTheNextNote)
+{
+    EXPECT_EQ(nextCaretTick(1920, 1920, 240, 2040), 2040); // a 16th is closer than the grid
+    EXPECT_EQ(nextCaretTick(2040, 1920, 240, 2400), 2160); // off-grid caret snaps to the next grid position
+}
+
+TEST(DoricoCaretMath, LeftStepsByGridOrToTheNoteStart)
+{
+    EXPECT_EQ(prevCaretTick(2400, 1920, 240, 1920), 2160);
+    EXPECT_EQ(prevCaretTick(2160, 1920, 240, 1920), 1920);
+    EXPECT_EQ(prevCaretTick(2100, 1920, 240, 2040), 2040); // note starts after the previous grid position
+    EXPECT_EQ(prevCaretTick(2100, 1920, 240, 1920), 1920); // off-grid caret snaps back to the grid
+    EXPECT_EQ(prevCaretTick(1920, 0, 240, 1440), 1680);    // from the barline into the previous bar's last rest
+}

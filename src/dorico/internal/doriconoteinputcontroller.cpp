@@ -111,6 +111,10 @@ void DoricoNoteInputController::init()
     reg(DORICO_CYCLE_DOTS_COMMAND, [this]() { onCycleDots(); });
     reg(DORICO_NEXT_VOICE_COMMAND, [this]() { onNextVoice(); });
     reg(DORICO_NEW_VOICE_COMMAND, [this]() { onNewVoice(); });
+    reg(DORICO_CARET_LEFT_COMMAND, [this]() { onCaretStep(false); });
+    reg(DORICO_CARET_RIGHT_COMMAND, [this]() { onCaretStep(true); });
+    reg(DORICO_GRID_FINER_COMMAND, [this]() { caret()->finerGrid(); });
+    reg(DORICO_GRID_COARSER_COMMAND, [this]() { caret()->coarserGrid(); });
 
     for (int i = 0; i < 7; ++i) {
         reg(DORICO_PITCH_COMMANDS[i], [this, i]() { onPitch(i); });
@@ -308,8 +312,10 @@ void DoricoNoteInputController::onSpace()
         return;
     }
 
-    mu::engraving::ChordRest* cr = ni->state().cr();
-    dispatcher()->dispatch(cr && cr->isChord() ? MOVE_RIGHT_COMMAND : ENTER_REST_COMMAND);
+    enterAtCaret([this, ni]() {
+        mu::engraving::ChordRest* cr = ni->state().cr();
+        dispatcher()->dispatch(cr && cr->isChord() ? MOVE_RIGHT_COMMAND : ENTER_REST_COMMAND);
+    });
 }
 
 void DoricoNoteInputController::onPitch(int note)
@@ -328,19 +334,21 @@ void DoricoNoteInputController::onPitch(int note)
 
     m_dotTap.reset();
 
-    const bool byDuration = ni->usingNoteInputMethod(NoteInputMethod::BY_DURATION);
-    if (ni->state().rest() && !byDuration) {
-        dispatcher()->dispatch(ENTER_REST_COMMAND);
-        return;
-    }
+    enterAtCaret([this, ni, note]() {
+        const bool byDuration = ni->usingNoteInputMethod(NoteInputMethod::BY_DURATION);
+        if (ni->state().rest() && !byDuration) {
+            dispatcher()->dispatch(ENTER_REST_COMMAND);
+            return;
+        }
 
-    if (modes()->isChordMode() && !byDuration) {
-        dispatcher()->dispatch(m_chordPending ? ADD_NOTE_COMMANDS[note] : ENTER_NOTE_COMMANDS[note]);
-        m_chordPending = true;
-        return;
-    }
+        if (modes()->isChordMode() && !byDuration) {
+            dispatcher()->dispatch(m_chordPending ? ADD_NOTE_COMMANDS[note] : ENTER_NOTE_COMMANDS[note]);
+            m_chordPending = true;
+            return;
+        }
 
-    dispatcher()->dispatch(ENTER_NOTE_COMMANDS[note]);
+        dispatcher()->dispatch(ENTER_NOTE_COMMANDS[note]);
+    });
 }
 
 std::optional<int> DoricoNoteInputController::referenceStep(bool above) const
@@ -393,17 +401,19 @@ void DoricoNoteInputController::onForcedOctave(int note, bool above)
         return;
     }
 
-    // Set before addNote: its noteAdded notification holds the caret on the chord.
-    const bool addToChord = modes()->isChordMode() && m_chordPending;
-    m_chordPending = modes()->isChordMode();
-    ni->addNote(params, addToChord ? NoteAddingMode::CurrentChord : NoteAddingMode::NextChord);
+    enterAtCaret([this, ni, params]() {
+        // Set before addNote: its noteAdded notification holds the caret on the chord.
+        const bool addToChord = modes()->isChordMode() && m_chordPending;
+        m_chordPending = modes()->isChordMode();
+        ni->addNote(params, addToChord ? NoteAddingMode::CurrentChord : NoteAddingMode::NextChord);
+    });
 }
 
 void DoricoNoteInputController::onRest()
 {
     if (inNoteInput()) {
         m_dotTap.reset();
-        dispatcher()->dispatch(ENTER_REST_COMMAND);
+        enterAtCaret([this]() { dispatcher()->dispatch(ENTER_REST_COMMAND); });
     }
 }
 
@@ -548,5 +558,26 @@ void DoricoNoteInputController::onToggleArticulation(mu::engraving::SymId sym)
         ni->setArticulation(sym);
     } else if (!interaction->selection()->isNone()) {
         interaction->toggleArticulationForSelection(sym);
+    }
+}
+
+void DoricoNoteInputController::onCaretStep(bool right)
+{
+    // Moving the caret ends a chord in progress, like Space.
+    m_chordPending = false;
+    m_dotTap.reset();
+    if (!caret()->step(right)) {
+        dispatcher()->dispatch(right ? MOVE_RIGHT_COMMAND : MOVE_LEFT_COMMAND);
+    }
+}
+
+void DoricoNoteInputController::enterAtCaret(const std::function<void()>& enter)
+{
+    INotationUndoStackPtr undoStack = currentNotation()->undoStack();
+    const size_t before = undoStack->currentStateIndex();
+    const bool cut = caret()->materialize();
+    enter();
+    if (cut && undoStack->currentStateIndex() > before + 1) {
+        undoStack->mergeTransactions(before);
     }
 }

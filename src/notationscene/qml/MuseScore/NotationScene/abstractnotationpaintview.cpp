@@ -752,7 +752,9 @@ void AbstractNotationPaintView::paint(QPainter* qp)
 
     const INotationNoteInputPtr noteInput = notationNoteInput();
     if (noteInput->isNoteInputMode() && !publishMode()) {
-        if (noteInput->usingNoteInputMethod(NoteInputMethod::BY_DURATION)
+        if (doricoCaret() && doricoCaret()->paint(painter)) {
+            // Dorico fork (spec 12): caret and rhythmic grid ruler painted by the Dorico module
+        } else if (noteInput->usingNoteInputMethod(NoteInputMethod::BY_DURATION)
             && !notationConfiguration()->useNoteInputCursorInInputByDuration()) {
             m_ruler->paint(painter, noteInput->state());
         } else {
