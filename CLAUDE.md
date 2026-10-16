@@ -33,6 +33,13 @@ cmake -P build.cmake clean                # delete the build dir
 - `brew install ccache` was attempted and abandoned: it tried to rebuild cmake from source. Retry later if rebuild times hurt.
 - A dev build is `org.musescore.MuseScoreStudio5Development`, so its settings are separate from an installed MuseScore 4. No rename is needed to run side by side.
 
+## Driving the UI (Dorico 6 + our build): ClaudeUIControl
+Claude can see and control **Dorico 6** and **our MuseScore build** through `~/Applications/ClaudeUIControl.app` (user-built, holds the Accessibility permission). Use it when the user asks, and **offer it** whenever a change needs checking in the real UI or a Dorico behaviour must be compared side by side (ask before driving the apps). Docs: `src/dorico/tools/uicontrol/README.md`.
+- Drive: `src/dorico/tools/uicontrol/uictl.sh <cmd> [";" <cmd> ...]`. Commands: `trusted`, `front|bounds <dorico|mscore>`, `key <app> <combo>` (e.g. `cmd+1`), `type <text>`, `click <x> <y> [right|double|cmd|shift|alt|ctrl]`, `drag x1 y1 x2 y2`, `move x y`, `wait <ms>`. Screen points, top-left origin.
+- See: `screencapture -x -R x,y,w,h out.png` with the rect from `uictl.sh bounds <app>` (clamp a reported x = -1 to 0), then `sips -Z 1700 out.png` before reading the image.
+- It only acts on those two apps (bundle-ID allowlist). **Never rebuild it** (`build.sh`): a rebuild drops the permission and only the user can re-grant it.
+- Our build may hold the user's open scores: test on temp copies of `demos/` scores, quit with Cmd-Q, and never answer a save dialog (click Cancel and ask).
+
 ## Architecture (paths relative to `src/`)
 Modules are C++ libraries wired by an IoC container (think Spring): each has a `*module.cpp` implementing `muse::modularity::IModuleSetup` (`registerExports` -> `resolveImports` -> `onInit`). Services are declared by interface (`inotation.h`) and injected with `muse::GlobalInject<IFoo>` (app-wide) or `muse::ContextInject<IFoo> foo = { this };` (per window/project). Per-window state uses `IContextSetup` (see `palette/palettemodule.cpp`). The framework lives in the `muse/` submodule (IoC, actions, UI kit, audio, mpe); do not edit it casually.
 
