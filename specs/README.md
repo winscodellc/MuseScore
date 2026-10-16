@@ -46,6 +46,7 @@ Namespace `mu::dorico`, commands `command://dorico/<name>`. It is created in spe
 - Note-input caret (spec 12): `notationscene/qml/MuseScore/NotationScene/abstractnotationpaintview.{h,cpp}` lets an optional `IDoricoCaret` paint the caret and grid ruler.
 - Appearance (spec 60): `app/configs/dark.cfg` and `light.cfg` hold Dorico's measured colors (values only).
 - Notes panel articulations (spec 52): `notationscene/internal/notationcommandsstate.cpp` also refreshes the articulation toggles on selection change; `engraving/dom/chord.cpp` `updateArticulations` removes any articulation (not only the basic four), `articulation.cpp` knows stress / unstress placements; test in `engraving/tests/note_tests.cpp`.
+- Duration keys (spec 13): `notationscene/qml/MuseScore/NotationScene/notationviewinputcontroller.cpp` `shortcutOverrideEvent` lets (Cmd-)Shift-Opt-Left/Right reach the shortcuts when a line or text is selected.
 - Dorico pages hide MuseScore's score/part tabs (spec 50): `notationscene/qml/MuseScore/NotationScene/NotationView.qml` `showNotationTabs`.
 
 ### 2. Changing behaviour = new commands, not overriding old ones
@@ -104,7 +105,7 @@ Status: todo | in-progress | pending review | done  -  Depends on: NN, NN  -  Do
 | 10 | [Keymap preset](10-keymap-preset.md) | done | 00 |
 | 11 | [Note-input modes](done/11-note-input-modes.md) | done | 00, 10 (land with 10) |
 | 12 | [Caret and navigation](12-caret-and-navigation.md) | done | 00, 10, 11 |
-| 13 | [Duration and rhythmic moves](13-duration-and-rhythmic-moves.md) | todo | 00, 10, 12 (for the grid) |
+| 13 | [Duration and rhythmic moves](done/13-duration-and-rhythmic-moves.md) | done | 00, 10, 12 (for the grid) |
 | 20 | [Popover framework](done/20-popover-framework.md) | done | 00, 10 |
 | 21 | [Popover: dynamics (Shift-D)](done/21-popover-dynamics.md) | done | 20 |
 | 22 | [Popover: time signatures (Shift-M)](22-popover-time-signatures.md) | todo | 20 |
