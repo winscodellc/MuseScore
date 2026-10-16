@@ -135,6 +135,10 @@ Still words, on purpose (Dorico shows words there too): status bar Grid value, C
 | Icons outside the Dorico shell (MuseScore dialogs, palettes, Home page, status-bar zone arrow) | Keep MuseScore's icons                                                                                                            |
 | Pixel-exact colors                                                                             | Measured from small, scaled screenshots; re-tune against a running Dorico if needed (bump `APPEARANCE_VERSION` for canvas colors) |
 
+### After the side-by-side screen comparison with Dorico 6 (2026-10-16)
+
+- Music-area background is Dorico 6's slate (`#2C4D6F`, the middle of its `#203F62` .. `#375B7B` gradient), not the old blue; `APPEARANCE_VERSION` 2 re-applies it once. Print mode uses grey (spec 58).
+
 ## Acceptance criteria
 
 - [x] `dark.cfg` / `light.cfg` hold the measured Dorico colors; high-contrast themes unchanged.

@@ -46,7 +46,7 @@ Namespace `mu::dorico`, commands `command://dorico/<name>`. It is created in spe
 - Note-input caret (spec 12): `notationscene/qml/MuseScore/NotationScene/abstractnotationpaintview.{h,cpp}` lets an optional `IDoricoCaret` paint the caret and grid ruler.
 - Appearance (spec 60): `app/configs/dark.cfg` and `light.cfg` hold Dorico's measured colors (values only).
 - Notes panel articulations (spec 52): `notationscene/internal/notationcommandsstate.cpp` also refreshes the articulation toggles on selection change; `engraving/dom/chord.cpp` `updateArticulations` removes any articulation (not only the basic four), `articulation.cpp` knows stress / unstress placements; test in `engraving/tests/note_tests.cpp`.
-- Setup Players panel (spec 55): `instrumentsscene/qml/MuseScore/InstrumentsScene/LayoutPanel.qml` can hide its top bar (`controlPanelVisible`) and exposes its tree model (`layoutTreeModel`).
+- Dorico pages hide MuseScore's score/part tabs (spec 50): `notationscene/qml/MuseScore/NotationScene/NotationView.qml` `showNotationTabs`.
 
 ### 2. Changing behaviour = new commands, not overriding old ones
 The command dispatcher allows **one handler per command** (`muse/framework/rcommand/internal/commanddispatcher.cpp:135` refuses duplicates), so a module cannot replace `command://notation/paste`. Instead:

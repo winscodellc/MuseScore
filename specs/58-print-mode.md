@@ -56,6 +56,10 @@ Compared with the user's Dorico Print-mode screenshot; built these:
 
 Not built: paper size / orientation / scale in the panel (Page Setup... opens MuseScore's dialog), copies and collate (system dialog), layout rows with disclosure arrows.
 
+### After the side-by-side screen comparison with Dorico 6 (2026-10-16)
+
+- Layouts: compact rows (score / part icon, name), the layouts to print filled blue (`#45A6F5`); details in the tooltip. Print Options: collapsible sections (Duplex Printing and Annotations closed), no title bar. Music area grey (`#AAAAAE`) while Print is open (`DoricoActionsController::applyPrintBackground`, restored on leaving and at start-up).
+
 ## Verification status
 
 Built and unit-tested (`dorico_tests` 28/28: Print zones, `exportUnitType`), QML linted. Manual check in the app pending.

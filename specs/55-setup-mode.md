@@ -30,6 +30,8 @@ See `reference/dorico-ui.md` 1. Three zones, no toolbox. Cards list the items; t
 
 ## Deferred / unsupported
 
+- Instruments ordering (MuseScore's Players "…" submenu) left with the instrument tree; choose the order in the Add Single Player (instruments) dialog. Staff rows (per-staff settings) are no longer in the Players panel.
+
 Section players, ensembles, groups, sort orders, custom/full-score layouts beyond the one score, multiple flows, assignment checkboxes, layout numbers.
 
 ## As built
@@ -41,6 +43,10 @@ Section players, ensembles, groups, sort orders, custom/full-score layouts beyon
 - Shared pieces introduced here: `ToolSection.qml` (titled button group over `DoricoToolsModel`), `DoricoButton.qml` (a FlatButton that looks disabled but still shows its "Not available yet" tooltip: a disabled FlatButton shows no tooltip at all), `DoricoPlaceholder.qml` (the "Not available yet" stub, also used by the lower zone). The panel size constants and drop destinations moved from `WritePage` to `DoricoPage`.
 - Part names are plain text: `Excerpt::createExcerptsFromParts` strips rich text from the instrument name (3.x files store `<font face=.../>Alto`), and the project title is shown as plain text too. Upstream edit in `engraving/dom/excerpt.cpp`, tested in `parts_tests.cpp`.
 - Status bar "Order" stays a label: MuseScore's instrument-order menu lives inside the instruments panel's context menu.
+
+### After the side-by-side screen comparison with Dorico 6 (2026-10-16)
+
+- Layouts: compact rows like Dorico's (icon, name, selected blue), details in the tooltip. Flows: one blue card (`#30678B`) filling the panel ("Flow 1", ticked layout checkbox, number), flow actions in a column on the right. - **Players** (user-approved replacement of MuseScore's tree): `PlayersList.qml`, Dorico-style rows (person icon, name; selected `#45A6F5`; hidden instruments dimmed) over MuseScore's own `LayoutPanelTreeModel`, so add / remove / reorder / hide / settings stay MuseScore's. Click selects, Shift-click selects a range (MuseScore's model allows no Cmd-click), drag reorders (`moveRows`, as the tree did; the player carrying the tempo/markers row stays on top, as in MuseScore), Delete removes. Right-click: Show / Hide, Enabled (shared parts), Settings… (MuseScore's instrument or system-markings popup), Remove. Staff rows are not shown. The panel's "…" menu has **Enable stave sharing** (`command://dorico/toggle-stave-sharing`, checked from `Sid::enableStaveSharing`). The `LayoutPanel.qml` upstream edit is reverted (not used any more).
 
 ## Verification status
 

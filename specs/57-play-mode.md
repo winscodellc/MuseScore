@@ -58,6 +58,13 @@ Compared with the user's Dorico Play-mode screenshot; built these (no new data m
 
 Not built (need a new model or are larger): Tempo and Chords tracks, the overview toolbar (tools, chord-track toggle), the mixer's Show / Deactivate-all filter bar.
 
+### Dorico-style Mixer and Track Inspector (2026-10-16, from a second screenshot)
+
+- **Mixer** (`DoricoMixer.qml`, Play mode's lower zone only; Write and Engrave keep MuseScore's mixer): compact channel strips (`DoricoChannelStrip.qml`: pan box, fader value, m / s, fader, stereo meter, name on the instrument colour; FX channels tinted green, the master is "Output") over MuseScore's `MixerPanelModel`. Toolbar in the lower zone's tab row: Show Instruments / FX (MIDI, Video, Unused unavailable), Deactivate all mute / solo (lit while any is active), Add / Remove Effects Channel, Live Stage, Live Space (unavailable).
+- **Lower zone in Play**: icon tabs (Mixer, Key Editor) with the current tab's toolbar beside them (`LowerZonePanel.iconTabs`, `doricoMixer`, a tab's `headerComponent`).
+- **Track Inspector**: equal-width tabs; sections with Dorico's title bar and chevron (`InspectorSection.qml`). Routing: sound picker (`ResourceDropdown.qml`, MuseScore's sound menu), Port / Ch. fields shown as "–", Endpoint Setup (unavailable), Edit Instrument (the sound's editor window), Ex. map (disabled "Default"), Enable Independent Voice Playback (unavailable). Insert Effects: four slots with on/off, effect picker and edit. Channel: one `DoricoChannelStrip`.
+- **Colours**: `trackcolor.js` is shared by the track overview, the Mixer and the Channel strip (the n-th instrument of the score).
+
 ## Verification status
 
 Built and unit-tested (`dorico_tests` 41/41), QML linted. Manual check in the app pending.

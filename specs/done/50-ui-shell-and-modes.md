@@ -82,6 +82,12 @@ Risk: page layouts are saved per page name. If the page `objectName` of the old 
 - [x] Layout per page persists across restart; Home and Publish still work.
 - [x] `check_keymap.py` passes.
 
+### After the side-by-side screen comparison with Dorico 6 (2026-10-16)
+
+- Top bar: no Home / Publish buttons (now **Window > Hub** = `command://dorico/open-hub`, MuseScore's Home page, enabled without a project, and **File > Publish** = `command://dorico/open-publish`). Mode tabs are one rounded strip (`#3D4A58`, current tab `#2C678F`); the View menu is an eye icon and Hide/Restore Zones a window icon, together in a second strip.
+- The score/part tab row above the music is hidden on the Dorico pages (`NotationView.showNotationTabs`, upstream edit `// Dorico fork`); layouts are chosen in the top bar.
+- Title bars only where Dorico has them: none on Write's Notes panel, Engrave's panels, Play's left zone, Print Options and the lower zone (`floatable: false; closable: false`, which makes DockFrameModel drop the title bar).
+
 ## Verification status
 Built, unit-tested (`dorico_tests`, `check_keymap.py`) and checked by hand in the app: all acceptance criteria pass.
 

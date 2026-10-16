@@ -64,6 +64,10 @@ Staff Spacing, Note Spacing, Graphic Slices, Pages panel (templates, flow headin
 - `PaletteSections.qml` (titled palette grids) is now shared by the Notations panel and Engrave's Bracketing.
 - Zones: `zoneDocks(Engrave)` = engraveLeftPanel / lowerZonePanel / pagesPanel.
 
+### After the side-by-side screen comparison with Dorico 6 (2026-10-16)
+
+- Formatting and Frames panels: collapsible sections (`InspectorSection`) with labelled buttons (`ToolSection.labelled`, `DoricoButton.label`), names as in Dorico 6 (Move Bars Between Systems, Create System Break, Make Into System, Create Frame Break, ...). Labelled buttons size to their text (the content has its own implicit size; `minWidth` 0). Pages panel: Dorico's four section headers (Pages, Page Templates, Flow Headings, Page Template Sets), each "Not available yet".
+
 ## Verification status
 
 Built and unit-tested (`dorico_tests` 33/33), QML linted. Manual check in the app pending. Engrave depends on the page-gating fix (notation commands used to be disabled outside Write).

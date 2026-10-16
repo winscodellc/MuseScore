@@ -47,6 +47,10 @@ Fretboard and Key Editor (stubs); Properties panel layout is MuseScore's (no hor
 
 - **QML snags (read before reusing the panel in specs 56/57):** the build uses `muse/framework/dockwindow_v2` (not `dockwindow/`). `DockPanel`'s default property is ONE lazily loaded `Component` (`contentComponent`) with its own id scope. So: (1) the panel body must hold exactly one object, the content `Item` (a `Component {}` declared beside it silently replaces it; the last one wins, which made the first build show only Timeline); (2) ids inside the content are invisible to root-level bindings, so `LowerZoneModel` is a root property and the loaders `Repeater` is handed to the root on load. The dock title is fixed ("Lower zone") because `DockBase` passes the title to the title bar only once, at creation.
 
+### After the side-by-side screen comparison with Dorico 6 (2026-10-16)
+
+- Icon tabs in every mode (Properties, Keyboard, Fretboard, Drum Pads, Mixer, Key Editor, Timeline) with the current tab's toolbar beside them; Dorico's compact Mixer (spec 57's `DoricoMixer`) in every mode. `LowerZonePanel.iconTabs` / `doricoMixer` turn either off.
+
 ## Verification status
 Built, unit-tested (`dorico_tests` 24/24, `check_keymap.py` 0 failures) and checked by hand in the app: all acceptance criteria pass.
 
