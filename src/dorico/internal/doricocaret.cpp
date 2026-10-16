@@ -23,15 +23,18 @@
 #include "doricocaret.h"
 
 #include <algorithm>
+#include <optional>
 #include <utility>
 #include <vector>
 
 #include "settings.h"
 #include "draw/painter.h"
 
+#include "engraving/dom/chord.h"
 #include "engraving/dom/chordrest.h"
 #include "engraving/dom/input.h"
 #include "engraving/dom/measure.h"
+#include "engraving/dom/note.h"
 #include "engraving/dom/score.h"
 #include "engraving/dom/segment.h"
 #include "engraving/dom/sig.h"
@@ -42,7 +45,9 @@
 #include "notation/inotationelements.h"
 #include "notation/inotationinteraction.h"
 #include "notation/inotationnoteinput.h"
+#include "notation/inotationselection.h"
 #include "notation/inotationundostack.h"
+#include "notationscene/notationcommands.h"
 
 #include "noteinpututils.h"
 
@@ -154,6 +159,91 @@ bool DoricoCaret::materialize()
         score->inputState().setSegment(s);
     }
     return true;
+}
+
+static std::vector<bool> visibleStaves(const Score* score)
+{
+    std::vector<bool> visible;
+    for (const Staff* staff : score->staves()) {
+        visible.push_back(staff->show());
+    }
+    return visible;
+}
+
+// The chord/rest that covers tick on the staff: in `voice` if that voice has one there, else in the first voice that does.
+static ChordRest* crCovering(const Score* score, const Fraction& tick, staff_idx_t staff, voice_idx_t voice)
+{
+    for (voice_idx_t v : { voice, voice_idx_t(0), voice_idx_t(1), voice_idx_t(2), voice_idx_t(3) }) {
+        ChordRest* cr = score->findCR(tick, staff * VOICES + v);
+        if (cr && cr->tick() <= tick && tick < cr->endTick()) {
+            return cr;
+        }
+    }
+    return nullptr;
+}
+
+void DoricoCaret::navigateVertically(bool up, bool toEnd)
+{
+    INotationPtr notation = globalContext()->currentNotation();
+    if (!notation) {
+        return;
+    }
+    Score* score = notation->elements()->msScore();
+    INotationInteractionPtr interaction = notation->interaction();
+    INotationNoteInputPtr ni = interaction->noteInput();
+
+    if (ni->isNoteInputMode()) {
+        InputState& is = score->inputState();
+        if (!is.segment() || is.beyondScore()) {
+            return;
+        }
+        const Fraction tick = caretTick();
+        const std::optional<size_t> to = verticalStaff(visibleStaves(score), is.staffIdx(), up, toEnd);
+        ChordRest* cr = to ? crCovering(score, tick, *to, is.voice()) : nullptr;
+        if (!cr) {
+            return;
+        }
+        is.setSegment(cr->segment());
+        m_anchor = cr->segment();
+        m_tick = tick;
+        ni->setCurrentTrack(cr->track());
+        return;
+    }
+
+    INotationSelectionPtr selection = interaction->selection();
+    if (selection->isNone()) {
+        dispatcher()->dispatch(GOTO_FIRST_ELEMENT_COMMAND);
+        return;
+    }
+
+    EngravingItem* el = selection->element();
+    if (!el) {
+        // A whole chord: Up leaves it from its top note, Down from its bottom note.
+        const std::vector<Note*> notes = selection->notes();
+        if (notes.empty() || std::any_of(notes.begin(), notes.end(), [&](const Note* n) { return n->chord() != notes.front()->chord(); })) {
+            return;
+        }
+        Chord* chord = notes.front()->chord();
+        el = up ? chord->upNote() : chord->downNote();
+        interaction->select({ el }, SelectType::SINGLE, el->staffIdx());
+    }
+
+    if (!toEnd) {
+        // MuseScore's "note above / below" already crosses into the next staff (its lowest / highest note).
+        dispatcher()->dispatch(up ? GOTO_UPNOTE_IN_CHORD_COMMAND : GOTO_DOWNNOTE_IN_CHORD_COMMAND);
+        return;
+    }
+
+    const ChordRest* from = el->isNote() ? toNote(el)->chord() : (el->isChordRest() ? toChordRest(el) : nullptr);
+    const std::optional<size_t> to = from ? verticalStaff(visibleStaves(score), from->staffIdx(), up, true) : std::nullopt;
+    ChordRest* cr = to ? crCovering(score, from->tick(), *to, from->voice()) : nullptr;
+    if (!cr) {
+        return;
+    }
+    // Same note as repeated Up / Down would reach: the lowest note on the top staff, the highest on the bottom one.
+    EngravingItem* target = cr->isChord() ? static_cast<EngravingItem*>(up ? toChord(cr)->downNote() : toChord(cr)->upNote()) : cr;
+    interaction->select({ target }, SelectType::SINGLE, target->staffIdx());
+    interaction->showItem(target);
 }
 
 void DoricoCaret::setGrid(int denominator)

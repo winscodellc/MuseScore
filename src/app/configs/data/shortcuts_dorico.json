@@ -240,7 +240,13 @@
         {"command": "command://dorico/caret-left", "sequences": ["Left"]},
         {"command": "command://dorico/caret-right", "sequences": ["Right"]},
         {"command": "command://dorico/grid-finer", "sequences": ["Alt+]"]},
-        {"command": "command://dorico/grid-coarser", "sequences": ["Alt+["]}
+        {"command": "command://dorico/grid-coarser", "sequences": ["Alt+["]},
+        {"command": "command://dorico/select-up", "sequences": ["Up"]},
+        {"command": "command://dorico/select-down", "sequences": ["Down"]},
+        {"command": "command://dorico/select-top-staff", "sequences": ["Ctrl+Up"]},
+        {"command": "command://dorico/select-bottom-staff", "sequences": ["Ctrl+Down"]},
+        {"command": "command://dorico/respell-above", "sequences": ["Alt+="]},
+        {"command": "command://dorico/respell-below", "sequences": ["Alt+-"]}
         ]
     },
     {

@@ -1,5 +1,5 @@
 # 12 - Caret and navigation
-Status: in-progress  -  Depends on: 00, 10, 11  -  Dorico refs: `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/write_mode/write_mode_navigation/write_mode_navigation_items_music_area_t.html`, `.../write_mode_caret/write_mode_caret_moving_manually_t.html`, `.../write_mode_rhythmic_grid/write_mode_rhythmic_grid_c.html`, `.../write_mode_rhythmic_grid/write_mode_rhythmic_grid_resolution_changing_t.html`, `.../write_mode_transposing_tools/write_mode_notes_pitch_changing_t.html`, `.../write_mode_transposing_tools/write_mode_notes_respelling_t.html`
+Status: pending review  -  Depends on: 00, 10, 11  -  Dorico refs: `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/write_mode/write_mode_navigation/write_mode_navigation_items_music_area_t.html`, `.../write_mode_caret/write_mode_caret_moving_manually_t.html`, `.../write_mode_rhythmic_grid/write_mode_rhythmic_grid_c.html`, `.../write_mode_rhythmic_grid/write_mode_rhythmic_grid_resolution_changing_t.html`, `.../write_mode_transposing_tools/write_mode_notes_pitch_changing_t.html`, `.../write_mode_transposing_tools/write_mode_notes_respelling_t.html`
 
 ## Goal
 Arrow keys, Cmd+arrows, Space and the pitch-by-step keys behave as in Dorico, both with a selection and during note input; add the rhythmic grid state (Opt-[ / Opt-]) and directional respelling (Opt-= / Opt--).
@@ -97,11 +97,12 @@ None.
 - Respell in score vs part scoping; reset/propagate spellings; Write > Respell Notes Automatically dialog.
 - Quarter-tone / octave-division arithmetic (12-EDO only).
 
-## As built (partial: caret, grid and ruler only)
-- `IDoricoCaret` (`src/dorico/idoricocaret.h`, impl `internal/doricocaret.cpp`) keeps a virtual caret tick inside the chord/rest at MuseScore's input position. `dorico/caret-left|right` (Left / Right) step by the grid or to the next/previous note/rest (`nextCaretTick` / `prevCaretTick` in `noteinpututils.h`); outside note input they forward to `notation/move-left|right`.
+## As built
+- `IDoricoCaret` (`src/dorico/idoricocaret.h`, impl `internal/doricocaret.cpp`) keeps a virtual caret tick inside the chord/rest at MuseScore's input position. `dorico/caret-left|right` (Left / Right) step by the grid or to the next/previous note/rest (`nextCaretTick` / `prevCaretTick` in `noteinpututils.h`); outside note input they forward to `notation/move-left|right` (which already selects the first item when nothing is selected, so no `select-left|right` wrapper).
 - Entering a note/rest (letters, Shift-Opt / Ctrl letters, Y, Space) with the caret inside a note/rest first cuts it there with `Score::changeCRlen`, merged into the same undo step as the entry. A cut note becomes note + rests (Dorico would tie).
-- Ruler + caret line are painted by the Dorico module through one optional hook in `AbstractNotationPaintView::paint` (upstream edit). Grid: `dorico/grid-finer|coarser` (Opt-] / Opt-[), persisted as `dorico/gridResolution` (denominator, 1..128).
-- Not done yet: Up/Down/Cmd-Up/Cmd-Down navigation (section 1), respell (section 3).
+- Ruler + caret line are painted by the Dorico module through one optional hook in `AbstractNotationPaintView::paint` (upstream edit). Grid: `dorico/grid-finer|coarser` (Opt-] / Opt-[), persisted as `dorico/gridResolution` (denominator, 1..128). The grid is a denominator inside `DoricoCaret`, not a separate `IDoricoGrid` service; no log line, the ruler shows it.
+- Up / Down / Cmd-Up / Cmd-Down: `dorico/select-up|down|top-staff|bottom-staff` -> `IDoricoCaret::navigateVertically`. Selection: nothing selected -> `goto-first-element`; else `goto-upnote|downnote-in-chord`, which already crosses into the staff above (its lowest note) / below (highest). A whole chord starts from its top (Up) / bottom (Down) note. Cmd-Up/Down go to the top / bottom visible staff at the same tick (lowest note on the top staff, highest on the bottom one). Note input: the caret moves to the visible staff above / below (or top / bottom), same caret tick, same voice when that voice has music there, else the first voice that has. Target staff: `verticalStaff` in `noteinpututils.h`.
+- Respell: `dorico/respell-above|below` (Opt-= / Opt--), `respellTpc` in `noteinpututils.h` (not a separate `respell.h`). Sets the shown spelling with `Note::undoSetTpc` and the other one (concert / written) with `transposeTpc`, for the whole tie chain; TAB and drum staves are skipped. One undo step.
 
 ## Acceptance criteria
 - [ ] Nothing selected, press Right: first item of the top staff is selected.
@@ -112,11 +113,12 @@ None.
 - [ ] Cmd-Right / Cmd-Left move to the start of the next / previous bar, with and without note input.
 - [ ] Opt-] then Opt-[ changes the grid (log shows 1/16 then 1/8); the value survives restart; clamps at 128th and whole.
 - [ ] G-sharp selected: Opt-= gives A-flat, again gives B-triple-flat, again does nothing; Opt-- from G-sharp gives F-triple-sharp. Undo restores in one step. Works on a multi-note selection and on a transposing instrument (concert and written spellings stay consistent).
-- [ ] `check_keymap.py` exits 0.
-- [ ] Unit tests pass.
+- [x] `check_keymap.py` exits 0.
+- [x] Unit tests pass.
 
 ## Tests
 GoogleTest in `src/dorico/tests/`:
+(As built: all in `noteinput_tests.cpp`: `DoricoRespell.*`, `DoricoVerticalStaff.*`, `DoricoCaretMath.*`. No grid persistence test: the settings round trip is the framework's.)
 - `respell_tests.cpp`: the three manual examples; wrap-around (B-sharp / C-flat, pitch class 0 and 11); `|alter| > 3` returns the input unchanged; naturals (C up -> D double-flat).
 - `grid_tests.cpp`: finer/coarser order, clamping, persistence round trip (use the settings test helper used by other modules' tests).
 Manual: the acceptance list on a two-staff piano score with a 3-note chord.

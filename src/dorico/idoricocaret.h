@@ -46,6 +46,10 @@ public:
     //! MuseScore's input position onto the cut. true = an undo step was added.
     virtual bool materialize() = 0;
 
+    //! Up / Down (toEnd: Cmd-Up / Cmd-Down). Note input: the caret goes to the staff above / below (top / bottom
+    //! staff), same rhythmic position. Otherwise the selection goes to the next note above / below, crossing staves.
+    virtual void navigateVertically(bool up, bool toEnd) = 0;
+
     virtual void finerGrid() = 0;
     virtual void coarserGrid() = 0;
 

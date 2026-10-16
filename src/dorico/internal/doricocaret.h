@@ -24,6 +24,7 @@
 
 #include "async/asyncable.h"
 #include "modularity/ioc.h"
+#include "rcommand/icommanddispatcher.h"
 #include "context/iglobalcontext.h"
 #include "notation/inotationconfiguration.h"
 #include "engraving/types/fraction.h"
@@ -38,6 +39,7 @@ namespace mu::dorico {
 class DoricoCaret : public IDoricoCaret, public muse::Contextable, public muse::async::Asyncable
 {
     muse::ContextInject<context::IGlobalContext> globalContext = { this };
+    muse::ContextInject<muse::rcommand::ICommandDispatcher> dispatcher = { this };
     muse::GlobalInject<notation::INotationConfiguration> notationConfiguration;
 
 public:
@@ -48,6 +50,7 @@ public:
 
     bool step(bool right) override;
     bool materialize() override;
+    void navigateVertically(bool up, bool toEnd) override;
     void finerGrid() override;
     void coarserGrid() override;
     bool paint(muse::draw::Painter* painter) override;

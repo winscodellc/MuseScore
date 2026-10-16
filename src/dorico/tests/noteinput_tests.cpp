@@ -160,3 +160,35 @@ TEST(DoricoCaretMath, LeftStepsByGridOrToTheNoteStart)
     EXPECT_EQ(prevCaretTick(2100, 1920, 240, 1920), 1920); // off-grid caret snaps back to the grid
     EXPECT_EQ(prevCaretTick(1920, 0, 240, 1440), 1680);    // from the barline into the previous bar's last rest
 }
+
+// Dorico manual, "Respelling notes": G-sharp up -> A-flat -> B-triple-flat; G-sharp down -> F-triple-sharp.
+TEST(DoricoRespell, ManualExamples)
+{
+    using namespace mu::engraving;
+    EXPECT_EQ(respellTpc(TPC_G_S, true), TPC_A_B);
+    EXPECT_EQ(respellTpc(TPC_A_B, true), TPC_B_BBB);
+    EXPECT_EQ(respellTpc(TPC_B_BBB, true), TPC_B_BBB); // C would need a quadruple flat
+    EXPECT_EQ(respellTpc(TPC_G_S, false), TPC_F_SSS);
+}
+
+TEST(DoricoRespell, WrapsAroundTheOctaveAndHandlesNaturals)
+{
+    using namespace mu::engraving;
+    EXPECT_EQ(respellTpc(TPC_B_S, true), TPC_C);
+    EXPECT_EQ(respellTpc(TPC_C, false), TPC_B_S);
+    EXPECT_EQ(respellTpc(TPC_C_B, false), TPC_B);
+    EXPECT_EQ(respellTpc(TPC_B, true), TPC_C_B);
+    EXPECT_EQ(respellTpc(TPC_C, true), TPC_D_BB);
+    EXPECT_EQ(respellTpc(TPC_F_SSS, false), TPC_F_SSS); // E would need a quadruple sharp
+}
+
+TEST(DoricoVerticalStaff, SkipsHiddenStavesAndStopsAtTheEdges)
+{
+    const std::vector<bool> visible = { true, false, true, true };
+    EXPECT_EQ(verticalStaff(visible, 2, true, false), 0u);  // staff 1 is hidden
+    EXPECT_EQ(verticalStaff(visible, 2, false, false), 3u);
+    EXPECT_EQ(verticalStaff(visible, 0, true, false), std::nullopt);
+    EXPECT_EQ(verticalStaff(visible, 3, false, true), std::nullopt);
+    EXPECT_EQ(verticalStaff(visible, 3, true, true), 0u);
+    EXPECT_EQ(verticalStaff(visible, 0, false, true), 3u);
+}

@@ -85,6 +85,12 @@ static std::vector<CommandInfo> makeCommandInfos()
                      "Note input: moves the caret on by the rhythmic grid; otherwise selects the next item"));
     v.push_back(info(DORICO_GRID_FINER_COMMAND, "Dorico: finer rhythmic grid", "Halves the rhythmic grid (eighth -> 16th)"));
     v.push_back(info(DORICO_GRID_COARSER_COMMAND, "Dorico: coarser rhythmic grid", "Doubles the rhythmic grid (eighth -> quarter)"));
+    v.push_back(info(DORICO_SELECT_UP_COMMAND, "Dorico: up", "Selects the note above, crossing staves; note input: caret to the staff above"));
+    v.push_back(info(DORICO_SELECT_DOWN_COMMAND, "Dorico: down", "Selects the note below, crossing staves; note input: caret to the staff below"));
+    v.push_back(info(DORICO_SELECT_TOP_STAFF_COMMAND, "Dorico: top staff", "Goes to the top staff at the same position"));
+    v.push_back(info(DORICO_SELECT_BOTTOM_STAFF_COMMAND, "Dorico: bottom staff", "Goes to the bottom staff at the same position"));
+    v.push_back(info(DORICO_RESPELL_ABOVE_COMMAND, "Dorico: respell using note name above", "Respells the selected notes with the next note name up"));
+    v.push_back(info(DORICO_RESPELL_BELOW_COMMAND, "Dorico: respell using note name below", "Respells the selected notes with the next note name down"));
 
     static const char* MODES[] = { "Setup", "Write", "Engrave", "Play", "Print" };
     for (int i = 0; i < 5; ++i) {

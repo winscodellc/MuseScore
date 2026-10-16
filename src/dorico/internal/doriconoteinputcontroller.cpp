@@ -26,6 +26,7 @@
 #include <array>
 #include <chrono>
 #include <optional>
+#include <set>
 
 #include "settings.h"
 
@@ -33,6 +34,9 @@
 #include "engraving/dom/input.h"
 #include "engraving/dom/measure.h"
 #include "engraving/dom/note.h"
+#include "engraving/dom/part.h"
+#include "engraving/dom/instrument.h"
+#include "engraving/dom/staff.h"
 #include "engraving/dom/pitchspelling.h"
 #include "engraving/dom/score.h"
 #include "engraving/dom/segment.h"
@@ -115,6 +119,12 @@ void DoricoNoteInputController::init()
     reg(DORICO_CARET_RIGHT_COMMAND, [this]() { onCaretStep(true); });
     reg(DORICO_GRID_FINER_COMMAND, [this]() { caret()->finerGrid(); });
     reg(DORICO_GRID_COARSER_COMMAND, [this]() { caret()->coarserGrid(); });
+    reg(DORICO_SELECT_UP_COMMAND, [this]() { onVertical(true, false); });
+    reg(DORICO_SELECT_DOWN_COMMAND, [this]() { onVertical(false, false); });
+    reg(DORICO_SELECT_TOP_STAFF_COMMAND, [this]() { onVertical(true, true); });
+    reg(DORICO_SELECT_BOTTOM_STAFF_COMMAND, [this]() { onVertical(false, true); });
+    reg(DORICO_RESPELL_ABOVE_COMMAND, [this]() { onRespell(true); });
+    reg(DORICO_RESPELL_BELOW_COMMAND, [this]() { onRespell(false); });
 
     for (int i = 0; i < 7; ++i) {
         reg(DORICO_PITCH_COMMANDS[i], [this, i]() { onPitch(i); });
@@ -568,6 +578,56 @@ void DoricoNoteInputController::onCaretStep(bool right)
     m_dotTap.reset();
     if (!caret()->step(right)) {
         dispatcher()->dispatch(right ? MOVE_RIGHT_COMMAND : MOVE_LEFT_COMMAND);
+    }
+}
+
+void DoricoNoteInputController::onVertical(bool up, bool toEnd)
+{
+    // Moving the caret ends a chord in progress, like Space.
+    m_chordPending = false;
+    m_dotTap.reset();
+    caret()->navigateVertically(up, toEnd);
+}
+
+void DoricoNoteInputController::onRespell(bool above)
+{
+    INotationPtr notation = currentNotation();
+    if (!notation) {
+        return;
+    }
+
+    using namespace mu::engraving;
+    const std::vector<Note*> notes = notation->interaction()->selection()->notes();
+    INotationUndoStackPtr undoStack = notation->undoStack();
+    undoStack->prepareChanges(TranslatableString("undoableAction", "Respell notes"));
+    bool changed = false;
+    std::set<const Note*> done; // a tie chain is respelled once, even when several of its notes are selected
+    for (Note* note : notes) {
+        if (done.count(note) || note->staff()->isTabStaff(note->tick()) || note->part()->instrument(note->tick())->useDrumset()) {
+            continue;
+        }
+        const int tpc = respellTpc(note->tpc(), above);
+        if (tpc == note->tpc()) {
+            continue;
+        }
+        // Set the shown spelling and keep the other one (concert / written) consistent, like MuseScore's enharmonic
+        // change does; tied notes follow.
+        std::vector<Note*> tied = note->tiedNotes();
+        if (tied.empty()) {
+            tied.push_back(note);
+        }
+        for (Note* n : tied) {
+            done.insert(n);
+            n->undoSetTpc(tpc);
+            n->undoChangeProperty(n->concertPitch() ? Pid::TPC2 : Pid::TPC1, n->transposeTpc(tpc));
+        }
+        changed = true;
+    }
+    if (changed) {
+        undoStack->commitChanges();
+        notation->notationChanged().send(muse::RectF());
+    } else {
+        undoStack->rollbackChanges();
     }
 }
 

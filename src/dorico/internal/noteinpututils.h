@@ -23,6 +23,10 @@
 #pragma once
 
 #include <cstdint>
+#include <optional>
+#include <vector>
+
+#include "engraving/dom/pitchspelling.h"
 
 namespace mu::dorico {
 // Step = octave * 7 + diatonic step (C = 0 ... B = 6), the same convention as engraving's NoteInputParams::step.
@@ -56,6 +60,51 @@ inline int prevCaretTick(int cur, int barStart, int grid, int crStart)
 {
     const int prev = barStart + ((cur - barStart - 1) / grid) * grid;
     return prev > crStart ? prev : crStart;
+}
+
+//! Up/Down target staff (spec 12): the nearest visible staff above / below `from`, or the top / bottom visible one when
+//! toEnd. std::nullopt = nowhere to go.
+inline std::optional<size_t> verticalStaff(const std::vector<bool>& visible, size_t from, bool up, bool toEnd)
+{
+    std::optional<size_t> found;
+    if (up) {
+        for (size_t i = from; i-- > 0;) {
+            if (visible[i]) {
+                found = i;
+                if (!toEnd) {
+                    break;
+                }
+            }
+        }
+    } else {
+        for (size_t i = from + 1; i < visible.size(); ++i) {
+            if (visible[i]) {
+                found = i;
+                if (!toEnd) {
+                    break;
+                }
+            }
+        }
+    }
+    return found;
+}
+
+//! Respell (spec 12, Opt-= / Opt--): the tpc that spells the same pitch with the note name one step above / below,
+//! or tpc itself when that would need more than a triple accidental.
+inline int respellTpc(int tpc, bool above)
+{
+    static constexpr int NATURAL_PITCH[7] = { 0, 2, 4, 5, 7, 9, 11 }; // C D E F G A B
+    const int step = engraving::tpc2step(tpc);
+    const int newStep = (step + (above ? 1 : 6)) % 7;
+    int delta = (NATURAL_PITCH[newStep] - NATURAL_PITCH[step] + 12) % 12; // semitones between the two letters
+    if (delta > 6) {
+        delta -= 12;
+    }
+    const int alter = static_cast<int>(engraving::tpc2alter(tpc)) - delta;
+    if (alter < -3 || alter > 3) {
+        return tpc;
+    }
+    return engraving::step2tpc(newStep, static_cast<engraving::AccidentalVal>(alter));
 }
 
 //! Double-tap detector for duration digits (6 6 = dotted quarter).

@@ -90,6 +90,12 @@ inline static const muse::rcommand::Command DORICO_CARET_LEFT_COMMAND("command:/
 inline static const muse::rcommand::Command DORICO_CARET_RIGHT_COMMAND("command://dorico/caret-right");
 inline static const muse::rcommand::Command DORICO_GRID_FINER_COMMAND("command://dorico/grid-finer");
 inline static const muse::rcommand::Command DORICO_GRID_COARSER_COMMAND("command://dorico/grid-coarser");
+inline static const muse::rcommand::Command DORICO_SELECT_UP_COMMAND("command://dorico/select-up");
+inline static const muse::rcommand::Command DORICO_SELECT_DOWN_COMMAND("command://dorico/select-down");
+inline static const muse::rcommand::Command DORICO_SELECT_TOP_STAFF_COMMAND("command://dorico/select-top-staff");
+inline static const muse::rcommand::Command DORICO_SELECT_BOTTOM_STAFF_COMMAND("command://dorico/select-bottom-staff");
+inline static const muse::rcommand::Command DORICO_RESPELL_ABOVE_COMMAND("command://dorico/respell-above");
+inline static const muse::rcommand::Command DORICO_RESPELL_BELOW_COMMAND("command://dorico/respell-below");
 
 // Project window modes and zones (spec 50). Mode commands are in `Mode` order (Setup, Write, Engrave, Play, Print).
 inline static const std::array<muse::rcommand::Command, 5> DORICO_MODE_COMMANDS = {
