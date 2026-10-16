@@ -317,6 +317,7 @@ void NotationCommandsState::init()
         updateCommandStates(commands(MOVE_SELECTION_COMMANDS));
         updateCommandStates(LAYOUT_BREAK_COMMANDS);
         updateCommandStates(TAB_COMMANDS);
+        updateCommandStates(commands(ADD_ARTICULATION_COMMANDS)); // Dorico fork (spec 52): highlight follows the selection
     });
 
     controller()->stackChanged().onNotify(this, [this]() {

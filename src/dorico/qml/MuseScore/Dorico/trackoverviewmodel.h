@@ -30,6 +30,7 @@
 #include "modularity/ioc.h"
 #include "context/iglobalcontext.h"
 #include "notation/imasternotation.h"
+#include "playback/iplaybackcontroller.h"
 
 namespace mu::dorico {
 //! Play mode's track overview (spec 57): one track per instrument of the whole project (not of the open part), with
@@ -38,7 +39,7 @@ class TrackOverviewModel : public QObject, public muse::Contextable, public muse
 {
     Q_OBJECT
 
-    //! [{ partId, title, blocks: [{ start, end }] }]
+    //! [{ partId, title, muted, solo, blocks: [{ start, end }] }]
     Q_PROPERTY(QVariantList tracks READ tracks NOTIFY contentChanged)
     //! [{ start, number }]
     Q_PROPERTY(QVariantList bars READ bars NOTIFY contentChanged)
@@ -48,6 +49,7 @@ class TrackOverviewModel : public QObject, public muse::Contextable, public muse
     QML_ELEMENT
 
     muse::ContextInject<context::IGlobalContext> globalContext = { this };
+    muse::ContextInject<playback::IPlaybackController> playbackController = { this };
 
 public:
     explicit TrackOverviewModel(QObject* parent = nullptr);
@@ -58,6 +60,9 @@ public:
     double playheadPosition() const { return m_playheadPosition; }
 
     Q_INVOKABLE void load();
+    //! Mute / solo every instrument track of the part, as the mixer does (muting un-solos and vice versa).
+    Q_INVOKABLE void setMuted(const QString& partId, bool muted);
+    Q_INVOKABLE void setSolo(const QString& partId, bool solo);
 
 signals:
     void contentChanged();
@@ -67,8 +72,11 @@ private:
     void listenToScore();
     void rebuild(const engraving::Score* score);
     void updatePlayhead(muse::audio::secs_t secs);
+    void listenToSoloMute();
+    void changeSoloMute(const QString& partId, bool mute, bool value);
 
     notation::IMasterNotationPtr m_master;
+    notation::INotationPtr m_notation; // solo / mute live on the current notation (score or part), like the mixer
     QVariantList m_tracks;
     QVariantList m_bars;
     double m_length = 0;

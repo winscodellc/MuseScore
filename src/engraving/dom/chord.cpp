@@ -1863,6 +1863,13 @@ void Chord::updateArticulations(const std::set<SymId>& newArticulationIds, Artic
                 staccato = nullptr;
                 break;
             default:
+                // Dorico fork (spec 52): toggle off any other articulation too (staccatissimo, stressed, ...)
+                for (Articulation* artic : m_articulations) {
+                    if (muse::contains(flipArticulations({ artic->symId() }, PlacementV::ABOVE), id)) {
+                        score()->undoRemoveElement(artic);
+                        break;
+                    }
+                }
                 break;
             }
         }

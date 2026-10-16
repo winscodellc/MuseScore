@@ -766,7 +766,10 @@ static const std::map<SymId, SymId> ARTICULATION_PLACEMENTS = {
     { SymId::articMarcatoTenutoAbove, SymId::articMarcatoTenutoBelow },
     { SymId::articTenutoAbove, SymId::articTenutoBelow },
     { SymId::articMarcatoAbove, SymId::articMarcatoBelow },
-    { SymId::articAccentAbove, SymId::articAccentBelow }
+    { SymId::articAccentAbove, SymId::articAccentBelow },
+    // Dorico fork (spec 52): so stressed / unstressed below the note are recognised when toggling
+    { SymId::articStressAbove, SymId::articStressBelow },
+    { SymId::articUnstressAbove, SymId::articUnstressBelow }
 };
 
 std::set<SymId> splitArticulations(const std::set<SymId>& articulationSymbolIds)

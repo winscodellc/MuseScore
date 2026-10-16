@@ -36,6 +36,9 @@ Item {
     property int navigationOrderStart: 1
 
     property alias contextMenuModel: contextMenuModel
+    // Dorico fork (spec 55): Setup mode hides the top bar and drives the tree from its own bottom action bar.
+    property bool controlPanelVisible: true
+    readonly property alias layoutTreeModel: treeModel
 
     onVisibleChanged: {
         treeModel.setLayoutPanelVisible(root.visible)
@@ -85,6 +88,7 @@ Item {
 
         LayoutControlPanel {
             id: controlPanel
+            visible: root.controlPanelVisible
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignTop
 

@@ -30,15 +30,16 @@ import Muse.Ui
 import Muse.UiComponents
 import Muse.Dock
 
-//! Print mode (spec 58): Layouts panel (left, which layouts to print), Print Options panel (right), and a read-only
-//! preview of the current layout in the centre. No lower zone; the layout selector is disabled in the top bar.
+//! Print mode (spec 58): Layouts panel (left, which layouts to print, System Dialogs footer), Print Options panel
+//! (right, Print button at its bottom right), and a read-only preview of the current layout in the centre. No lower
+//! zone; the layout selector is disabled in the top bar; the status bar has Page Width / Whole Page.
 DoricoPage {
     id: root
 
     objectName: "DoricoPrint"
     uri: "musescore://dorico/print"
 
-    statusItems: ["summary", "zoom"]
+    statusItems: ["summary", "zoomFit", "zoom"]
     readOnlyView: true
 
     // Shared by both panels; the panels' content components see the page's ids.
@@ -56,6 +57,8 @@ DoricoPage {
         { "text": qsTrc("dorico", "SVG"), "value": "svg" }
     ]
     readonly property string suffix: root.destinations[root.destination].value
+    // The graphics format remembered while Printer is chosen (index into destinations, 1..3).
+    property int graphicsFormat: 1
     property bool filePerLayout: true
 
     onVisibleChanged: {
@@ -82,12 +85,7 @@ DoricoPage {
             location: Location.Left
             dropDestinations: root.verticalPanelDropDestinations
 
-            StyledListView {
-                id: layoutList
-
-                spacing: 6
-                model: root.printModel
-
+            Item {
                 NavigationPanel {
                     id: layoutsNav
                     name: "DoricoPrintLayouts"
@@ -96,50 +94,95 @@ DoricoPage {
                     direction: NavigationPanel.Vertical
                 }
 
-                delegate: Rectangle {
-                    id: card
+                StyledListView {
+                    id: layoutList
 
-                    required property int index
-                    required property string title
-                    required property string info
-                    required property bool checked
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.bottom: systemDialogs.top
+                    anchors.bottomMargin: 8
 
-                    width: ListView.view.width - 16
-                    x: 8
-                    height: cardColumn.implicitHeight + 16
-                    radius: 4
-                    color: ui.theme.backgroundSecondaryColor
-                    border.width: 1
-                    border.color: card.checked ? ui.theme.accentColor : ui.theme.strokeColor
+                    spacing: 6
+                    model: root.printModel
 
-                    Column {
-                        id: cardColumn
+                    delegate: Rectangle {
+                        id: card
 
-                        anchors.left: parent.left
-                        anchors.right: parent.right
-                        anchors.verticalCenter: parent.verticalCenter
-                        anchors.margins: 8
-                        spacing: 2
+                        required property int index
+                        required property string title
+                        required property string info
+                        required property bool checked
 
-                        CheckBox {
-                            width: parent.width
-                            text: card.title
-                            checked: card.checked
-                            font: ui.theme.bodyBoldFont
+                        width: ListView.view.width - 16
+                        x: 8
+                        height: cardColumn.implicitHeight + 16
+                        radius: 4
+                        color: ui.theme.backgroundSecondaryColor
+                        border.width: 1
+                        border.color: card.checked ? ui.theme.accentColor : ui.theme.strokeColor
 
+                        Column {
+                            id: cardColumn
+
+                            anchors.left: parent.left
+                            anchors.right: parent.right
+                            anchors.verticalCenter: parent.verticalCenter
+                            anchors.margins: 8
+                            spacing: 2
+
+                            CheckBox {
+                                width: parent.width
+                                text: card.title
+                                checked: card.checked
+                                font: ui.theme.bodyBoldFont
+
+                                navigation.panel: layoutsNav
+                                navigation.order: card.index
+
+                                onClicked: root.printModel.setChecked(card.index, !card.checked)
+                            }
+
+                            StyledTextLabel {
+                                text: card.index === 0 ? qsTrc("dorico", "Full score") + " - " + card.info
+                                                       : qsTrc("dorico", "Instrumental part") + " - " + card.info
+                                opacity: 0.7
+                                width: parent.width
+                                horizontalAlignment: Text.AlignLeft
+                                wrapMode: Text.WordWrap
+                            }
+                        }
+                    }
+                }
+
+                // Dorico's "System Dialogs" footer: the page settings dialog and the system print dialog.
+                Column {
+                    id: systemDialogs
+
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.bottom: parent.bottom
+                    anchors.margins: 8
+                    spacing: 6
+
+                    StyledTextLabel { text: qsTrc("dorico", "System Dialogs:") }
+
+                    Row {
+                        spacing: 8
+
+                        FlatButton {
+                            text: qsTrc("dorico", "Page Setup...")
                             navigation.panel: layoutsNav
-                            navigation.order: card.index
-
-                            onClicked: root.printModel.setChecked(card.index, !card.checked)
+                            navigation.order: 1000
+                            onClicked: root.layouts.dispatch("command://notation/open-page-settings")
                         }
 
-                        StyledTextLabel {
-                            text: card.index === 0 ? qsTrc("dorico", "Full score") + " - " + card.info
-                                                   : qsTrc("dorico", "Instrumental part") + " - " + card.info
-                            opacity: 0.7
-                            width: parent.width
-                            horizontalAlignment: Text.AlignLeft
-                            wrapMode: Text.WordWrap
+                        FlatButton {
+                            text: qsTrc("dorico", "Print...")
+                            enabled: root.printModel.hasChecked
+                            navigation.panel: layoutsNav
+                            navigation.order: 1001
+                            onClicked: root.printModel.print()
                         }
                     }
                 }
@@ -187,13 +230,43 @@ DoricoPage {
 
                         StyledTextLabel { text: qsTrc("dorico", "Destination"); font: ui.theme.bodyBoldFont }
 
+                        // Printer | Graphics, then the graphics format (MuseScore exports PDF, PNG and SVG).
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: 0
+
+                            FlatButton {
+                                Layout.fillWidth: true
+                                text: qsTrc("dorico", "Printer")
+                                accentButton: root.suffix === ""
+                                transparent: root.suffix !== ""
+                                navigation.panel: optionsNav
+                                navigation.order: 1
+                                onClicked: root.destination = 0
+                            }
+
+                            FlatButton {
+                                Layout.fillWidth: true
+                                text: qsTrc("dorico", "Graphics")
+                                accentButton: root.suffix !== ""
+                                transparent: root.suffix === ""
+                                navigation.panel: optionsNav
+                                navigation.order: 2
+                                onClicked: root.destination = root.graphicsFormat
+                            }
+                        }
+
                         StyledDropdown {
                             Layout.fillWidth: true
-                            model: root.destinations
-                            currentIndex: root.destination
+                            visible: root.suffix !== ""
+                            model: root.destinations.slice(1)
+                            currentIndex: root.graphicsFormat - 1
                             navigation.panel: optionsNav
-                            navigation.order: 1
-                            onActivated: function(index, value) { root.destination = index }
+                            navigation.order: 3
+                            onActivated: function(index, value) {
+                                root.graphicsFormat = index + 1
+                                root.destination = root.graphicsFormat
+                            }
                         }
 
                         StyledTextLabel {
@@ -211,8 +284,38 @@ DoricoPage {
 
                         StyledTextLabel {
                             Layout.fillWidth: true
-                            text: qsTrc("dorico", "All pages")
+                            text: qsTrc("dorico", "Print range:")
                             horizontalAlignment: Text.AlignLeft
+                        }
+
+                        // Only All is real: MuseScore prints or exports whole layouts, and has one flow.
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: 0
+
+                            FlatButton {
+                                Layout.fillWidth: true
+                                text: qsTrc("dorico", "All")
+                                accentButton: true
+                                navigation.panel: optionsNav
+                                navigation.order: 4
+                            }
+
+                            DoricoButton {
+                                Layout.fillWidth: true
+                                text: qsTrc("dorico", "Pages")
+                                available: false
+                                navigation.panel: optionsNav
+                                navigation.order: 5
+                            }
+
+                            DoricoButton {
+                                Layout.fillWidth: true
+                                text: qsTrc("dorico", "Flows")
+                                available: false
+                                navigation.panel: optionsNav
+                                navigation.order: 6
+                            }
                         }
 
                         CheckBox {
@@ -221,7 +324,7 @@ DoricoPage {
                             text: qsTrc("dorico", "One file per layout")
                             checked: root.filePerLayout
                             navigation.panel: optionsNav
-                            navigation.order: 2
+                            navigation.order: 7
                             onClicked: root.filePerLayout = !root.filePerLayout
                         }
 
@@ -247,7 +350,7 @@ DoricoPage {
                         FlatButton {
                             text: qsTrc("dorico", "Page Setup...")
                             navigation.panel: optionsNav
-                            navigation.order: 3
+                            navigation.order: 8
                             onClicked: root.layouts.dispatch("command://notation/open-page-settings")
                         }
 
@@ -259,7 +362,7 @@ DoricoPage {
                             text: qsTrc("dorico", "Two-sided")
                             available: false
                             navigation.panel: optionsNav
-                            navigation.order: 4
+                            navigation.order: 9
                         }
 
                         SeparatorLine { Layout.fillWidth: true }
@@ -273,14 +376,14 @@ DoricoPage {
                                 text: qsTrc("dorico", "Crop marks")
                                 available: false
                                 navigation.panel: optionsNav
-                                navigation.order: 5
+                                navigation.order: 10
                             }
 
                             DoricoButton {
                                 text: qsTrc("dorico", "Border")
                                 available: false
                                 navigation.panel: optionsNav
-                                navigation.order: 6
+                                navigation.order: 11
                             }
                         }
                     }
@@ -290,7 +393,6 @@ DoricoPage {
                     id: printButton
 
                     anchors.bottom: parent.bottom
-                    anchors.left: parent.left
                     anchors.right: parent.right
                     anchors.margins: 8
 
@@ -299,7 +401,7 @@ DoricoPage {
                     text: root.suffix === "" ? qsTrc("dorico", "Print") : qsTrc("dorico", "Export")
 
                     navigation.panel: optionsNav
-                    navigation.order: 10
+                    navigation.order: 20
 
                     onClicked: {
                         if (root.suffix === "") {

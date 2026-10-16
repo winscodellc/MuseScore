@@ -28,8 +28,9 @@ import QtQuick
 import Muse.Ui
 import Muse.UiComponents
 
-//! Play mode's track overview (spec 57): track headers on the left (click one to show it in the Track Inspector),
-//! a bar ruler, a block wherever an instrument has notes, and the playhead.
+//! Play mode's track overview (spec 57): track headers on the left (colour strip, name, mute / solo; click one to show
+//! it in the Track Inspector), a bar ruler, a block in the track's colour wherever an instrument has notes, the
+//! playhead, and a horizontal zoom slider at the bottom left.
 Rectangle {
     id: root
 
@@ -42,8 +43,17 @@ Rectangle {
     readonly property int headerWidth: 160
     readonly property int rulerHeight: 24
     readonly property int trackHeight: 48
+    readonly property int zoomBarHeight: 28
+    // Horizontal zoom (the slider), relative to fitting the piece to the width
+    readonly property real zoom: zoomSlider.value
     // Fit the piece to the width, but never squeeze a quarter note below 8 px
-    readonly property real pxPerQuarter: overview.length > 0 ? Math.max(8, (flick.width - 16) / overview.length) : 8
+    readonly property real fitPxPerQuarter: overview.length > 0 ? Math.max(8, (flick.width - 16) / overview.length) : 8
+    readonly property real pxPerQuarter: root.fitPxPerQuarter * root.zoom
+
+    // One colour per track, running round the hue circle like Dorico's (red, orange, yellow, green, ... purple).
+    function trackColor(index) {
+        return Qt.hsla(0.85 * index / Math.max(overview.tracks.length, 12), 0.65, 0.55, 1.0)
+    }
     readonly property real playheadX: overview.playheadPosition * pxPerQuarter
     // Label every n-th bar so numbers do not overlap
     readonly property int barLabelStep: overview.bars.length > 0
@@ -121,7 +131,7 @@ Rectangle {
 
         anchors.top: parent.top
         anchors.topMargin: root.rulerHeight
-        anchors.bottom: parent.bottom
+        anchors.bottom: zoomBar.top
         width: root.headerWidth
         clip: true
 
@@ -136,6 +146,7 @@ Rectangle {
                     id: header
 
                     required property var modelData
+                    required property int index
 
                     readonly property bool selected: header.modelData.partId === root.selectedPartId
 
@@ -143,21 +154,56 @@ Rectangle {
                     height: root.trackHeight
                     color: header.selected ? Utils.colorWithAlpha(ui.theme.accentColor, 0.3) : ui.theme.backgroundSecondaryColor
 
-                    StyledTextLabel {
+                    MouseArea {
                         anchors.fill: parent
-                        anchors.leftMargin: 8
-                        anchors.rightMargin: 8
+                        onClicked: root.trackClicked(header.modelData.partId)
+                    }
+
+                    Rectangle {
+                        width: 6
+                        height: parent.height
+                        color: root.trackColor(header.index)
+                    }
+
+                    StyledTextLabel {
+                        anchors.left: parent.left
+                        anchors.right: soloMute.left
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.leftMargin: 14
+                        anchors.rightMargin: 4
                         horizontalAlignment: Text.AlignLeft
                         font: header.selected ? ui.theme.bodyBoldFont : ui.theme.bodyFont
                         text: header.modelData.title
                     }
 
-                    SeparatorLine { anchors.bottom: parent.bottom }
+                    Row {
+                        id: soloMute
 
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: root.trackClicked(header.modelData.partId)
+                        anchors.right: parent.right
+                        anchors.rightMargin: 6
+                        anchors.verticalCenter: parent.verticalCenter
+                        spacing: 4
+
+                        FlatButton {
+                            width: 24
+                            height: 24
+                            text: "m"
+                            toolTipTitle: qsTrc("dorico", "Mute")
+                            accentButton: header.modelData.muted
+                            onClicked: overview.setMuted(header.modelData.partId, !header.modelData.muted)
+                        }
+
+                        FlatButton {
+                            width: 24
+                            height: 24
+                            text: "s"
+                            toolTipTitle: qsTrc("dorico", "Solo")
+                            accentButton: header.modelData.solo
+                            onClicked: overview.setSolo(header.modelData.partId, !header.modelData.solo)
+                        }
                     }
+
+                    SeparatorLine { anchors.bottom: parent.bottom }
                 }
             }
         }
@@ -175,7 +221,7 @@ Rectangle {
         anchors.topMargin: root.rulerHeight
         anchors.left: headers.right
         anchors.right: parent.right
-        anchors.bottom: parent.bottom
+        anchors.bottom: zoomBar.top
 
         contentWidth: overview.length * root.pxPerQuarter + 16
         contentHeight: overview.tracks.length * root.trackHeight
@@ -188,6 +234,7 @@ Rectangle {
                     id: track
 
                     required property var modelData
+                    required property int index
 
                     width: flick.contentWidth
                     height: root.trackHeight
@@ -207,8 +254,8 @@ Rectangle {
                             width: (block.modelData.end - block.modelData.start) * root.pxPerQuarter
                             height: root.trackHeight - 16
                             radius: 3
-                            color: Utils.colorWithAlpha(ui.theme.accentColor, 0.5)
-                            border.color: ui.theme.accentColor
+                            color: Utils.colorWithAlpha(root.trackColor(track.index), 0.75)
+                            border.color: root.trackColor(track.index)
                         }
                     }
 
@@ -242,6 +289,54 @@ Rectangle {
             width: 2
             height: Math.max(flick.contentHeight, flick.height)
             color: ui.theme.accentColor
+        }
+    }
+
+    // Horizontal zoom: 1x fits the piece to the width.
+    Item {
+        id: zoomBar
+
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        height: root.zoomBarHeight
+
+        SeparatorLine { anchors.top: parent.top }
+
+        Row {
+            anchors.left: parent.left
+            anchors.leftMargin: 6
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: 4
+
+            FlatButton {
+                width: 20
+                height: 20
+                icon: IconCode.ZOOM_OUT
+                transparent: true
+                toolTipTitle: qsTrc("dorico", "Zoom out")
+                onClicked: zoomSlider.value = Math.max(zoomSlider.from, zoomSlider.value / 1.5)
+            }
+
+            StyledSlider {
+                id: zoomSlider
+
+                width: 120
+                anchors.verticalCenter: parent.verticalCenter
+                from: 1
+                to: 16
+                stepSize: 0
+                value: 1
+            }
+
+            FlatButton {
+                width: 20
+                height: 20
+                icon: IconCode.ZOOM_IN
+                transparent: true
+                toolTipTitle: qsTrc("dorico", "Zoom in")
+                onClicked: zoomSlider.value = Math.min(zoomSlider.to, zoomSlider.value * 1.5)
+            }
         }
     }
 }

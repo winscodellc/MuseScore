@@ -865,3 +865,32 @@ TEST_F(Engraving_NoteTests, RepitchInVoiceTwoDoesNotAffectVoiceOneLyrics)
 
     delete score;
 }
+
+// Dorico fork (spec 52): toggling removes any articulation, not only accent / marcato / tenuto / staccato,
+// also when layout placed it below the note (stem up: the Below symbol).
+TEST_F(Engraving_NoteTests, ToggleOffAnyArticulation)
+{
+    MasterScore* score = ScoreRW::readScore(NOTE_DATA_DIR + u"empty.mscx");
+    ASSERT_TRUE(score);
+
+    ChordRest* cr = chordRestAtTick(score, Fraction(0, 1), 0);
+    ASSERT_TRUE(cr);
+    score->setNoteRest(cr->segment(), 0, NoteVal(60), cr->ticks(), DirectionV::AUTO);
+    cr = chordRestAtTick(score, Fraction(0, 1), 0);
+    ASSERT_TRUE(cr && cr->isChord());
+    Chord* chord = toChord(cr);
+
+    for (SymId id : { SymId::articStaccatissimoAbove, SymId::articStressAbove, SymId::articUnstressAbove }) {
+        score->startCmd(TranslatableString::untranslatable("Engraving note tests"));
+        chord->updateArticulations({ id }, ArticulationsUpdateMode::Insert);
+        score->endCmd();
+        ASSERT_EQ(chord->articulations().size(), 1u);
+
+        score->startCmd(TranslatableString::untranslatable("Engraving note tests"));
+        chord->updateArticulations({ id }, ArticulationsUpdateMode::Remove);
+        score->endCmd();
+        EXPECT_TRUE(chord->articulations().empty()) << "not removed: SymId " << static_cast<int>(id);
+    }
+
+    delete score;
+}

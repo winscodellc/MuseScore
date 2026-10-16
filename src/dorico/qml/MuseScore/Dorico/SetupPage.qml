@@ -33,7 +33,8 @@ import Muse.Dock
 import MuseScore.InstrumentsScene
 
 //! Setup mode (spec 55): Players panel (left), Layouts panel (right), Flows panel (lower), each with Dorico's action
-//! bar. Players reuses MuseScore's instruments panel (LayoutPanel), which keeps its own add/move/delete controls.
+//! bar. Players reuses MuseScore's instruments panel (LayoutPanel) without its top bar; its add/move/remove controls
+//! sit in the bottom action bar.
 DoricoPage {
     id: root
 
@@ -69,11 +70,14 @@ DoricoPage {
                 spacing: 0
 
                 LayoutPanel {
+                    id: layoutPanel
+
                     Layout.fillWidth: true
                     Layout.fillHeight: true
 
                     navigationSection: playersPanel.navigationSection
                     navigationOrderStart: playersPanel.contentNavigationPanelOrderStart
+                    controlPanelVisible: false
 
                     Component.onCompleted: {
                         playersPanel.contextMenuModel = contextMenuModel
@@ -82,35 +86,78 @@ DoricoPage {
 
                 SeparatorLine {}
 
-                ToolSection {
-                    Layout.margins: 8
-                    wrap: false
+                NavigationPanel {
+                    id: playersActionsNav
+                    name: "DoricoPlayersActions"
+                    section: playersPanel.navigationSection
+                    order: playersPanel.contentNavigationPanelOrderStart + 10
+                    direction: NavigationPanel.Horizontal
+                }
 
-                    navigationPanel: NavigationPanel {
-                        name: "DoricoPlayersActions"
-                        section: playersPanel.navigationSection
-                        order: playersPanel.contentNavigationPanelOrderStart + 10
-                        direction: NavigationPanel.Horizontal
+                // One action bar at the bottom: Dorico's add buttons, then MuseScore's Add System Markings and Remove
+                // (from LayoutPanel's top bar, hidden above; rows are reordered by drag and drop). Wraps when narrow.
+                Flow {
+                    Layout.fillWidth: true
+                    Layout.margins: 8
+                    spacing: 4
+
+                    ToolSection {
+                        wrap: false
+
+                        navigationPanel: playersActionsNav
+
+                        // Add Single Player is MuseScore's Add instruments dialog; the rest has no MuseScore model.
+                        codes: [
+                            "command://instruments/select",
+                            "command://dorico/add-section-player",
+                            "command://dorico/add-ensemble",
+                            "command://dorico/add-group",
+                            "command://dorico/sort-players",
+                            "command://dorico/player-settings"
+                        ]
+                        labels: [
+                            qsTrc("dorico", "Add Single Player"),
+                            qsTrc("dorico", "Add Section Player"),
+                            qsTrc("dorico", "Add Ensemble"),
+                            qsTrc("dorico", "Add Group"),
+                            qsTrc("dorico", "Sort Players"),
+                            qsTrc("dorico", "Player Settings")
+                        ]
+                        icons: ["svg:user-plus", "svg:users", "svg:boxes", "svg:folder-plus", "svg:arrow-down-wide-narrow", "svg:settings"]
                     }
 
-                    // Add Single Player is MuseScore's Add instruments dialog; the rest has no MuseScore model.
-                    codes: [
-                        "command://instruments/select",
-                        "command://dorico/add-section-player",
-                        "command://dorico/add-ensemble",
-                        "command://dorico/add-group",
-                        "command://dorico/sort-players",
-                        "command://dorico/player-settings"
-                    ]
-                    labels: [
-                        qsTrc("dorico", "Add Single Player"),
-                        qsTrc("dorico", "Add Section Player"),
-                        qsTrc("dorico", "Add Ensemble"),
-                        qsTrc("dorico", "Add Group"),
-                        qsTrc("dorico", "Sort Players"),
-                        qsTrc("dorico", "Player Settings")
-                    ]
-                    icons: ["svg:user-plus", "svg:users", "svg:boxes", "svg:folder-plus", "svg:arrow-down-wide-narrow", "svg:settings"]
+                    Repeater {
+                        model: [
+                            { "title": qsTrc("dorico", "Add System Markings"), "icon": "svg:milestone", "action": "markings" },
+                            { "title": qsTrc("dorico", "Remove"), "icon": "svg:trash-2", "action": "remove" }
+                        ]
+
+                        DoricoButton {
+                            required property var modelData
+                            required property int index
+
+                            readonly property var treeModel: layoutPanel.layoutTreeModel
+
+                            doricoIcon: modelData.icon
+                            iconBoxSize: 24
+                            transparent: true
+                            enabled: modelData.action === "markings" ? treeModel.isAddingSystemMarkingsAvailable
+                                                                     : treeModel.isRemovingAvailable
+
+                            toolTipTitle: modelData.title
+                            navigation.panel: playersActionsNav
+                            navigation.order: 100 + index
+                            navigation.accessible.name: modelData.title
+
+                            onTriggered: {
+                                if (modelData.action === "markings") {
+                                    treeModel.addSystemMarkings()
+                                } else {
+                                    treeModel.removeSelectedRows()
+                                }
+                            }
+                        }
+                    }
                 }
             }
         },

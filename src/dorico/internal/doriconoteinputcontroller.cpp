@@ -554,6 +554,8 @@ void DoricoNoteInputController::onNewVoice()
 
 void DoricoNoteInputController::onToggleArticulation(mu::engraving::SymId sym)
 {
+    using mu::engraving::SymId;
+
     INotationPtr notation = currentNotation();
     if (!notation) {
         return;
@@ -564,10 +566,26 @@ void DoricoNoteInputController::onToggleArticulation(mu::engraving::SymId sym)
 
     // Mirrors NotationActionController::toggleArticulation: latch for the next notes during input,
     // otherwise toggle on the selection. With nothing selected and no input we do nothing.
-    if (ni->isNoteInputMode() && notationConfiguration()->addAccidentalDotsArticulationsToNextNoteEntered()) {
-        ni->setArticulation(sym);
-    } else if (!interaction->selection()->isNone()) {
-        interaction->toggleArticulationForSelection(sym);
+    const bool latch = ni->isNoteInputMode() && notationConfiguration()->addAccidentalDotsArticulationsToNextNoteEntered();
+    if (!latch && interaction->selection()->isNone()) {
+        return;
+    }
+
+    // MuseScore keeps tenuto-staccato as a tenuto plus a staccato, so that button toggles both parts together:
+    // all present -> remove all, otherwise add the missing ones.
+    const std::vector<SymId> parts = sym == SymId::articTenutoStaccatoAbove
+                                     ? std::vector<SymId> { SymId::articTenutoAbove, SymId::articStaccatoAbove }
+                                     : std::vector<SymId> { sym };
+    const std::set<SymId> current = notationController()->currentArticulations();
+    const bool allOn = std::all_of(parts.begin(), parts.end(), [&](SymId part) { return current.count(part) > 0; });
+    for (SymId part : parts) {
+        if (allOn || !current.count(part)) {
+            if (latch) {
+                ni->setArticulation(part);
+            } else {
+                interaction->toggleArticulationForSelection(part);
+            }
+        }
     }
 }
 

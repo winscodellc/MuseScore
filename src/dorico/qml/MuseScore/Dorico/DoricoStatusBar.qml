@@ -33,7 +33,7 @@ import MuseScore.NotationScene
 import MuseScore.Playback
 
 //! Dorico status bar (spec 51). `items` lists which controls this mode shows; the order below is Dorico's order.
-//! Names: grid, pitch, order, summary, zoneArrow, follow, tools, viewType, arrangement, zoom, midi.
+//! Names: grid, pitch, order, summary, zoneArrow, follow, tools, viewType, arrangement, zoomFit, zoom, midi.
 Item {
     id: root
 
@@ -255,6 +255,29 @@ Item {
             visible: root.shows("arrangement")
             doricoIcon: "svg:book-open"
             toolTipTitle: qsTrc("dorico", "Page arrangement")
+        }
+
+        SeparatorLine { orientation: Qt.Vertical; visible: root.shows("zoomFit") }
+
+        // Print mode's Page Width / Whole Page (spec 58). Ids are MuseScore's zoom menu ids: ZoomType number + "0".
+        Repeater {
+            model: root.shows("zoomFit") ? [
+                { "title": qsTrc("dorico", "Page Width"), "zoomId": "10" },
+                { "title": qsTrc("dorico", "Whole Page"), "zoomId": "20" }
+            ] : []
+
+            ToggleButton {
+                required property int index
+                required property var modelData
+
+                active: model.availableZoomList.some(z => z.id === modelData.zoomId && z.selected)
+                text: modelData.title
+
+                navigation.panel: navPanel
+                navigation.order: 6 + index // Print has no view-type buttons (same orders)
+
+                onClicked: model.setCurrentZoom(modelData.zoomId)
+            }
         }
 
         SeparatorLine { orientation: Qt.Vertical; visible: root.shows("zoom") }

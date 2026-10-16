@@ -22,6 +22,8 @@
 
 #include "doricocommandsstate.h"
 
+#include <algorithm>
+
 #include "../doricocommands.h"
 
 #include "log.h"
@@ -29,6 +31,14 @@
 using namespace muse;
 using namespace muse::rcommand;
 using namespace mu::dorico;
+using mu::engraving::SymId;
+
+static const std::map<Command, std::vector<SymId> > ARTICULATION_SYMS = {
+    { DORICO_TOGGLE_STRESSED_COMMAND, { SymId::articStressAbove } },
+    { DORICO_TOGGLE_UNSTRESSED_COMMAND, { SymId::articUnstressAbove } },
+    { DORICO_TOGGLE_STACCATISSIMO_COMMAND, { SymId::articStaccatissimoAbove } },
+    { DORICO_TOGGLE_TENUTO_STACCATO_COMMAND, { SymId::articTenutoAbove, SymId::articStaccatoAbove } },
+};
 
 std::string DoricoCommandsState::moduleName() const
 {
@@ -63,6 +73,10 @@ void DoricoCommandsState::init()
     notationController()->noteInputStateChanged().onNotify(this, [this]() {
         updateCommandStates();
     });
+    // Notes panel articulation highlights follow the selected notes, also outside note input.
+    notationController()->selectionChanged().onNotify(this, [this]() {
+        updateCommandStates();
+    });
 
     updateCommandStates();
 }
@@ -72,6 +86,7 @@ void DoricoCommandsState::deinit()
     modes()->modeChanged().disconnect(this);
     modes()->modesChanged().disconnect(this);
     notationController()->noteInputStateChanged().disconnect(this);
+    notationController()->selectionChanged().disconnect(this);
     globalContext()->currentProjectChanged().disconnect(this);
     notationController()->textEditingChanged().disconnect(this);
 }
@@ -109,6 +124,11 @@ CommandState DoricoCommandsState::commandState(const Command& command) const
         checked = modes()->isChordMode();
     } else if (command == DORICO_TOGGLE_INSERT_MODE_COMMAND) {
         checked = modes()->isInsertMode();
+    } else if (const auto it = ARTICULATION_SYMS.find(command); it != ARTICULATION_SYMS.end()) {
+        // Same rule as MuseScore's toggles: the input articulations, or those on the selected notes. Combined
+        // articulations come back split (tenuto-staccato = tenuto + staccato), so every part must be there.
+        const std::set<SymId> current = notationController()->currentArticulations();
+        checked = std::all_of(it->second.begin(), it->second.end(), [&](SymId s) { return current.count(s) > 0; });
     }
 
     return CommandState(enabled, checked);

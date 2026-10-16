@@ -88,10 +88,30 @@ DoricoPage {
                     enabled: leftContent.enabled && leftContent.visible
                 }
 
+                // Dorico's flow selector. MuseScore has one flow per score, so it is a disabled "Flow 1".
+                RowLayout {
+                    id: flowRow
+
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.margins: 4
+                    spacing: 4
+
+                    StyledTextLabel { text: qsTrc("dorico", "Flow:") }
+
+                    StyledDropdown {
+                        Layout.fillWidth: true
+                        enabled: false
+                        model: [{ "text": qsTrc("dorico", "Flow 1"), "value": 0 }]
+                        currentIndex: 0
+                    }
+                }
+
                 RowLayout {
                     id: selector
 
-                    anchors.top: parent.top
+                    anchors.top: flowRow.bottom
                     anchors.left: parent.left
                     anchors.right: parent.right
                     anchors.margins: 4
@@ -166,48 +186,71 @@ DoricoPage {
                             font: ui.theme.bodyBoldFont
                         }
 
-                        // Routing: MuseScore has a sound (instrument) picker per channel; ports, MIDI channels and
-                        // endpoints do not exist.
-                        StyledTextLabel { text: qsTrc("dorico", "Routing"); opacity: 0.7 }
+                        // Dorico's collapsible sections. Routing: MuseScore has a sound (instrument) picker per channel;
+                        // ports, MIDI channels and endpoints do not exist.
+                        ExpandableBlank {
+                            width: inspectorColumn.width
+                            title: qsTrc("dorico", "Routing")
+                            isExpanded: true
+                            navigation.panel: leftNav
+                            navigation.order: 2
 
-                        MixerSoundSection {
-                            headerVisible: false
-                            channelItemWidth: inspectorColumn.width
-                            model: inspector
+                            contentItemComponent: MixerSoundSection {
+                                headerVisible: false
+                                channelItemWidth: inspectorColumn.width
+                                model: inspector
+                            }
                         }
 
-                        StyledTextLabel { text: qsTrc("dorico", "Insert Effects"); opacity: 0.7 }
+                        ExpandableBlank {
+                            width: inspectorColumn.width
+                            title: qsTrc("dorico", "Insert Effects")
+                            isExpanded: false
+                            navigation.panel: leftNav
+                            navigation.order: 3
 
-                        MixerFxSection {
-                            headerVisible: false
-                            channelItemWidth: inspectorColumn.width
-                            model: inspector
+                            contentItemComponent: MixerFxSection {
+                                headerVisible: false
+                                channelItemWidth: inspectorColumn.width
+                                model: inspector
+                            }
                         }
 
-                        StyledTextLabel { text: qsTrc("dorico", "Channel"); opacity: 0.7 }
+                        ExpandableBlank {
+                            width: inspectorColumn.width
+                            title: qsTrc("dorico", "Channel")
+                            isExpanded: false
+                            navigation.panel: leftNav
+                            navigation.order: 4
 
-                        MixerBalanceSection {
-                            headerVisible: false
-                            channelItemWidth: inspectorColumn.width
-                            model: inspector
-                        }
+                            contentItemComponent: Column {
+                                width: inspectorColumn.width
+                                spacing: 8
 
-                        MixerVolumeSection {
-                            headerVisible: false
-                            channelItemWidth: inspectorColumn.width
-                            model: inspector
-                        }
+                                MixerBalanceSection {
+                                    headerVisible: false
+                                    channelItemWidth: inspectorColumn.width
+                                    model: inspector
+                                }
 
-                        MixerFaderSection {
-                            headerVisible: false
-                            channelItemWidth: inspectorColumn.width
-                            model: inspector
-                        }
+                                MixerVolumeSection {
+                                    headerVisible: false
+                                    channelItemWidth: inspectorColumn.width
+                                    model: inspector
+                                }
 
-                        MixerMuteAndSoloSection {
-                            headerVisible: false
-                            channelItemWidth: inspectorColumn.width
-                            model: inspector
+                                MixerFaderSection {
+                                    headerVisible: false
+                                    channelItemWidth: inspectorColumn.width
+                                    model: inspector
+                                }
+
+                                MixerMuteAndSoloSection {
+                                    headerVisible: false
+                                    channelItemWidth: inspectorColumn.width
+                                    model: inspector
+                                }
+                            }
                         }
                     }
                 }

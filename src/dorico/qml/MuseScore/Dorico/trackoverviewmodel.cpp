@@ -63,11 +63,60 @@ void TrackOverviewModel::load()
     globalContext()->currentMasterNotationChanged().onNotify(this, [this]() {
         listenToScore();
     });
+    globalContext()->currentNotationChanged().onNotify(this, [this]() {
+        listenToSoloMute();
+    });
     globalContext()->playbackState()->playbackPositionChanged().onReceive(this, [this](muse::audio::secs_t secs) {
         updatePlayhead(secs);
     });
     listenToScore();
+    listenToSoloMute();
     updatePlayhead(globalContext()->playbackState()->playbackPosition());
+}
+
+void TrackOverviewModel::listenToSoloMute()
+{
+    if (m_notation) {
+        m_notation->soloMuteState()->trackSoloMuteStateChanged().disconnect(this);
+    }
+    m_notation = globalContext()->currentNotation();
+    if (m_notation) {
+        m_notation->soloMuteState()->trackSoloMuteStateChanged().onReceive(this, [this](const InstrumentTrackId&, const auto&) {
+            rebuild(m_master ? m_master->masterScore() : nullptr);
+        });
+    }
+    rebuild(m_master ? m_master->masterScore() : nullptr);
+}
+
+void TrackOverviewModel::setMuted(const QString& partId, bool muted)
+{
+    changeSoloMute(partId, true, muted);
+}
+
+void TrackOverviewModel::setSolo(const QString& partId, bool solo)
+{
+    changeSoloMute(partId, false, solo);
+}
+
+void TrackOverviewModel::changeSoloMute(const QString& partId, bool mute, bool value)
+{
+    if (!m_master || !m_notation) {
+        return;
+    }
+    for (const Part* part : m_master->masterScore()->parts()) {
+        if (part->id().toQString() != partId) {
+            continue;
+        }
+        for (const auto& [tick, instrument] : part->instruments()) {
+            const InstrumentTrackId trackId { part->id(), instrument->id() };
+            auto state = playbackController()->trackSoloMuteState(trackId);
+            (mute ? state.mute : state.solo) = value;
+            if (value) {
+                (mute ? state.solo : state.mute) = false;
+            }
+            playbackController()->setTrackSoloMuteState(trackId, state);
+        }
+    }
 }
 
 void TrackOverviewModel::listenToScore()
@@ -107,9 +156,17 @@ void TrackOverviewModel::rebuild(const Score* score)
                 blocks << QVariantMap { { "start", block.start }, { "end", block.end } };
             }
 
+            // The part's first instrument stands for the part (MixerPanelModel shows one channel per instrument).
+            notation::INotationSoloMuteState::SoloMuteState soloMute;
+            if (m_notation && !part->instruments().empty()) {
+                soloMute = playbackController()->trackSoloMuteState({ part->id(), part->instruments().begin()->second->id() });
+            }
+
             m_tracks << QVariantMap {
                 { "partId", part->id().toQString() },
                 { "title", part->partName().toQString() },
+                { "muted", soloMute.mute },
+                { "solo", soloMute.solo },
                 { "blocks", blocks },
             };
         }
