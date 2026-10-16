@@ -100,7 +100,7 @@ Status: todo | in-progress | pending review | done  -  Depends on: NN, NN  -  Do
 | 00 | [Module skeleton](00-module-skeleton.md) | done | none |
 | 10 | [Keymap preset](10-keymap-preset.md) | done | 00 |
 | 11 | [Note-input modes](11-note-input-modes.md) | done | 00, 10 (land with 10) |
-| 12 | [Caret and navigation](12-caret-and-navigation.md) | pending review | 00, 10, 11 |
+| 12 | [Caret and navigation](12-caret-and-navigation.md) | done | 00, 10, 11 |
 | 13 | [Duration and rhythmic moves](13-duration-and-rhythmic-moves.md) | todo | 00, 10, 12 (for the grid) |
 | 20 | [Popover framework](20-popover-framework.md) | pending review | 00, 10 |
 | 21 | [Popover: dynamics (Shift-D)](21-popover-dynamics.md) | pending review | 20 |

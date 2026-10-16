@@ -1,5 +1,5 @@
 # 12 - Caret and navigation
-Status: pending review  -  Depends on: 00, 10, 11  -  Dorico refs: `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/write_mode/write_mode_navigation/write_mode_navigation_items_music_area_t.html`, `.../write_mode_caret/write_mode_caret_moving_manually_t.html`, `.../write_mode_rhythmic_grid/write_mode_rhythmic_grid_c.html`, `.../write_mode_rhythmic_grid/write_mode_rhythmic_grid_resolution_changing_t.html`, `.../write_mode_transposing_tools/write_mode_notes_pitch_changing_t.html`, `.../write_mode_transposing_tools/write_mode_notes_respelling_t.html`
+Status: done  -  Depends on: 00, 10, 11  -  Dorico refs: `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/write_mode/write_mode_navigation/write_mode_navigation_items_music_area_t.html`, `.../write_mode_caret/write_mode_caret_moving_manually_t.html`, `.../write_mode_rhythmic_grid/write_mode_rhythmic_grid_c.html`, `.../write_mode_rhythmic_grid/write_mode_rhythmic_grid_resolution_changing_t.html`, `.../write_mode_transposing_tools/write_mode_notes_pitch_changing_t.html`, `.../write_mode_transposing_tools/write_mode_notes_respelling_t.html`
 
 ## Goal
 Arrow keys, Cmd+arrows, Space and the pitch-by-step keys behave as in Dorico, both with a selection and during note input; add the rhythmic grid state (Opt-[ / Opt-]) and directional respelling (Opt-= / Opt--).
@@ -105,14 +105,14 @@ None.
 - Respell: `dorico/respell-above|below` (Opt-= / Opt--), `respellTpc` in `noteinpututils.h` (not a separate `respell.h`). Sets the shown spelling with `Note::undoSetTpc` and the other one (concert / written) with `transposeTpc`, for the whole tie chain; TAB and drum staves are skipped. One undo step.
 
 ## Acceptance criteria
-- [ ] Nothing selected, press Right: first item of the top staff is selected.
-- [ ] Two-note chord on staff 2, bottom note selected: Up selects the top note; Up again selects the lowest note/rest of staff 1 at that tick; Down walks back.
-- [ ] Whole chord selected on a middle staff: Up keeps going to the staff above and selects its bottom note.
-- [ ] Cmd-Up selects the first staff's item at the same tick; Cmd-Down the last visible staff's.
-- [ ] During note input on staff 2, Up moves the caret to staff 1, Down back; the entered note lands on the right staff.
-- [ ] Cmd-Right / Cmd-Left move to the start of the next / previous bar, with and without note input.
-- [ ] Opt-] then Opt-[ changes the grid (log shows 1/16 then 1/8); the value survives restart; clamps at 128th and whole.
-- [ ] G-sharp selected: Opt-= gives A-flat, again gives B-triple-flat, again does nothing; Opt-- from G-sharp gives F-triple-sharp. Undo restores in one step. Works on a multi-note selection and on a transposing instrument (concert and written spellings stay consistent).
+- [x] Nothing selected, press Right: first item of the top staff is selected.
+- [x] Two-note chord on staff 2, bottom note selected: Up selects the top note; Up again selects the lowest note/rest of staff 1 at that tick; Down walks back.
+- [x] Whole chord selected on a middle staff: Up keeps going to the staff above and selects its bottom note.
+- [x] Cmd-Up selects the first staff's item at the same tick; Cmd-Down the last visible staff's.
+- [x] During note input on staff 2, Up moves the caret to staff 1, Down back; the entered note lands on the right staff.
+- [ ] Cmd-Right / Cmd-Left move to the start of the next / previous bar, with and without note input. *(Not verified: on the test Mac, System Settings > Keyboard > Keyboard Shortcuts > Mission Control had "Move left/right a space" set to Cmd-Left/Right, so macOS takes the keys before the app. Stock macOS uses Ctrl-Left/Right there. The binding is correct; free those keys in macOS to use it.)*
+- [x] Opt-] then Opt-[ changes the grid (log shows 1/16 then 1/8); the value survives restart; clamps at 128th and whole.
+- [x] G-sharp selected: Opt-= gives A-flat, again gives B-triple-flat, again does nothing; Opt-- from G-sharp gives F-triple-sharp. Undo restores in one step. Works on a multi-note selection and on a transposing instrument (concert and written spellings stay consistent).
 - [x] `check_keymap.py` exits 0.
 - [x] Unit tests pass.
 
