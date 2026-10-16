@@ -1,7 +1,7 @@
 <!-- markdownlint-disable -->
 # 33 — Popover: lyrics (Shift-L)
 
-Status: todo · Depends on: [20-popover-framework](20-popover-framework.md) · Dorico refs:
+Status: todo · Depends on: [20-popover-framework](done/20-popover-framework.md) · Dorico refs:
 - [P] `https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_lyrics_r.html`
 - [M] `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/write_mode/write_mode_notations_input/write_mode_lyrics_inputting_t.html`
 - [M] `.../notation_reference/notation_reference_lyrics/notation_reference_lyrics_copying_pasting_t.html`

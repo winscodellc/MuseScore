@@ -1,64 +1,70 @@
+<!-- markdownlint-disable -->
+
 # 21 — Dynamics popover (Shift-D)
-Status: pending review · Depends on: 20 · Dorico refs: [dynamics reference](https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_dynamics_dynamics_r.html), [gradual](https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_dynamics_gradual_r.html), [modifiers](https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_dynamics_modifiers_r.html), [procedure](https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/write_mode/write_mode_notations_input/write_mode_dynamics_inputting_popover_t.html)
+
+Status: done · Depends on: 20 · Dorico refs: [dynamics reference](https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_dynamics_dynamics_r.html), [gradual](https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_dynamics_gradual_r.html), [modifiers](https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_dynamics_modifiers_r.html), [procedure](https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/write_mode/write_mode_notations_input/write_mode_dynamics_inputting_popover_t.html)
 
 Reference: `specs/reference/dorico-popovers.md` (Dynamics), `specs/reference/musescore-internals.md` (§3).
 
 ## Goal
+
 Shift-D opens the popover; typing `p`, `mf`, `fp`, `<`, `p<f>p`, `cresc...` etc. and pressing Return inserts the matching dynamic/hairpin at the selection or caret.
 
 ## Dorico behaviour
 
 ### Entry syntax
+
 Immediate and combined dynamics:
 
-| Entry | Result |
-|---|---|
-| `pppppp` … `p` | Soft dynamics (1–6 p) |
-| `mp`, `mf` | Medium |
-| `f` … `ffffff` | Loud (1–6 f) |
-| `fp` | Fortepiano, no separator |
+| Entry               | Result                      |
+| ------------------- | --------------------------- |
+| `pppppp` … `p`      | Soft dynamics (1–6 p)       |
+| `mp`, `mf`          | Medium                      |
+| `f` … `ffffff`      | Loud (1–6 f)                |
+| `fp`                | Fortepiano, no separator    |
 | `f-p`, `f:p`, `f/p` | Fortepiano with a separator |
-| `sfz` | Sforzando |
-| `rfz` | Rinforzando |
-| `(f)` | Parenthesised dynamic |
+| `sfz`               | Sforzando                   |
+| `rfz`               | Rinforzando                 |
+| `(f)`               | Parenthesised dynamic       |
 
 Gradual dynamics:
 
-| Entry | Result |
-|---|---|
-| `<` | Crescendo hairpin |
-| `cresc`, `crescendo` | "cresc." text |
-| `cresc...`, `crescendo...` | cresc. with continuation line |
-| `>` | Diminuendo hairpin |
-| `dim`, `diminuendo` | "dim." text |
-| `dim...`, `diminuendo...` | dim. with continuation line |
-| `decresc`, `decrescendo` | "decresc." text |
-| `decresc...`, `decrescendo...` | decresc. with continuation line |
-| `<>` / `><` | Messa di voce: one hairpin with a shared centre handle |
-| `< >` / `> <` | Two separate grouped hairpins |
-| `o<`, `>o` | Niente hairpin with a circle |
-| `n<`, `>n` | Niente hairpin with the letter "n" |
-| `?` | Stop a gradual dynamic during note input |
+| Entry                          | Result                                                 |
+| ------------------------------ | ------------------------------------------------------ |
+| `<`                            | Crescendo hairpin                                      |
+| `cresc`, `crescendo`           | "cresc." text                                          |
+| `cresc...`, `crescendo...`     | cresc. with continuation line                          |
+| `>`                            | Diminuendo hairpin                                     |
+| `dim`, `diminuendo`            | "dim." text                                            |
+| `dim...`, `diminuendo...`      | dim. with continuation line                            |
+| `decresc`, `decrescendo`       | "decresc." text                                        |
+| `decresc...`, `decrescendo...` | decresc. with continuation line                        |
+| `<>` / `><`                    | Messa di voce: one hairpin with a shared centre handle |
+| `< >` / `> <`                  | Two separate grouped hairpins                          |
+| `o<`, `>o`                     | Niente hairpin with a circle                           |
+| `n<`, `>n`                     | Niente hairpin with the letter "n"                     |
+| `?`                            | Stop a gradual dynamic during note input               |
 
 Modifiers (combined with an immediate dynamic, separated by a space: `f molto`, `p espressivo`; free text allowed):
 
-| Entry | Modifier |
-|---|---|
-| `subito`, `sub`, `sub.` | subito |
+| Entry                        | Modifier  |
+| ---------------------------- | --------- |
+| `subito`, `sub`, `sub.`      | subito    |
 | `possibile`, `poss`, `poss.` | possibile |
-| `poco` | poco |
-| `molto` | molto |
-| `piu`, `più` | più |
-| `meno` | meno |
-| `mosso` | mosso |
+| `poco`                       | poco      |
+| `molto`                      | molto     |
+| `piu`, `più`                 | più       |
+| `meno`                       | meno      |
+| `mosso`                      | mosso     |
 
 `molto` and similar are placed automatically **before** the dynamic.
 
 Phrases: `p<f>p`, `f>` create a grouped phrase. During note input each hairpin in a phrase lasts a quarter note; an open-ended entry (`p<`) extends as the caret advances.
 
 ### Placement and variants
-| | Return | Opt-Return |
-|---|---|---|
+
+|               | Return                                  | Opt-Return                              |
+| ------------- | --------------------------------------- | --------------------------------------- |
 | Voices/staves | All voices and staves of the instrument | Only the caret's voice (voice-specific) |
 
 - **Selection range:** immediate dynamic at the earliest selected item; hairpins/gradual text span the range.
@@ -67,6 +73,7 @@ Phrases: `p<f>p`, `f>` create a grouped phrase. During note input each hairpin i
 - Brackets: `( … )` = parenthesised.
 
 ## MuseScore today
+
 - Ctrl-D (`add-dynamic`) → `toggleDynamicPopup` (`src/notation/internal/notationinteraction.cpp:5827`) → `addTextToItem(DYNAMICS, el)` (:6204) → `addText` (:6220) starts text edit; the existing `DynamicPopup.qml` offers choices. `Dynamic::parseDynamicText` (`src/engraving/dom/dynamic.cpp:243`) and `endEdit` (:353) map typed text to `DynamicType`.
 - `INotationInteraction::addHairpinsToSelection(HairpinType)` (:5467); `EditHairpin::addHairpin` in `engraving/editing/`.
 - `applyPaletteElement` (:2224) is the generic way to drop a `Dynamic`/`Hairpin` on a list or range.
@@ -74,6 +81,7 @@ Phrases: `p<f>p`, `f>` create a grouped phrase. During note input each hairpin i
 - Gaps: no combined `fp`-style entry with separators, no modifier words, no niente hairpins by text, no phrase grouping.
 
 ## Design
+
 - Parser: `src/dorico/popover/parsers/dynamicsparser.{h,cpp}`.
   ```cpp
   struct DynamicItem { enum class Kind { Immediate, Hairpin, GradualText, Niente, MessaDiVoce }; ... };
@@ -94,6 +102,7 @@ Phrases: `p<f>p`, `f>` create a grouped phrase. During note input each hairpin i
 - Key binding: `Shift+D` → `command://dorico/popover/dynamics` is already bound (spec 20). Replace `temporaryDynamics()` in `src/dorico/popover/popoverregistry.cpp` with the real def; keep its tests' expectations or update them in `popoverregistry_tests.cpp`.
 
 ## As built (wins over the Design section where they differ)
+
 - Parser `popover/parsers/dynamicsparser.{h,cpp}` (no score access) returns `DynamicsParse { status, DynamicEntry }`; items are `Immediate`, `Hairpin`, `GradualText`. `<>` / `><` and `< >` / `> <` all parse to two hairpins (no `MessaDiVoce` kind, no shared centre handle). Immediate names are MuseScore's dynamic names (also `sfp`, `sffz`, `fz`, `n`, ...), except the bare letters `m r s z`. Two immediates need a gradual between them (`p f` is Invalid). A modifier is the rest of the entry after a space, attached to the last immediate; `molto poco più meno` go before the dynamic, everything else (free text included) after. Decided: `f mo` = Ok, free text "mo".
 - Handler `popover/handlers/dynamicshandler.{h,cpp}` (`dynamicsPopover()`, replaces `temporaryDynamics()`). It adds items directly in one transaction (no `applyPaletteElement`):
   - Immediate: `Dynamic` with the first dynamic's type; the text is built from SMuFL dynamic symbols (`Dynamic::dynamicText`) plus separator, second dynamic and modifier, and `( )` for parentheses (plain text, not `Pid::HAS_PARENTHESES`). A dynamic already at that position on the staff is changed instead of adding a second one.
@@ -104,6 +113,7 @@ Phrases: `p<f>p`, `f>` create a grouped phrase. During note input each hairpin i
   - Outside note input the first new item is selected (Return reopens it). `prefill`: dynamic name or its plain text; hairpins give `<` `>` `o<` `>o`, lines their word (+ `...`).
 
 ## Deferred / unsupported
+
 - `?` stop token outside note input (no-op, status Ok).
 - Messa di voce shared centre handle (becomes two hairpins).
 - Modifier free text beyond the table is accepted but is placed after the dynamic.
@@ -115,43 +125,45 @@ Phrases: `p<f>p`, `f>` create a grouped phrase. During note input each hairpin i
 - `Unsupported`: `7+` p/f letters is **Invalid** (more than 6).
 
 ## Acceptance criteria
-- [ ] Shift-D on a selected note, `mf`, Return → one `mf` dynamic under the note; Cmd-Z removes it.
-- [ ] `fp`, `sfz`, `rfz`, `pppppp`, `ffffff` produce the matching MuseScore dynamic types.
-- [ ] `f-p`, `f:p`, `f/p` produce custom text dynamics showing "f" and "p" with the chosen separator.
-- [ ] `<` on a range selection creates a crescendo hairpin spanning the range; `>` a diminuendo.
-- [ ] `cresc...` creates a cresc. line spanning the range; `cresc` creates text only.
-- [ ] `p<f>p` at the caret/selection creates three dynamics joined by two hairpins in order.
-- [ ] In note input, `p<` creates the `p` and the hairpin ends when the caret has advanced and the stop token/next dynamic/end of input occurs.
-- [ ] Return inserts into all voices/staves of the instrument; Opt-Return only the caret voice (check voice-assignment property).
-- [ ] Select an existing dynamic, press Return → popover prefilled; change to `f`, Return → replaced (no second dynamic).
-- [x] `ppppppp` (7 p) is red/Invalid; `foo` is red/Invalid. *(parser tests; red border is spec 20)*
+
+- [x] Shift-D on a selected note, `mf`, Return → one `mf` dynamic under the note; Cmd-Z removes it.
+- [x] `fp`, `sfz`, `rfz`, `pppppp`, `ffffff` produce the matching MuseScore dynamic types.
+- [x] `f-p`, `f:p`, `f/p` produce custom text dynamics showing "f" and "p" with the chosen separator.
+- [x] `<` on a range selection creates a crescendo hairpin spanning the range; `>` a diminuendo.
+- [x] `cresc...` creates a cresc. line spanning the range; `cresc` creates text only.
+- [x] `p<f>p` at the caret/selection creates three dynamics joined by two hairpins in order.
+- [x] In note input, `p<` creates the `p` and the hairpin ends when the caret has advanced and the stop token/next dynamic/end of input occurs.
+- [x] Return inserts into all voices/staves of the instrument; Opt-Return only the caret voice (check voice-assignment property).
+- [x] Select an existing dynamic, press Return → popover prefilled; change to `f`, Return → replaced (no second dynamic).
+- [x] `ppppppp` (7 p) is red/Invalid; `foo` is red/Invalid. _(parser tests; red border is spec 20)_
 - [x] All GoogleTest parser cases below pass (as adapted: `<>` = two hairpins, `f mo` = free text).
 
 ## Tests
+
 `src/dorico/tests/dynamicsparser_tests.cpp`:
 
-| Input | Expected |
-|---|---|
-| `p` | Ok, 1 item Immediate P |
-| `mf` | Ok, Immediate MF |
-| `ffffff` | Ok, Immediate FFFFFF |
-| `fffffff` | Invalid |
-| `fp` | Ok, Immediate FP |
-| `f-p`, `f:p`, `f/p` | Ok, Combined F,P with separator `-`,`:`,`/` |
-| `sfz`, `rfz` | Ok |
-| `(f)` | Ok, parenthesised F |
-| `<` / `>` | Ok, Hairpin cresc / dim |
-| `cresc` | Ok, GradualText cresc, no line |
-| `crescendo...` | Ok, GradualText cresc with line |
-| `decresc...` | Ok, GradualText decresc with line |
-| `<>` | Ok, MessaDiVoce cresc-dim |
-| `< >` | Ok, two Hairpins |
-| `o<`, `>o`, `n<`, `>n` | Ok, Niente (circle/letter) |
-| `f molto` | Ok, F with modifier molto (placed before) |
-| `p espressivo` | Ok, P with free-text modifier |
-| `p<f>p` | Ok, items [P, cresc, F, dim, P] |
-| `p<` | Ok, openEnded |
-| `?` | Ok, stop |
-| `f mo` | Incomplete or modifier free text (decide, document) |
-| `ppppppp`, `xyz` | Invalid |
-| `` (empty) | Incomplete |
+| Input                  | Expected                                            |
+| ---------------------- | --------------------------------------------------- |
+| `p`                    | Ok, 1 item Immediate P                              |
+| `mf`                   | Ok, Immediate MF                                    |
+| `ffffff`               | Ok, Immediate FFFFFF                                |
+| `fffffff`              | Invalid                                             |
+| `fp`                   | Ok, Immediate FP                                    |
+| `f-p`, `f:p`, `f/p`    | Ok, Combined F,P with separator `-`,`:`,`/`         |
+| `sfz`, `rfz`           | Ok                                                  |
+| `(f)`                  | Ok, parenthesised F                                 |
+| `<` / `>`              | Ok, Hairpin cresc / dim                             |
+| `cresc`                | Ok, GradualText cresc, no line                      |
+| `crescendo...`         | Ok, GradualText cresc with line                     |
+| `decresc...`           | Ok, GradualText decresc with line                   |
+| `<>`                   | Ok, MessaDiVoce cresc-dim                           |
+| `< >`                  | Ok, two Hairpins                                    |
+| `o<`, `>o`, `n<`, `>n` | Ok, Niente (circle/letter)                          |
+| `f molto`              | Ok, F with modifier molto (placed before)           |
+| `p espressivo`         | Ok, P with free-text modifier                       |
+| `p<f>p`                | Ok, items [P, cresc, F, dim, P]                     |
+| `p<`                   | Ok, openEnded                                       |
+| `?`                    | Ok, stop                                            |
+| `f mo`                 | Incomplete or modifier free text (decide, document) |
+| `ppppppp`, `xyz`       | Invalid                                             |
+| `` (empty)             | Incomplete                                          |

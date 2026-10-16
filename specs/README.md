@@ -45,6 +45,8 @@ Namespace `mu::dorico`, commands `command://dorico/<name>`. It is created in spe
 - Play mode (spec 57): `playback/qml/MuseScore/Playback/mixerpanelmodel.cpp` applies control / mute / solo changes from other models, so two mixers over the same tracks stay in sync.
 - Note-input caret (spec 12): `notationscene/qml/MuseScore/NotationScene/abstractnotationpaintview.{h,cpp}` lets an optional `IDoricoCaret` paint the caret and grid ruler.
 - Appearance (spec 60): `app/configs/dark.cfg` and `light.cfg` hold Dorico's measured colors (values only).
+- Notes panel articulations (spec 52): `notationscene/internal/notationcommandsstate.cpp` also refreshes the articulation toggles on selection change; `engraving/dom/chord.cpp` `updateArticulations` removes any articulation (not only the basic four), `articulation.cpp` knows stress / unstress placements; test in `engraving/tests/note_tests.cpp`.
+- Setup Players panel (spec 55): `instrumentsscene/qml/MuseScore/InstrumentsScene/LayoutPanel.qml` can hide its top bar (`controlPanelVisible`) and exposes its tree model (`layoutTreeModel`).
 
 ### 2. Changing behaviour = new commands, not overriding old ones
 The command dispatcher allows **one handler per command** (`muse/framework/rcommand/internal/commanddispatcher.cpp:135` refuses duplicates), so a module cannot replace `command://notation/paste`. Instead:
@@ -103,8 +105,8 @@ Status: todo | in-progress | pending review | done  -  Depends on: NN, NN  -  Do
 | 11 | [Note-input modes](done/11-note-input-modes.md) | done | 00, 10 (land with 10) |
 | 12 | [Caret and navigation](12-caret-and-navigation.md) | done | 00, 10, 11 |
 | 13 | [Duration and rhythmic moves](13-duration-and-rhythmic-moves.md) | todo | 00, 10, 12 (for the grid) |
-| 20 | [Popover framework](20-popover-framework.md) | pending review | 00, 10 |
-| 21 | [Popover: dynamics (Shift-D)](21-popover-dynamics.md) | pending review | 20 |
+| 20 | [Popover framework](done/20-popover-framework.md) | done | 00, 10 |
+| 21 | [Popover: dynamics (Shift-D)](done/21-popover-dynamics.md) | done | 20 |
 | 22 | [Popover: time signatures (Shift-M)](22-popover-time-signatures.md) | todo | 20 |
 | 23 | [Popover: key signatures (Shift-K)](23-popover-key-signatures.md) | todo | 20 |
 | 24 | [Popover: clefs and octave lines (Shift-C)](24-popover-clefs-octave-lines.md) | todo | 20 |
@@ -134,11 +136,11 @@ Status: todo | in-progress | pending review | done  -  Depends on: NN, NN  -  Do
 | 53 | [Write: Notations toolbox and panels](53-write-notations-toolbox-and-panels.md) | pending review | 50, 20 |
 | 54 | [Write: lower zone](done/54-write-lower-zone.md) | done | 50 |
 | 55 | [Setup mode](55-setup-mode.md) | pending review | 50 |
-| 56 | [Engrave mode](56-engrave-mode.md) | pending review | 50 |
+| 56 | [Engrave mode](done/56-engrave-mode.md) | done | 50 |
 | 57 | [Play mode](57-play-mode.md) | pending review | 50 |
 | 58 | [Print mode](58-print-mode.md) | pending review | 50, 55 |
-| 59 | [Menus](59-menus.md) | pending review | 50 |
-| 60 | [Appearance: colors, score canvas, icons](60-appearance.md) | pending review | 50 |
+| 59 | [Menus](done/59-menus.md) | done | 50 |
+| 60 | [Appearance: colors, score canvas, icons](done/60-appearance.md) | done | 50 |
 
 Specs 20-36 and 40-47 are listed here but written in a later pass. Specs 50-59 (UI shell) are all written; **implement 50 first**, then the rest in any order (58 after 55). Suggested model: Opus for 50, 53, 59; Sonnet is enough for 51, 52, 54-58. A spec file that does not exist yet is just not started.
 

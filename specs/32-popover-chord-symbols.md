@@ -1,7 +1,7 @@
 <!-- markdownlint-disable -->
 # 32 — Popover: chord symbols (Shift-Q)
 
-Status: todo · Depends on: [20-popover-framework](20-popover-framework.md) · Dorico refs:
+Status: todo · Depends on: [20-popover-framework](done/20-popover-framework.md) · Dorico refs:
 - [P] `https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_chord_symbols_*_r.html`
 - [P] `.../dorico_popovers_navigation_r.html`
 - [M] `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/write_mode/write_mode_notations_input/write_mode_chord_symbols_inputting_t.html`

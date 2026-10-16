@@ -1,7 +1,7 @@
 <!-- markdownlint-disable -->
 # 30 — Popover: repeats and tremolos (Shift-R)
 
-Status: todo · Depends on: [20-popover-framework](20-popover-framework.md) · Dorico refs:
+Status: todo · Depends on: [20-popover-framework](done/20-popover-framework.md) · Dorico refs:
 - [P] `https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_repeats_*_r.html`
 - [M] `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/write_mode/write_mode_notations_input/write_mode_repeats_popover_r.html`
 - [M] `.../write_mode_notations_input/write_mode_repeat_markers_inputting_popover_t.html`

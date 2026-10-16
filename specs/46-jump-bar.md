@@ -1,7 +1,7 @@
 <!-- markdownlint-disable -->
 # 46 — Jump bar (J) and Go To Bar (Cmd-G)
 
-Status: todo · Depends on: [00-module-skeleton](00-module-skeleton.md), [20-popover-framework](20-popover-framework.md) (overlay host in `NotationView.qml`), [10-keymap-preset](10-keymap-preset.md)
+Status: todo · Depends on: [00-module-skeleton](00-module-skeleton.md), [20-popover-framework](done/20-popover-framework.md) (overlay host in `NotationView.qml`), [10-keymap-preset](10-keymap-preset.md)
 Dorico refs: `B = https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/` →
 `B user_interface/user_interface_jump_bar_r.html`, `B …/user_interface_jump_bar_commands_performing_t.html`,
 `B …/user_interface_jump_bar_going_to_locations_t.html`, `B …/user_interface_jump_bar_aliases_assigning_t.html`, `B …/user_interface_jump_bar_aliases_removing_t.html`,

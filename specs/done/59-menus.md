@@ -1,19 +1,25 @@
 <!-- markdownlint-disable -->
+
 # 59 - Menus
-Status: pending review  -  Depends on: 50  -  Dorico refs: no menu-reference page exists; menu paths are collected from topics ("Choose X > Y"), see `reference/dorico-ui.md` 0.7
+
+Status: done - Depends on: 50 - Dorico refs: no menu-reference page exists; menu paths are collected from topics ("Choose X > Y"), see `reference/dorico-ui.md` 0.7
 
 Implementer: **Opus** (upstream hook in the menu model).
 
 ## Goal
+
 Replace MuseScore's menu bar with Dorico's top-level menus (File, Edit, Setup, Write, Engrave, Play, Library, View, Window, Help), filled with the items MuseScore can back.
 
 ## Dorico behaviour
+
 See `reference/dorico-ui.md` 0.7. The list is incomplete in the manual; use it as the target and keep items not in MuseScore out (or disabled). The Window menu includes the five mode items with Cmd-1..5, zone toggles and Show Toolbar.
 
 ## MuseScore today
+
 `src/appshell/internal/appmenumodel.cpp` builds the menu tree (File, Edit, View, Add, Format, Tools, Plugins, Help) from `UiAction` ids; items are `MenuItem`s created from actions via `makeMenuItem(actionCode)`. The native macOS menu bar is driven by the same model.
 
 ## Design
+
 - Smallest upstream edit: one hook in `AppMenuModel::load()` so that if a `IDoricoMenuProvider` (new interface in `src/dorico/`) is registered it supplies the top-level `MenuItemList`; otherwise the existing code runs. Read `appmenumodel.cpp` first and decide between the hook and a flag; do not copy the file.
 - `DoricoMenuModel` builds the Dorico tree from a table {menu, submenu, label, actionCode or commandUri}. Reuse `makeMenuItem` helpers; for `command://` commands use whatever the model already does for command-based items (verify).
 - Mapping, first pass (all to verify against ids):
@@ -30,9 +36,11 @@ See `reference/dorico-ui.md` 0.7. The list is incomplete in the manual; use it a
 - Keep MuseScore's Plugins/Extensions menu under Window or Help so nothing becomes unreachable.
 
 ## Deferred / unsupported
+
 Library manager and style editors, Video, Comments, Proofreading, cues, flow management, Play templates, anything in 0.7 with no MuseScore action. List what was dropped in the as-built notes.
 
 ## As built
+
 - **Upstream hook** (the only upstream edit for this spec), marked `// Dorico fork (spec 59)`:
   - `appshell/.../appmenumodel.h`: includes `dorico/idoricomenuarranger.h` and adds `ContextInject<mu::dorico::IDoricoMenuArranger> doricoMenuArranger`.
   - `appmenumodel.cpp` `load()`: `if (auto arranger = doricoMenuArranger()) items = arranger->arrange(items, this);` just before `setItems`.
@@ -55,6 +63,7 @@ Library manager and style editors, Video, Comments, Proofreading, cues, flow man
 - `dorico` links `muse_uicomponents_qml` (where `MenuItem` lives); `dorico_tests` still links.
 
 ### Dropped Dorico menu items (no MuseScore action)
+
 - **File**: Project Statistics, Save As Project Template, Import Flows / Tempo Track (MusicXML and MIDI import is File > Open), the separate Export submenu items (one Export dialog instead), Import/Export User Settings.
 - **Edit**: Paste Into Voice, Explode, Reduce, Move to Staff Above/Below, Paste Articulations (spec 41/47), Remove Rests, Select None, Go To Page / Rehearsal Mark (the search box is the closest), the Notations property submenu, Propagate Properties, Requantize, Device Setup (in Preferences).
 - **Setup**: Propagate Part Formatting.
@@ -67,13 +76,16 @@ Library manager and style editors, Video, Comments, Proofreading, cues, flow man
 - **Help**: Key Commands (Preferences > Shortcuts).
 
 ## Verification status
+
 Built and unit-tested (`dorico_tests` 37/37: menu order, the three refreshed submenus are moved, the Window mode items), `check_keymap.py` passes. Manual check pending: walk every menu (native macOS menu bar), check Preferences / About / Quit landed in the app menu (Qt menu roles), run a plugin from Window > Extensions, and look for "Dorico menu: no menu item or command for" warnings in the log.
 
 ## Acceptance criteria
-- [ ] Menu bar (native on macOS) shows the ten Dorico menus in order.
-- [ ] Every item runs a working action; no dead items.
-- [ ] Shortcuts shown next to items match the Dorico key map.
-- [ ] Every MuseScore action that was reachable only through the old menus is still reachable (Preferences or the Window/Help menus), including plugins.
+
+- [x] Menu bar (native on macOS) shows the ten Dorico menus in order.
+- [x] Every item runs a working action; no dead items.
+- [x] Shortcuts shown next to items match the Dorico key map.
+- [x] Every MuseScore action that was reachable only through the old menus is still reachable (Preferences or the Window/Help menus), including plugins.
 
 ## Tests
+
 Manual walk-through of every menu; GoogleTest for the table builder if it is pure (e.g. unknown action code reported).

@@ -1,7 +1,7 @@
 <!-- markdownlint-disable -->
 # 36 — Popover: figured bass (Shift-G)
 
-Status: todo · Depends on: [20-popover-framework](20-popover-framework.md) · Dorico refs:
+Status: todo · Depends on: [20-popover-framework](done/20-popover-framework.md) · Dorico refs:
 - [P] `https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_figured_bass_figures_r.html`
 - [P] `.../dorico_popovers_figured_bass_alterations_r.html`
 - [P] `.../dorico_popovers_navigation_r.html`

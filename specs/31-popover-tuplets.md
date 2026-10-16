@@ -1,7 +1,7 @@
 <!-- markdownlint-disable -->
 # 31 — Popover: tuplets (`;` and `:`)
 
-Status: todo · Depends on: [20-popover-framework](20-popover-framework.md) · Dorico refs:
+Status: todo · Depends on: [20-popover-framework](done/20-popover-framework.md) · Dorico refs:
 - [P] `https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_tuplets_r.html`
 - [P] `.../dorico_popovers_beat_units_r.html`
 - [M] `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/write_mode/write_mode_durations/write_mode_tuplets_inputting_t.html`
