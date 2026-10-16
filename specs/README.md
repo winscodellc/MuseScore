@@ -108,7 +108,7 @@ Status: todo | in-progress | pending review | done  -  Depends on: NN, NN  -  Do
 | 13 | [Duration and rhythmic moves](done/13-duration-and-rhythmic-moves.md) | done | 00, 10, 12 (for the grid) |
 | 20 | [Popover framework](done/20-popover-framework.md) | done | 00, 10 |
 | 21 | [Popover: dynamics (Shift-D)](done/21-popover-dynamics.md) | done | 20 |
-| 22 | [Popover: time signatures (Shift-M)](22-popover-time-signatures.md) | todo | 20 |
+| 22 | [Popover: time signatures (Shift-M)](done/22-popover-time-signatures.md) | done | 20 |
 | 23 | [Popover: key signatures (Shift-K)](23-popover-key-signatures.md) | todo | 20 |
 | 24 | [Popover: clefs and octave lines (Shift-C)](24-popover-clefs-octave-lines.md) | todo | 20 |
 | 25 | [Popover: bars and barlines (Shift-B)](25-popover-bars-barlines.md) | todo | 20 |
