@@ -28,6 +28,8 @@ import QtQuick
 import Muse.Ui
 import Muse.UiComponents
 
+import "trackcolor.js" as TrackColor
+
 //! Play mode's track overview (spec 57): track headers on the left (colour strip, name, mute / solo; click one to show
 //! it in the Track Inspector), a bar ruler, a block in the track's colour wherever an instrument has notes, the
 //! playhead, and a horizontal zoom slider at the bottom left.
@@ -50,9 +52,8 @@ Rectangle {
     readonly property real fitPxPerQuarter: overview.length > 0 ? Math.max(8, (flick.width - 16) / overview.length) : 8
     readonly property real pxPerQuarter: root.fitPxPerQuarter * root.zoom
 
-    // One colour per track, running round the hue circle like Dorico's (red, orange, yellow, green, ... purple).
     function trackColor(index) {
-        return Qt.hsla(0.85 * index / Math.max(overview.tracks.length, 12), 0.65, 0.55, 1.0)
+        return TrackColor.trackColor(index, overview.tracks.length)
     }
     readonly property real playheadX: overview.playheadPosition * pxPerQuarter
     // Label every n-th bar so numbers do not overlap

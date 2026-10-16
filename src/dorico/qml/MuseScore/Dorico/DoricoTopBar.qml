@@ -28,7 +28,8 @@ import QtQuick.Window
 import Muse.Ui
 import Muse.UiComponents
 
-//! Dorico-style top bar (spec 50): Home/Publish, mode tabs, layout selector, View menu, Hide/Restore Zones, Mixer.
+//! Dorico-style top bar (spec 50): mode tabs, layout selector, View menu (eye), Hide/Restore Zones, Mixer.
+//! Home and Publish are Window > Hub and File > Publish, as Dorico has no such buttons.
 Item {
     id: root
 
@@ -46,6 +47,8 @@ Item {
         qsTrc("dorico", "Print")
     ]
     readonly property int printMode: 4
+
+    readonly property color stripColor: ui.theme.isDark ? "#3D4A58" : "#DDE2E7"
 
     implicitWidth: row.implicitWidth
     implicitHeight: 36
@@ -71,62 +74,47 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         spacing: 8
 
-        FlatButton {
+        // Mode tabs: one rounded strip, the current mode filled (colours measured on Dorico 6)
+        Rectangle {
             anchors.verticalCenter: parent.verticalCenter
+            width: modeRow.width + 4
+            height: 30
+            radius: 4
+            color: root.stripColor
 
-            text: qsTrc("dorico", "Home")
-            navigation.panel: root.navigationPanel
-            navigation.order: 0
+            Row {
+                id: modeRow
 
-            onClicked: topBar.openPage("musescore://home")
-        }
+                anchors.centerIn: parent
 
-        FlatButton {
-            anchors.verticalCenter: parent.verticalCenter
+                Repeater {
+                    model: root.modes
 
-            text: qsTrc("dorico", "Publish")
-            navigation.panel: root.navigationPanel
-            navigation.order: 1
+                    FlatButton {
+                        id: tab
 
-            onClicked: topBar.openPage("musescore://publish")
-        }
+                        required property int index
+                        required property string modelData
 
-        SeparatorLine {
-            orientation: Qt.Vertical
-        }
+                        readonly property bool current: topBar.currentMode === index
 
-        ButtonGroup {
-            id: modeGroup
-        }
+                        height: 26
+                        minWidth: 0
+                        margins: 10
+                        text: modelData
+                        textFont: ui.theme.bodyBoldFont
+                        transparent: !current
+                        accentButton: current
+                        accentColor: "#2C678F"
 
-        Repeater {
-            model: root.modes
+                        navigation.name: modelData
+                        navigation.panel: root.navigationPanel
+                        navigation.order: 2 + index
 
-            PageTabButton {
-                id: tab
-
-                required property int index
-                required property string modelData
-
-                ButtonGroup.group: modeGroup
-
-                title: modelData
-                spacing: 0
-                leftPadding: 12
-                rightPadding: 12
-
-                checked: topBar.currentMode === index
-
-                navigation.name: title
-                navigation.panel: root.navigationPanel
-                navigation.order: 2 + index
-
-                onToggled: topBar.selectMode(index)
+                        onClicked: topBar.selectMode(index)
+                    }
+                }
             }
-        }
-
-        SeparatorLine {
-            orientation: Qt.Vertical
         }
 
         StyledDropdown {
@@ -145,37 +133,53 @@ Item {
             }
         }
 
-        FlatButton {
-            id: viewButton
-
+        // View options (eye) and Hide/Restore Zones (window), in one strip like Dorico's
+        Rectangle {
             anchors.verticalCenter: parent.verticalCenter
+            width: viewRow.width + 4
+            height: 30
+            radius: 4
+            color: root.stripColor
 
-            text: qsTrc("dorico", "View")
-            navigation.panel: root.navigationPanel
-            navigation.order: 11
+            Row {
+                id: viewRow
 
-            onClicked: viewMenuLoader.toggleOpened(viewMenuModel.items)
+                anchors.centerIn: parent
 
-            StyledMenuLoader {
-                id: viewMenuLoader
+                DoricoButton {
+                    id: viewButton
 
-                menuAnchorItem: root.Window.window ? root.Window.window.contentItem : null
+                    doricoIcon: "svg:eye"
+                    iconBoxSize: 18
+                    transparent: true
+                    toolTipTitle: qsTrc("dorico", "View")
+                    navigation.panel: root.navigationPanel
+                    navigation.order: 11
 
-                onHandleMenuItem: function(itemId) {
-                    Qt.callLater(viewMenuModel.handleMenuItem, itemId)
+                    onTriggered: viewMenuLoader.toggleOpened(viewMenuModel.items)
+
+                    StyledMenuLoader {
+                        id: viewMenuLoader
+
+                        menuAnchorItem: root.Window.window ? root.Window.window.contentItem : null
+
+                        onHandleMenuItem: function(itemId) {
+                            Qt.callLater(viewMenuModel.handleMenuItem, itemId)
+                        }
+                    }
+                }
+
+                DoricoButton {
+                    doricoIcon: "svg:panel-top"
+                    iconBoxSize: 18
+                    transparent: true
+                    toolTipTitle: qsTrc("dorico", "Hide/Restore Zones")
+                    navigation.panel: root.navigationPanel
+                    navigation.order: 12
+
+                    onTriggered: topBar.dispatch("command://dorico/toggle-all-zones")
                 }
             }
-        }
-
-        DoricoButton {
-            anchors.verticalCenter: parent.verticalCenter
-
-            doricoIcon: "svg:panels-left-bottom"
-            toolTipTitle: qsTrc("dorico", "Hide/Restore Zones")
-            navigation.panel: root.navigationPanel
-            navigation.order: 12
-
-            onClicked: topBar.dispatch("command://dorico/toggle-all-zones")
         }
 
         DoricoButton {
@@ -186,7 +190,7 @@ Item {
             navigation.panel: root.navigationPanel
             navigation.order: 13
 
-            onClicked: topBar.dispatch("command://app/dock/toggle-mixer")
+            onTriggered: topBar.dispatch("command://app/dock/toggle-mixer")
         }
     }
 }

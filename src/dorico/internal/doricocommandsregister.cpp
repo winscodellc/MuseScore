@@ -103,6 +103,12 @@ static std::vector<CommandInfo> makeCommandInfos()
     }
     v.push_back(info(DORICO_TOGGLE_ALL_ZONES_COMMAND, "Dorico: hide/restore zones", "Hides all open zones, or restores them"));
     v.push_back(info(DORICO_TOGGLE_TOOLBAR_COMMAND, "Dorico: toggle toolbar", "Shows or hides the top toolbars"));
+    v.push_back(info(DORICO_OPEN_HUB_COMMAND, "Dorico: Hub", "Opens the Hub: recent scores, new score, plugins and learning"));
+    CommandInfo staveSharing = info(DORICO_TOGGLE_STAVE_SHARING_COMMAND, "Enable stave sharing",
+                                    "Lets instruments share a staff in this score");
+    staveSharing.decoration.checkable = Checkable::Yes; // the Players "…" menu shows a tick while it is on
+    v.push_back(staveSharing);
+    v.push_back(info(DORICO_OPEN_PUBLISH_COMMAND, "Dorico: Publish", "Opens MuseScore's Publish page (upload and share)"));
 
     const PopoverRegistry popovers = makePopoverRegistry();
     for (const Command& command : DORICO_POPOVER_COMMANDS) {

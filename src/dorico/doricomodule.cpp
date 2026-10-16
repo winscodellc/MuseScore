@@ -52,13 +52,13 @@ static const Settings::Key KEYMAP_APPLIED_KEY(mname, "dorico/keymapApplied");
 static const Settings::Key APPEARANCE_VERSION_KEY(mname, "dorico/appearanceVersion");
 
 // Spec 60: bump to re-apply after the colors below are re-tuned.
-static constexpr int APPEARANCE_VERSION = 1;
+static constexpr int APPEARANCE_VERSION = 2;
 
 //! Dorico's music-area colors (sampled from the Dorico 6.2 manual screenshots), written over the notation and
 //! engraving settings once, so Preferences can still change them afterwards. The UI colors are in app/configs/*.cfg.
 static void applyDoricoAppearance()
 {
-    const QColor background("#0388C5"); // middle of Dorico's blue Write-mode gradient
+    const QColor background("#2C4D6F"); // middle of Dorico 6's slate Write-mode gradient (#203F62 .. #375B7B)
     const QColor page("#FFFFFF");
     const QColor selection("#FF7D00"); // Dorico selects in orange whatever the voice
 

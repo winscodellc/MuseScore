@@ -137,6 +137,10 @@ DoricoPage {
             maximumHeight: root.panelMaxDimension
 
             location: Location.Left
+
+            // No title bar, as in Dorico (a panel that can neither float nor close gets none)
+            floatable: false
+            closable: false
             dropDestinations: root.verticalPanelDropDestinations
 
             Item {
@@ -160,111 +164,152 @@ DoricoPage {
                 StyledFlickable {
                     anchors.fill: parent
                     visible: root.tool === "formatting"
-                    contentHeight: formatting.implicitHeight + 16
+                    contentHeight: formatting.implicitHeight + 8
 
+                    // Dorico's Formatting panel: collapsible sections of labelled buttons (names as in Dorico 6)
                     Column {
                         id: formatting
 
-                        x: 8
-                        y: 8
-                        width: parent.width - 16
-                        spacing: 12
+                        width: parent.width
+                        spacing: 2
 
-                        ToolSection {
-                            width: parent.width
-                            title: qsTrc("dorico", "Moving Bars Between Systems")
-                            navigationPanel: leftNav
-                            navigationOrderStart: 0
-                            codes: ["command://notation/move-measure-to-prev-system", "command://notation/move-measure-to-next-system"]
-                            labels: [qsTrc("dorico", "Move to Previous System"), qsTrc("dorico", "Move to Next System")]
-                            icons: ["svg:corner-left-up", "svg:corner-right-down"]
+                        InspectorSection {
+                            width: formatting.width
+                            title: qsTrc("dorico", "Move Bars Between Systems")
+
+                            ToolSection {
+                                width: parent.width
+                                labelled: true
+                                navigationPanel: leftNav
+                                navigationOrderStart: 0
+                                codes: ["command://notation/move-measure-to-prev-system", "command://notation/move-measure-to-next-system"]
+                                labels: [qsTrc("dorico", "Move to Previous System"), qsTrc("dorico", "Move to Next System")]
+                                icons: ["svg:corner-left-up", "svg:corner-right-down"]
+                            }
                         }
 
-                        ToolSection {
-                            width: parent.width
+                        InspectorSection {
+                            width: formatting.width
                             title: qsTrc("dorico", "Format Systems")
-                            navigationPanel: leftNav
-                            navigationOrderStart: 10
-                            codes: ["command://notation/toggle-system-break", "command://notation/toggle-system-lock", "command://notation/make-into-system"]
-                            labels: [qsTrc("dorico", "Insert System Break"), qsTrc("dorico", "Lock System"), qsTrc("dorico", "Make into System")]
-                            icons: ["svg:wrap-text", "svg:lock", "svg:fold-horizontal"]
+
+                            ToolSection {
+                                width: parent.width
+                                labelled: true
+                                navigationPanel: leftNav
+                                navigationOrderStart: 10
+                                codes: ["command://notation/toggle-system-break", "command://notation/toggle-system-lock", "command://notation/make-into-system"]
+                                labels: [qsTrc("dorico", "Create System Break"), qsTrc("dorico", "Lock System"), qsTrc("dorico", "Make Into System")]
+                                icons: ["svg:wrap-text", "svg:lock", "svg:fold-horizontal"]
+                            }
                         }
 
                         // MuseScore has no music frames; its page break is the closest to a frame break.
-                        ToolSection {
-                            width: parent.width
+                        InspectorSection {
+                            width: formatting.width
                             title: qsTrc("dorico", "Format Music Frames")
-                            navigationPanel: leftNav
-                            navigationOrderStart: 20
-                            codes: ["command://notation/toggle-page-break", "command://dorico/lock-frame", "command://dorico/make-into-frame"]
-                            labels: [qsTrc("dorico", "Insert Frame Break"), qsTrc("dorico", "Lock Frame"), qsTrc("dorico", "Make into Frame")]
-                            icons: ["svg:file-down", "svg:lock", "svg:fold-vertical"]
+
+                            ToolSection {
+                                width: parent.width
+                                labelled: true
+                                navigationPanel: leftNav
+                                navigationOrderStart: 20
+                                codes: ["command://notation/toggle-page-break", "command://dorico/lock-frame", "command://dorico/make-into-frame"]
+                                labels: [qsTrc("dorico", "Create Frame Break"), qsTrc("dorico", "Lock Frame"), qsTrc("dorico", "Make Into Frame")]
+                                icons: ["svg:file-down", "svg:lock", "svg:fold-vertical"]
+                            }
                         }
 
-                        ToolSection {
-                            width: parent.width
+                        InspectorSection {
+                            width: formatting.width
                             title: qsTrc("dorico", "Lock Layout")
-                            navigationPanel: leftNav
-                            navigationOrderStart: 30
-                            codes: ["command://dorico/lock-layout", "command://notation/reset-to-default-layout"]
-                            labels: [qsTrc("dorico", "Lock Layout"), qsTrc("dorico", "Reset Layout")]
-                            icons: ["svg:lock", "svg:rotate-ccw"]
+
+                            ToolSection {
+                                width: parent.width
+                                labelled: true
+                                navigationPanel: leftNav
+                                navigationOrderStart: 30
+                                codes: ["command://dorico/lock-layout", "command://notation/reset-to-default-layout"]
+                                labels: [qsTrc("dorico", "Lock Layout"), qsTrc("dorico", "Reset Layout")]
+                                icons: ["svg:lock", "svg:rotate-ccw"]
+                            }
                         }
 
-                        ToolSection {
-                            width: parent.width
+                        InspectorSection {
+                            width: formatting.width
                             title: qsTrc("dorico", "Coordination Lines")
-                            navigationPanel: leftNav
-                            navigationOrderStart: 40
-                            codes: ["command://dorico/create-coordination-line"]
-                            labels: [qsTrc("dorico", "Create Coordination Line")]
-                            icons: ["svg:align-center-vertical"]
+
+                            ToolSection {
+                                width: parent.width
+                                labelled: true
+                                navigationPanel: leftNav
+                                navigationOrderStart: 40
+                                codes: ["command://dorico/create-coordination-line"]
+                                labels: [qsTrc("dorico", "Create Coordination Line")]
+                                icons: ["svg:align-center-vertical"]
+                            }
                         }
 
-                        PaletteSections {
-                            width: parent.width
-                            panelModel: bracketing
-                            navigationPanel: leftNav
-                            navigationRowStart: 50
-                        }
+                        InspectorSection {
+                            width: formatting.width
+                            title: qsTrc("dorico", "Bracketing")
 
-                        ToolSection {
-                            width: parent.width
-                            navigationPanel: leftNav
-                            navigationOrderStart: 60
-                            codes: ["command://dorico/change-barline-joins"]
-                            labels: [qsTrc("dorico", "Change Barline Joins")]
-                            icons: ["svg:link-2"]
+                            PaletteSections {
+                                width: parent.width
+                                panelModel: bracketing
+                                showTitles: false
+                                navigationPanel: leftNav
+                                navigationRowStart: 50
+                            }
+
+                            ToolSection {
+                                width: parent.width
+                                labelled: true
+                                navigationPanel: leftNav
+                                navigationOrderStart: 60
+                                codes: ["command://dorico/change-barline-joins"]
+                                labels: [qsTrc("dorico", "Change Barline Joins")]
+                                icons: ["svg:link-2"]
+                            }
                         }
                     }
                 }
 
                 Column {
-                    x: 8
-                    y: 8
-                    width: parent.width - 16
-                    spacing: 12
+                    id: framesColumn
+
+                    width: parent.width
+                    spacing: 2
                     visible: root.tool === "frames"
 
                     // MuseScore's frames, under their MuseScore names: there are no music or graphics frames.
-                    ToolSection {
-                        width: parent.width
+                    InspectorSection {
+                        width: framesColumn.width
                         title: qsTrc("dorico", "Insert Frames")
-                        navigationPanel: leftNav
-                        navigationOrderStart: 100
-                        codes: ["command://notation/insert-vbox", "command://notation/insert-textframe", "command://notation/insert-hbox"]
-                        labels: [qsTrc("dorico", "Vertical Frame"), qsTrc("dorico", "Text Frame"), qsTrc("dorico", "Horizontal Frame")]
-                        icons: [IconCode.VERTICAL_FRAME, IconCode.TEXT_FRAME, IconCode.HORIZONTAL_FRAME]
+
+                        ToolSection {
+                            width: parent.width
+                            labelled: true
+                            navigationPanel: leftNav
+                            navigationOrderStart: 100
+                            codes: ["command://notation/insert-vbox", "command://notation/insert-textframe", "command://notation/insert-hbox"]
+                            labels: [qsTrc("dorico", "Vertical Frame"), qsTrc("dorico", "Text Frame"), qsTrc("dorico", "Horizontal Frame")]
+                            icons: [IconCode.VERTICAL_FRAME, IconCode.TEXT_FRAME, IconCode.HORIZONTAL_FRAME]
+                        }
                     }
 
-                    ToolSection {
-                        width: parent.width
+                    InspectorSection {
+                        width: framesColumn.width
                         title: qsTrc("dorico", "Constraints")
-                        navigationPanel: leftNav
-                        navigationOrderStart: 110
-                        codes: ["command://dorico/frame-constraints"]
-                        labels: [qsTrc("dorico", "Lock to Page Margins")]
-                        icons: ["svg:scan"]
+
+                        ToolSection {
+                            width: parent.width
+                            labelled: true
+                            navigationPanel: leftNav
+                            navigationOrderStart: 110
+                            codes: ["command://dorico/frame-constraints"]
+                            labels: [qsTrc("dorico", "Lock to Page Margins")]
+                            icons: ["svg:scan"]
+                        }
                     }
                 }
 
@@ -291,11 +336,42 @@ DoricoPage {
             maximumHeight: root.panelMaxDimension
 
             location: Location.Right
+
+            // No title bar, as in Dorico (a panel that can neither float nor close gets none)
+            floatable: false
+            closable: false
             visible: false
             dropDestinations: root.verticalPanelDropDestinations
 
-            DoricoPlaceholder {
-                text: qsTrc("dorico", "Page templates, flow headings and page overrides are not available yet.")
+            // Dorico's Pages panel sections; none has a MuseScore model yet, so each says so.
+            Column {
+                id: pagesColumn
+
+                spacing: 2
+
+                Repeater {
+                    model: [
+                        { "title": qsTrc("dorico", "Pages"), "open": true },
+                        { "title": qsTrc("dorico", "Page Templates"), "open": true },
+                        { "title": qsTrc("dorico", "Flow Headings"), "open": false },
+                        { "title": qsTrc("dorico", "Page Template Sets"), "open": false }
+                    ]
+
+                    InspectorSection {
+                        required property var modelData
+
+                        width: pagesColumn.width
+                        title: modelData.title
+                        expanded: modelData.open
+
+                        StyledTextLabel {
+                            width: parent.width
+                            text: qsTrc("dorico", "Not available yet")
+                            opacity: 0.6
+                            horizontalAlignment: Text.AlignLeft
+                        }
+                    }
+                }
             }
         },
 

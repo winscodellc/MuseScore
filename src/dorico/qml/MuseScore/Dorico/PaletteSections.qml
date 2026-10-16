@@ -37,6 +37,8 @@ Column {
     required property DoricoPanelModel panelModel
     property NavigationPanel navigationPanel: null
     property int navigationRowStart: 0
+    // Off when a single section already sits under its own header (Engrave's Bracketing)
+    property bool showTitles: true
 
     spacing: 12
 
@@ -55,6 +57,7 @@ Column {
             spacing: 4
 
             StyledTextLabel {
+                visible: root.showTitles
                 text: section.modelData
                 font: ui.theme.bodyBoldFont
             }

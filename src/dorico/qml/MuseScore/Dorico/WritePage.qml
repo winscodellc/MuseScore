@@ -132,6 +132,10 @@ DoricoPage {
             maximumHeight: root.panelMaxDimension
 
             location: Location.Left
+
+            // No title bar, as in Dorico (a panel that can neither float nor close gets none)
+            floatable: false
+            closable: false
             dropDestinations: root.verticalPanelDropDestinations
 
             NotesPanel {

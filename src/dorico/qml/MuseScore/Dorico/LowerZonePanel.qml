@@ -47,6 +47,10 @@ DockPanel {
 
     property var tabs: ["properties", "keyboard", "fretboard", "drumPads", "mixer", "keyEditor", "timeline"]
     property var notationView: null
+    // As Dorico (all modes): icon tabs, with the current tab's toolbar (`headerComponent`) beside them, and Dorico's
+    // own mixer (DoricoMixer) instead of MuseScore's. Off restores text tabs / MuseScore's mixer.
+    property bool iconTabs: true
+    property bool doricoMixer: true
 
     // NOTE: DockPanel's default property is ONE lazily loaded Component (contentComponent) with its own id scope:
     // the body below may contain exactly one object (the content Item), and anything the root-level
@@ -71,6 +75,19 @@ DockPanel {
         return id
     }
 
+    function tabIcon(id) {
+        switch (id) {
+        case "properties": return "svg:list"
+        case "keyboard": return "svg:keyboard-music"
+        case "fretboard": return "svg:fretboard"
+        case "drumPads": return "svg:layout-grid"
+        case "mixer": return "svg:sliders-vertical"
+        case "keyEditor": return "svg:list-music"
+        case "timeline": return "svg:move-horizontal"
+        }
+        return IconCode.NONE
+    }
+
     // Applies the current tab's title-bar extras (mixer/percussion toolbars, keyboard context menu) and size to the dock.
     function syncChrome() {
         const loader = root.loadersRepeater?.itemAt(root.tabs.indexOf(root.currentTab))
@@ -86,6 +103,10 @@ DockPanel {
     maximumWidth: 7500
 
     location: Location.Bottom
+
+    // No title bar, as in Dorico: a panel that can neither float nor close gets none (DockFrameModel)
+    floatable: false
+    closable: false
 
     //! NOTE: hidden by default
     visible: false
@@ -126,7 +147,7 @@ DockPanel {
             Repeater {
                 model: root.tabs
 
-                FlatButton {
+                DoricoButton {
                     id: tabButton
 
                     required property string modelData
@@ -134,14 +155,29 @@ DockPanel {
 
                     Layout.preferredHeight: 28
 
-                    text: root.tabTitle(modelData)
+                    doricoIcon: root.iconTabs ? root.tabIcon(modelData) : IconCode.NONE
+                    iconBoxSize: 18
+                    text: root.iconTabs ? "" : root.tabTitle(modelData)
+                    toolTipTitle: root.iconTabs ? root.tabTitle(modelData) : ""
                     transparent: modelData !== root.currentTab
                     accentButton: modelData === root.currentTab
 
                     navigation.panel: tabsNav
                     navigation.order: tabButton.index
 
-                    onClicked: root.zoneModel.currentTab = tabButton.modelData
+                    onTriggered: root.zoneModel.currentTab = tabButton.modelData
+                }
+            }
+
+            // The current tab's toolbar, if it has one (DoricoMixer's Mixer toolbar)
+            Loader {
+                Layout.fillWidth: true
+                Layout.leftMargin: 12
+                Layout.preferredHeight: 28
+
+                sourceComponent: {
+                    const loader = tabsRepeater.count > 0 ? tabsRepeater.itemAt(root.tabs.indexOf(root.currentTab)) : null
+                    return loader && loader.item ? (loader.item.headerComponent ?? null) : null
                 }
             }
         }
@@ -218,7 +254,7 @@ DockPanel {
             case "properties": return propertiesTab
             case "keyboard": return keyboardTab
             case "drumPads": return drumPadsTab
-            case "mixer": return mixerTab
+            case "mixer": return root.doricoMixer ? doricoMixerTab : mixerTab
             case "timeline": return timelineTab
             }
             return stubTab
@@ -315,6 +351,15 @@ DockPanel {
             id: mixerTab
 
             MixerPanel {
+                navigationSection: root.navigationSection
+                contentNavigationPanelOrderStart: root.contentNavigationPanelOrderStart + 1
+            }
+        }
+
+        Component {
+            id: doricoMixerTab
+
+            DoricoMixer {
                 navigationSection: root.navigationSection
                 contentNavigationPanelOrderStart: root.contentNavigationPanelOrderStart + 1
             }

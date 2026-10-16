@@ -23,10 +23,15 @@
 #include "doricoactionscontroller.h"
 
 #include "dockwindow/idockwindow.h"
+#include "notation/inotationparts.h"
+#include "notation/inotationstyle.h"
 
 #include "../doricocommands.h"
 
 #include "log.h"
+
+// Dorico 6 Print mode music area (measured)
+static const QColor PRINT_BACKGROUND("#AAAAAE");
 
 using namespace mu::dorico;
 
@@ -50,8 +55,14 @@ void DoricoActionsController::init()
             const mu::dorico::Mode previous = modes()->mode();
             modes()->setMode(*mode);
             applyEngraveViewMode(previous, *mode);
+            applyPrintBackground(previous, *mode);
         }
     });
+
+    // The Print-mode grey is a stored setting: if the app quit while in Print, put the normal background back.
+    if (notationConfiguration()->backgroundColor() == PRINT_BACKGROUND) {
+        notationConfiguration()->setBackgroundColor(QColor("#2C4D6F"));
+    }
 
     for (int i = 0; i < ZONE_COUNT; ++i) {
         const Zone zone = static_cast<Zone>(i);
@@ -70,6 +81,15 @@ void DoricoActionsController::init()
 
     cd->onRequest(this, DORICO_TOGGLE_ALL_ZONES_COMMAND, [this]() { toggleAllZones(); return muse::make_ok(); });
     cd->onRequest(this, DORICO_TOGGLE_TOOLBAR_COMMAND, [this]() { toggleToolbar(); return muse::make_ok(); });
+    cd->onRequest(this, DORICO_OPEN_HUB_COMMAND, [this]() { interactive()->open("musescore://home"); return muse::make_ok(); });
+    cd->onRequest(this, DORICO_TOGGLE_STAVE_SHARING_COMMAND, [this]() {
+        // Same call as MuseScore's instrument-tree switch (LayoutPanelTreeModel::toggleStaveSharing)
+        if (const notation::INotationPtr notation = globalContext()->currentNotation()) {
+            notation->parts()->toggleStaveSharing(!notation->style()->styleValue(engraving::Sid::enableStaveSharing).toBool());
+        }
+        return muse::make_ok();
+    });
+    cd->onRequest(this, DORICO_OPEN_PUBLISH_COMMAND, [this]() { interactive()->open("musescore://publish"); return muse::make_ok(); });
 }
 
 std::vector<QString> DoricoActionsController::openDocks(Zone zone) const
@@ -186,6 +206,22 @@ void DoricoActionsController::toggleToolbar()
     }
     for (const QString& name : names) {
         window->setDockOpen(name, !anyOpen);
+    }
+}
+
+void DoricoActionsController::applyPrintBackground(mu::dorico::Mode from, mu::dorico::Mode to)
+{
+    // Dorico shows Print mode's preview on grey (measured #AAAAAE). MuseScore has one background setting, so it is
+    // swapped while Print is open and restored on the way out.
+    if (from == to) {
+        return;
+    }
+    if (to == mu::dorico::Mode::Print) {
+        m_backgroundBeforePrint = notationConfiguration()->backgroundColor();
+        notationConfiguration()->setBackgroundColor(PRINT_BACKGROUND);
+    } else if (from == mu::dorico::Mode::Print && m_backgroundBeforePrint) {
+        notationConfiguration()->setBackgroundColor(*m_backgroundBeforePrint);
+        m_backgroundBeforePrint.reset();
     }
 }
 

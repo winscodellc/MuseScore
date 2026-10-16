@@ -24,6 +24,8 @@
 
 #include <algorithm>
 
+#include "notation/inotationstyle.h"
+
 #include "../doricocommands.h"
 
 #include "log.h"
@@ -73,6 +75,10 @@ void DoricoCommandsState::init()
     notationController()->noteInputStateChanged().onNotify(this, [this]() {
         updateCommandStates();
     });
+    // Stave sharing (Players "…" menu) is a score style
+    notationController()->notationStyleChanged().onNotify(this, [this]() {
+        updateCommandStates();
+    });
     // Notes panel articulation highlights follow the selected notes, also outside note input.
     notationController()->selectionChanged().onNotify(this, [this]() {
         updateCommandStates();
@@ -87,6 +93,7 @@ void DoricoCommandsState::deinit()
     modes()->modesChanged().disconnect(this);
     notationController()->noteInputStateChanged().disconnect(this);
     notationController()->selectionChanged().disconnect(this);
+    notationController()->notationStyleChanged().disconnect(this);
     globalContext()->currentProjectChanged().disconnect(this);
     notationController()->textEditingChanged().disconnect(this);
 }
@@ -109,7 +116,8 @@ void DoricoCommandsState::updateCommandStates()
 CommandState DoricoCommandsState::commandState(const Command& command) const
 {
     const bool editingText = notationController()->isTextEditing() || notationController()->isLyricsEditing();
-    const bool enabled = globalContext()->currentProject() != nullptr && !editingText;
+    // The Hub opens without a project too (it is where projects are opened)
+    const bool enabled = (globalContext()->currentProject() != nullptr || command == DORICO_OPEN_HUB_COMMAND) && !editingText;
 
     bool checked = false;
     for (size_t i = 0; i < DORICO_MODE_COMMANDS.size(); ++i) {
@@ -124,6 +132,9 @@ CommandState DoricoCommandsState::commandState(const Command& command) const
         checked = modes()->isChordMode();
     } else if (command == DORICO_TOGGLE_INSERT_MODE_COMMAND) {
         checked = modes()->isInsertMode();
+    } else if (command == DORICO_TOGGLE_STAVE_SHARING_COMMAND) {
+        const notation::INotationPtr notation = globalContext()->currentNotation();
+        checked = notation && notation->style()->styleValue(engraving::Sid::enableStaveSharing).toBool();
     } else if (const auto it = ARTICULATION_SYMS.find(command); it != ARTICULATION_SYMS.end()) {
         // Same rule as MuseScore's toggles: the input articulations, or those on the selected notes. Combined
         // articulations come back split (tenuto-staccato = tenuto + staccato), so every part must be there.

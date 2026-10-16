@@ -32,6 +32,8 @@ import Muse.Dock
 
 import MuseScore.Playback
 
+import "trackcolor.js" as TrackColor
+
 //! Play mode (spec 57): left zone (Track Inspector / VST and MIDI), the track overview in the centre,
 //! lower zone (Mixer, Key Editor). No toolbox and no right zone (Cmd-9 does nothing here).
 DoricoPage {
@@ -73,6 +75,10 @@ DoricoPage {
 
             location: Location.Left
             dropDestinations: root.verticalPanelDropDestinations
+
+            // No title bar, as in Dorico's left zone
+            floatable: false
+            closable: false
 
             Item {
                 id: leftContent
@@ -118,6 +124,7 @@ DoricoPage {
                     spacing: 4
 
                     FlatButton {
+                        Layout.fillWidth: true
                         text: qsTrc("dorico", "Track Inspector")
                         accentButton: leftContent.showInspector
                         transparent: !leftContent.showInspector
@@ -127,6 +134,7 @@ DoricoPage {
                     }
 
                     FlatButton {
+                        Layout.fillWidth: true
                         text: qsTrc("dorico", "VST and MIDI")
                         accentButton: !leftContent.showInspector
                         transparent: leftContent.showInspector
@@ -169,87 +177,154 @@ DoricoPage {
                     anchors.right: parent.right
 
                     visible: leftContent.showInspector
-                    contentHeight: inspectorColumn.implicitHeight + 16
+                    contentHeight: inspectorColumn.implicitHeight + 8
 
+                    // Dorico's Track Inspector: Routing, Insert Effects and Channel. MuseScore has a sound per channel
+                    // and up to four effects; ports, MIDI channels, endpoints, expression maps and independent voice
+                    // playback have no MuseScore equivalent, so those controls are shown but unavailable.
                     Column {
                         id: inspectorColumn
 
-                        x: 8
-                        y: 8
-                        width: parent.width - 16
-                        spacing: 8
+                        readonly property MixerChannelItem channel: inspector.channelItem
+                        readonly property bool hasChannel: channel !== null
 
-                        StyledTextLabel {
-                            width: parent.width
-                            horizontalAlignment: Text.AlignLeft
-                            text: inspector.trackTitle !== "" ? inspector.trackTitle : qsTrc("dorico", "Select an instrument")
-                            font: ui.theme.bodyBoldFont
-                        }
+                        width: parent.width
+                        spacing: 2
 
-                        // Dorico's collapsible sections. Routing: MuseScore has a sound (instrument) picker per channel;
-                        // ports, MIDI channels and endpoints do not exist.
-                        ExpandableBlank {
+                        InspectorSection {
                             width: inspectorColumn.width
                             title: qsTrc("dorico", "Routing")
-                            isExpanded: true
-                            navigation.panel: leftNav
-                            navigation.order: 2
 
-                            contentItemComponent: MixerSoundSection {
-                                headerVisible: false
-                                channelItemWidth: inspectorColumn.width
-                                model: inspector
+                            ResourceDropdown {
+                                width: parent.width
+                                resourceItemModel: inspectorColumn.hasChannel ? inspectorColumn.channel.inputResourceItem : null
+                            }
+
+                            RowLayout {
+                                width: parent.width
+                                spacing: 4
+
+                                StyledTextLabel { text: qsTrc("dorico", "Port:") }
+
+                                TextInputField {
+                                    Layout.preferredWidth: 36
+                                    currentText: "–" // no MuseScore ports
+                                    enabled: false
+                                }
+
+                                StyledTextLabel { text: qsTrc("dorico", "Ch.:") }
+
+                                TextInputField {
+                                    Layout.preferredWidth: 36
+                                    currentText: "–" // no MuseScore MIDI channels per track
+                                    enabled: false
+                                }
+
+                                Item { Layout.fillWidth: true }
+
+                                DoricoButton {
+                                    doricoIcon: "svg:settings"
+                                    iconBoxSize: 16
+                                    transparent: true
+                                    available: false
+                                    toolTipTitle: qsTrc("dorico", "Endpoint Setup")
+                                }
+
+                                DoricoButton {
+                                    doricoIcon: "svg:square-pen"
+                                    iconBoxSize: 16
+                                    transparent: true
+                                    toolTipTitle: qsTrc("dorico", "Edit Instrument")
+                                    available: inspectorColumn.hasChannel && inspectorColumn.channel.inputResourceItem
+                                               && inspectorColumn.channel.inputResourceItem.hasNativeEditorSupport
+                                    onTriggered: inspectorColumn.channel.inputResourceItem.requestToLaunchNativeEditorView()
+                                }
+                            }
+
+                            RowLayout {
+                                width: parent.width
+                                spacing: 4
+
+                                StyledTextLabel { text: qsTrc("dorico", "Ex. map:") }
+
+                                StyledDropdown {
+                                    Layout.fillWidth: true
+                                    enabled: false
+                                    model: [{ "text": qsTrc("dorico", "Default"), "value": 0 }]
+                                    currentIndex: 0
+                                }
+
+                                DoricoButton {
+                                    doricoIcon: "svg:move-up-right"
+                                    iconBoxSize: 16
+                                    transparent: true
+                                    available: false
+                                    toolTipTitle: qsTrc("dorico", "Edit Expression Map")
+                                }
+                            }
+
+                            DoricoButton {
+                                text: qsTrc("dorico", "Enable Independent Voice Playback")
+                                available: false
                             }
                         }
 
-                        ExpandableBlank {
+                        InspectorSection {
                             width: inspectorColumn.width
                             title: qsTrc("dorico", "Insert Effects")
-                            isExpanded: false
-                            navigation.panel: leftNav
-                            navigation.order: 3
 
-                            contentItemComponent: MixerFxSection {
-                                headerVisible: false
-                                channelItemWidth: inspectorColumn.width
-                                model: inspector
+                            Repeater {
+                                model: 4
+
+                                RowLayout {
+                                    id: fxRow
+
+                                    required property int index
+
+                                    // MuseScore lists the channel's effects plus one empty slot
+                                    readonly property var fx: inspectorColumn.hasChannel
+                                                              ? (inspectorColumn.channel.outputResourceItemList[fxRow.index] ?? null) : null
+
+                                    width: parent.width
+                                    spacing: 2
+
+                                    FlatButton {
+                                        Layout.preferredWidth: 22
+                                        Layout.preferredHeight: 22
+                                        icon: IconCode.BYPASS
+                                        transparent: true
+                                        accentButton: fxRow.fx !== null && !fxRow.fx.isBlank && fxRow.fx.isActive
+                                        enabled: fxRow.fx !== null && !fxRow.fx.isBlank
+                                        toolTipTitle: qsTrc("dorico", "Activate/deactivate effect")
+                                        onClicked: fxRow.fx.isActive = !fxRow.fx.isActive
+                                    }
+
+                                    ResourceDropdown {
+                                        Layout.fillWidth: true
+                                        resourceItemModel: fxRow.fx
+                                    }
+
+                                    DoricoButton {
+                                        doricoIcon: "svg:square-pen"
+                                        iconBoxSize: 14
+                                        transparent: true
+                                        toolTipTitle: qsTrc("dorico", "Edit effect")
+                                        available: fxRow.fx !== null && !fxRow.fx.isBlank && fxRow.fx.hasNativeEditorSupport
+                                        onTriggered: fxRow.fx.requestToLaunchNativeEditorView()
+                                    }
+                                }
                             }
                         }
 
-                        ExpandableBlank {
+                        InspectorSection {
                             width: inspectorColumn.width
                             title: qsTrc("dorico", "Channel")
-                            isExpanded: false
-                            navigation.panel: leftNav
-                            navigation.order: 4
 
-                            contentItemComponent: Column {
-                                width: inspectorColumn.width
-                                spacing: 8
-
-                                MixerBalanceSection {
-                                    headerVisible: false
-                                    channelItemWidth: inspectorColumn.width
-                                    model: inspector
-                                }
-
-                                MixerVolumeSection {
-                                    headerVisible: false
-                                    channelItemWidth: inspectorColumn.width
-                                    model: inspector
-                                }
-
-                                MixerFaderSection {
-                                    headerVisible: false
-                                    channelItemWidth: inspectorColumn.width
-                                    model: inspector
-                                }
-
-                                MixerMuteAndSoloSection {
-                                    headerVisible: false
-                                    channelItemWidth: inspectorColumn.width
-                                    model: inspector
-                                }
+                            DoricoChannelStrip {
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                height: 240
+                                channelItem: inspectorColumn.channel
+                                labelColor: TrackColor.trackColor(inspector.colorIndex, inspector.colorCount)
                             }
                         }
                     }

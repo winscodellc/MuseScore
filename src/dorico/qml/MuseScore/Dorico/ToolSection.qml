@@ -42,6 +42,8 @@ Column {
 
     // Lay the buttons out in one column (toolboxes) instead of rows.
     property bool vertical: false
+    // Icon + label buttons, one per line, on a filled background (Dorico's Engrave Formatting panel)
+    property bool labelled: false
     // Wrap rows at the section's width (panels). Off: one row/column sized to its buttons (action bars, toolboxes).
     property bool wrap: !vertical
 
@@ -70,7 +72,7 @@ Column {
             value: root.width
         }
 
-        flow: root.vertical ? Flow.TopToBottom : Flow.LeftToRight
+        flow: root.vertical || root.labelled ? Flow.TopToBottom : Flow.LeftToRight
         spacing: 4
 
         Repeater {
@@ -82,25 +84,33 @@ Column {
                 required property var modelData
                 required property int index
 
-                readonly property string label: root.labels[index] ?? modelData.title
+                readonly property string labelText: root.labels[index] ?? modelData.title
                 readonly property var iconSpec: root.icons[index] ?? IconCode.NONE
 
                 visible: modelData.id !== ""
+                readonly property bool customIcon: typeof iconSpec === "string" && iconSpec !== ""
+
                 doricoIcon: iconSpec
-                iconBoxSize: root.iconSize
-                text: iconSpec === IconCode.NONE ? label : ""
+                iconBoxSize: root.labelled ? 16 : root.iconSize
+                // Labelled: a custom icon gets the label beside it; an IconCode icon uses FlatButton's own icon + text
+                label: root.labelled && button.customIcon ? button.labelText : ""
+                text: iconSpec === IconCode.NONE || (root.labelled && !button.customIcon) ? button.labelText : ""
+                orientation: root.labelled ? Qt.Horizontal : Qt.Vertical
+                minWidth: root.labelled ? 0 : (isNarrow ? 24 : 132) // labelled buttons fit their text
+                margins: root.labelled ? 8 : (isNarrow ? 12 : 16)
+                height: root.labelled ? 26 : implicitHeight
                 available: modelData.enabled
                 accentButton: modelData.checked
-                transparent: !modelData.checked
+                transparent: !modelData.checked && !root.labelled
 
-                toolTipTitle: label
+                toolTipTitle: button.labelText
                 // Placeholders (unregistered commands) carry "Not available yet" as their description.
                 toolTipDescription: modelData.description
                 toolTipShortcut: modelData.shortcuts
 
                 navigation.panel: root.navigationPanel
                 navigation.order: root.navigationOrderStart + index
-                navigation.accessible.name: label
+                navigation.accessible.name: button.labelText
 
                 onTriggered: tools.handleMenuItem(modelData.id)
             }

@@ -46,6 +46,8 @@ FocusScope {
     property alias isNavigatorVisible: notationNavigator.visible
     property alias isBraillePanelVisible: brailleViewLoader.active
     property alias isMainView: notationView.isMainView
+    // Dorico fork: the Dorico pages choose the layout in their top bar, so they hide the score/part tabs
+    property bool showNotationTabs: true
 
     property alias defaultNavigationControl: fakeNavCtrl
 
@@ -82,6 +84,13 @@ FocusScope {
 
             navigationPanel.section: navSec
             navigationPanel.order: 1
+        }
+
+        Binding {
+            target: tabPanel
+            property: "visible"
+            value: false
+            when: !root.showNotationTabs
         }
 
         SeparatorLine { visible: tabPanel.visible }

@@ -45,6 +45,10 @@ class TrackInspectorModel : public QAbstractListModel, public muse::Contextable,
     Q_PROPERTY(QAbstractItemModel * sourceModel READ sourceModel WRITE setSourceModel NOTIFY sourceModelChanged)
     Q_PROPERTY(QString trackTitle READ trackTitle NOTIFY channelChanged)
     Q_PROPERTY(QString partId READ partId WRITE setPartId NOTIFY channelChanged)
+    //! The inspected channel itself, for the Dorico-style controls; and its instrument's colour slot (trackcolor.js).
+    Q_PROPERTY(mu::playback::MixerChannelItem * channelItem READ channelItem NOTIFY channelChanged)
+    Q_PROPERTY(int colorIndex READ colorIndex NOTIFY channelChanged)
+    Q_PROPERTY(int colorCount READ colorCount NOTIFY channelChanged)
 
     QML_ELEMENT
 
@@ -57,6 +61,9 @@ public:
     void setSourceModel(QAbstractItemModel* model);
 
     QString trackTitle() const;
+    playback::MixerChannelItem* channelItem() const { return m_channel.data(); }
+    int colorIndex() const { return m_colorIndex; }
+    int colorCount() const { return m_colorCount; }
 
     QString partId() const;
     void setPartId(const QString& partId);
@@ -82,5 +89,7 @@ private:
     QPointer<playback::MixerChannelItem> m_channel;
     notation::INotationPtr m_notation;
     muse::ID m_partId;
+    int m_colorIndex = 0;
+    int m_colorCount = 0;
 };
 }

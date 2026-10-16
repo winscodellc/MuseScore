@@ -30,7 +30,7 @@ import Muse.Ui
 import Muse.UiComponents
 import MuseScore.NotationScene
 
-//! Setup mode's Layouts panel (spec 55): one card per layout (full score, then the parts) and Dorico's action bar.
+//! Setup mode's Layouts panel (spec 55): one row per layout (full score, then the parts) and Dorico's action bar.
 //! The list and card details come from DoricoTopBarModel (same order as the layout selector), which also deletes
 //! layouts; create / rename go through MuseScore's own Parts-dialog model, PartListModel, whose row i is layout i + 1.
 Item {
@@ -86,77 +86,81 @@ Item {
         anchors.bottom: actionBar.top
         anchors.margins: 8
 
-        spacing: 6
+        spacing: 4
         model: layouts.layoutTitles
 
+        // Dorico-style rows: score / part icon and name, selected = filled blue; details in the tooltip.
         delegate: Rectangle {
             id: card
 
             required property int index
             required property string modelData
-
             readonly property bool isSelected: root.selectedIndex === index
+            readonly property color textColor: isSelected ? "#0C0C0C" : ui.theme.fontPrimaryColor
 
             width: ListView.view.width
-            height: cardColumn.implicitHeight + 16
-            radius: 4
-            color: isSelected ? ui.theme.accentColor : ui.theme.backgroundSecondaryColor
-            opacity: isSelected ? 1.0 : 0.9
-            border.width: 1
-            border.color: ui.theme.strokeColor
+            height: 26
+            radius: 3
+            color: isSelected ? "#45A6F5" : (ui.theme.isDark ? "#3D4A58" : "#DDE2E7")
 
             MouseArea {
                 anchors.fill: parent
+                hoverEnabled: true
                 onClicked: root.selectedIndex = card.index
                 // Double-click shows the layout in the music area, like choosing it in the layout selector.
                 onDoubleClicked: layouts.selectLayout(card.index)
+                onContainsMouseChanged: {
+                    const info = (card.index === 0 ? qsTrc("dorico", "Full score") : qsTrc("dorico", "Instrumental part"))
+                               + ((layouts.layoutInfos[card.index] ?? "") !== "" ? " - " + layouts.layoutInfos[card.index] : "")
+                    if (containsMouse) {
+                        ui.tooltip.show(card, info)
+                    } else {
+                        ui.tooltip.hide(card)
+                    }
+                }
             }
 
-            Column {
-                id: cardColumn
-
+            Row {
                 anchors.left: parent.left
                 anchors.right: parent.right
+                anchors.leftMargin: 8
+                anchors.rightMargin: 8
                 anchors.verticalCenter: parent.verticalCenter
-                anchors.margins: 8
-                spacing: 2
+                spacing: 6
 
-                StyledTextLabel {
-                    text: card.index === 0 ? qsTrc("dorico", "Full score") : qsTrc("dorico", "Instrumental part")
-                    opacity: 0.7
+                DoricoButton {
+                    anchors.verticalCenter: parent.verticalCenter
+                    doricoIcon: card.index === 0 ? "svg:file-music" : "svg:file-user"
+                    iconBoxSize: 14
+                    transparent: true
+                    iconColor: card.textColor
                 }
 
-                StyledTextLabel {
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
                     visible: root.editingIndex !== card.index
-                    width: parent.width
-                    horizontalAlignment: Text.AlignLeft
-                    text: card.index === 0 ? layouts.projectTitle : card.modelData
-                    font: ui.theme.bodyBoldFont
+                    text: card.index === 0 ? qsTrc("dorico", "Full score") : card.modelData
+                    font: ui.theme.bodyFont
+                    color: card.textColor
                 }
 
                 TextInputField {
+                    anchors.verticalCenter: parent.verticalCenter
                     visible: root.editingIndex === card.index
-                    width: parent.width
+                    width: 180
+                    height: 22
                     currentText: card.modelData
                     maximumLength: 40
-
                     onVisibleChanged: {
                         if (visible) {
                             forceActiveFocus()
                         }
                     }
-
                     onTextEditingFinished: function(newTextValue) {
                         // setPartTitle ignores empty and duplicate names.
                         root.parts.setPartTitle(card.index - 1, newTextValue)
                         root.editingIndex = -1
                     }
-                }
-
-                StyledTextLabel {
-                    visible: text !== ""
-                    text: layouts.layoutInfos[card.index] ?? ""
-                    opacity: 0.7
                 }
             }
         }

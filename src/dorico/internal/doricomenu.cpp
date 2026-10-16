@@ -50,6 +50,7 @@ const std::vector<MenuSpec>& mu::dorico::doricoMenus()
             sep(),
             item("command://project/properties"),
             item("command://project/export"),
+            item("command://dorico/open-publish"),
             sep(),
             item("command://project/print"),
             sep(),
@@ -158,6 +159,8 @@ const std::vector<MenuSpec>& mu::dorico::doricoMenus()
             item("command://app/dock/toggle-braille"),
         }),
         menu("dorico-menu-window", "Window", {
+            item("command://dorico/open-hub"),
+            sep(),
             item("command://dorico/mode-setup"),
             item("command://dorico/mode-write"),
             item("command://dorico/mode-engrave"),

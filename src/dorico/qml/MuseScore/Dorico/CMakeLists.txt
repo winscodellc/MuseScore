@@ -55,6 +55,7 @@ qt_add_qml_module(dorico_qml
         DoricoTopBar.qml
         EngravePage.qml
         LayoutsPanel.qml
+        PlayersList.qml
         LowerZonePanel.qml
         NotationsPanel.qml
         NotationsToolbox.qml
@@ -68,6 +69,11 @@ qt_add_qml_module(dorico_qml
         ToolSection.qml
         TrackOverview.qml
         WritePage.qml
+        DoricoChannelStrip.qml
+        DoricoMixer.qml
+        InspectorSection.qml
+        ResourceDropdown.qml
+        trackcolor.js
     RESOURCES
         ${DORICO_ICONS}
     IMPORTS

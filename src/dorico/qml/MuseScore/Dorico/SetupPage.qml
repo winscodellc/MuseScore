@@ -30,11 +30,9 @@ import Muse.Ui
 import Muse.UiComponents
 import Muse.Dock
 
-import MuseScore.InstrumentsScene
 
 //! Setup mode (spec 55): Players panel (left), Layouts panel (right), Flows panel (lower), each with Dorico's action
-//! bar. Players reuses MuseScore's instruments panel (LayoutPanel) without its top bar; its add/move/remove controls
-//! sit in the bottom action bar.
+//! bar. Players is a Dorico-style list (PlayersList) over MuseScore's instrument model.
 DoricoPage {
     id: root
 
@@ -69,18 +67,23 @@ DoricoPage {
             ColumnLayout {
                 spacing: 0
 
-                LayoutPanel {
-                    id: layoutPanel
+                PlayersList {
+                    id: players
 
                     Layout.fillWidth: true
                     Layout.fillHeight: true
 
                     navigationSection: playersPanel.navigationSection
                     navigationOrderStart: playersPanel.contentNavigationPanelOrderStart
-                    controlPanelVisible: false
 
-                    Component.onCompleted: {
-                        playersPanel.contextMenuModel = contextMenuModel
+                    // The panel's "…" menu: stave sharing (it was a switch at the top of MuseScore's instrument tree)
+                    DoricoToolsModel {
+                        id: playersMenu
+                        codes: ["command://dorico/toggle-stave-sharing"]
+                        Component.onCompleted: {
+                            playersMenu.load()
+                            playersPanel.contextMenuModel = playersMenu
+                        }
                     }
                 }
 
@@ -95,7 +98,7 @@ DoricoPage {
                 }
 
                 // One action bar at the bottom: Dorico's add buttons, then MuseScore's Add System Markings and Remove
-                // (from LayoutPanel's top bar, hidden above; rows are reordered by drag and drop). Wraps when narrow.
+                // (rows are reordered by drag and drop). Wraps when narrow.
                 Flow {
                     Layout.fillWidth: true
                     Layout.margins: 8
@@ -103,6 +106,7 @@ DoricoPage {
 
                     ToolSection {
                         wrap: false
+                        iconSize: 20 // all eight buttons on one row in the 300 px panel, as in Dorico
 
                         navigationPanel: playersActionsNav
 
@@ -136,10 +140,10 @@ DoricoPage {
                             required property var modelData
                             required property int index
 
-                            readonly property var treeModel: layoutPanel.layoutTreeModel
+                            readonly property var treeModel: players.treeModel
 
                             doricoIcon: modelData.icon
-                            iconBoxSize: 24
+                            iconBoxSize: 20
                             transparent: true
                             enabled: modelData.action === "markings" ? treeModel.isAddingSystemMarkingsAvailable
                                                                      : treeModel.isRemovingAvailable
@@ -202,46 +206,59 @@ DoricoPage {
             location: Location.Bottom
             dropDestinations: root.horizontalPanelDropDestinations
 
-            // A MuseScore project is one score = one flow, so there is exactly one read-only card.
+            // A MuseScore project is one score = one flow: one card filling the panel, as Dorico shows a single flow
+            // (colour measured on Dorico 6), with the flow actions in a column on the right.
             RowLayout {
-                spacing: 8
+                spacing: 6
 
                 Rectangle {
-                    Layout.leftMargin: 8
-                    Layout.preferredWidth: 200
-                    Layout.preferredHeight: 60
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    Layout.margins: 6
 
-                    radius: 4
-                    color: ui.theme.backgroundSecondaryColor
-                    border.width: 1
-                    border.color: ui.theme.strokeColor
+                    radius: 3
+                    color: "#30678B"
 
-                    Column {
-                        anchors.fill: parent
+                    Text {
+                        anchors.left: parent.left
+                        anchors.top: parent.top
                         anchors.margins: 8
-                        spacing: 2
+                        text: qsTrc("dorico", "Flow 1")
+                        font: ui.theme.bodyFont
+                        color: "#FFFFFF"
+                    }
 
-                        StyledTextLabel {
-                            width: parent.width
-                            horizontalAlignment: Text.AlignLeft
-                            text: setupModel.projectTitle
-                            font: ui.theme.bodyBoldFont
-                        }
+                    // The flow is in every layout (MuseScore has one flow), so its layout checkbox is always ticked
+                    CheckBox {
+                        anchors.right: parent.right
+                        anchors.top: parent.top
+                        anchors.margins: 6
+                        checked: true
+                        enabled: false
+                    }
 
-                        StyledTextLabel {
-                            text: qsTrc("dorico", "Flow 1")
-                            opacity: 0.7
-                        }
+                    Text {
+                        anchors.right: parent.right
+                        anchors.bottom: parent.bottom
+                        anchors.margins: 8
+                        text: "1"
+                        font: ui.theme.bodyFont
+                        color: "#FFFFFF"
+                    }
+
+                    StyledTextLabel {
+                        anchors.centerIn: parent
+                        text: setupModel.projectTitle
+                        opacity: 0.6
                     }
                 }
 
-                Item { Layout.fillWidth: true }
-
                 ToolSection {
-                    wrap: false
-                    Layout.rightMargin: 8
-                    Layout.alignment: Qt.AlignBottom
-                    Layout.bottomMargin: 8
+                    vertical: true
+                    iconSize: 18
+                    Layout.rightMargin: 4
+                    Layout.alignment: Qt.AlignTop
+                    Layout.topMargin: 6
 
                     navigationPanel: NavigationPanel {
                         name: "DoricoFlowsActions"

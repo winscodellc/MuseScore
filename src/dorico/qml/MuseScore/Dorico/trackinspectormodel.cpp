@@ -105,6 +105,9 @@ QString TrackInspectorModel::partId() const
 void TrackInspectorModel::update()
 {
     MixerChannelItem* found = nullptr;
+    int foundIndex = 0;
+    int primaries = 0;
+    bool exact = false;
     for (int row = 0; m_source && row < m_source->rowCount(); ++row) {
         const QVariant value = m_source->data(m_source->index(row, 0), ChannelItemRole);
         MixerChannelItem* channel = value.value<MixerChannelItem*>();
@@ -112,17 +115,19 @@ void TrackInspectorModel::update()
             continue;
         }
         // With nothing selected yet, show the first instrument rather than an empty inspector.
-        if (!found || channel->instrumentTrackId().partId == m_partId) {
+        if (!exact && (!found || channel->instrumentTrackId().partId == m_partId)) {
             found = channel;
+            foundIndex = primaries;
+            exact = channel->instrumentTrackId().partId == m_partId;
         }
-        if (channel->instrumentTrackId().partId == m_partId) {
-            break;
-        }
+        ++primaries; // count them all: the colour depends on how many instruments there are
     }
 
-    if (found == m_channel) {
+    if (found == m_channel && foundIndex == m_colorIndex && primaries == m_colorCount) {
         return;
     }
+    m_colorIndex = foundIndex;
+    m_colorCount = primaries;
 
     beginResetModel();
     if (m_channel) {

@@ -42,18 +42,21 @@ FlatButton {
     readonly property bool hasCustomIcon: typeof root.doricoIcon === "string" && root.doricoIcon !== ""
     // Spec 60 sizes, measured against Dorico 6: 28 toolbox, 34 notation in panels, 24 panel actions, 22 bars.
     property real iconBoxSize: 22
-    readonly property bool isToolIcon: root.text === ""
+    // With a custom icon: show this text beside it (Dorico's labelled panel buttons, e.g. Engrave's Formatting panel)
+    property string label: ""
+    readonly property bool isToolIcon: root.text === "" && root.label === ""
 
     signal triggered()
 
     icon: root.hasCustomIcon ? IconCode.NONE : root.doricoIcon
     accentColor: root.isToolIcon ? (ui.theme.isDark ? "#40ACFF" : "#0068AD") : ui.theme.accentColor
     iconColor: root.accentButton && root.isToolIcon ? (ui.theme.isDark ? "#000000" : "#FFFFFF") : ui.theme.fontPrimaryColor
-    contentItem: root.hasCustomIcon ? customIconComponent : null
+    contentItem: root.hasCustomIcon ? (root.label !== "" ? labelledIconComponent : customIconComponent) : null
 
-    // A custom icon makes FlatButton a Custom button, which has no size of its own.
+    // A custom icon makes FlatButton a Custom button, which has no size of its own. A labelled one sizes itself from
+    // its content (FlatButton: content + 2 * margins).
     Binding on implicitWidth {
-        when: root.hasCustomIcon
+        when: root.hasCustomIcon && root.label === ""
         value: root.iconBoxSize + 10
     }
     Binding on implicitHeight {
@@ -67,6 +70,34 @@ FlatButton {
     onClicked: {
         if (root.available) {
             root.triggered()
+        }
+    }
+
+    Component {
+        id: labelledIconComponent
+
+        // Needs its own size: FlatButton centres its content, so a zero-size item would start at the button's middle
+        Item {
+            implicitWidth: labelledRow.implicitWidth
+            implicitHeight: labelledRow.implicitHeight
+
+            Row {
+                id: labelledRow
+
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: 6
+
+                Loader {
+                    width: root.iconBoxSize
+                    height: root.iconBoxSize
+                    sourceComponent: customIconComponent
+                }
+
+                StyledTextLabel {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: root.label
+                }
+            }
         }
     }
 

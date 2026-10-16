@@ -218,6 +218,7 @@ DockPage {
         isBraillePanelVisible: root.pageModel.isBraillePanelVisible
         isMainView: true
         readOnly: root.readOnlyView
+        showNotationTabs: false
 
         Component.onCompleted: {
             root.notationView = notationView.paintView
