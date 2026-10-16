@@ -1,7 +1,7 @@
 <!-- markdownlint-disable -->
 # 40 — Copy / Cut / Paste (Dorico semantics)
 
-Status: todo · Depends on: [00-module-skeleton](00-module-skeleton.md), [10-keymap-preset](10-keymap-preset.md), [11-note-input-modes](11-note-input-modes.md) (Chord/Insert flags)
+Status: todo · Depends on: [00-module-skeleton](00-module-skeleton.md), [10-keymap-preset](10-keymap-preset.md), [11-note-input-modes](done/11-note-input-modes.md) (Chord/Insert flags)
 Dorico refs: `B = https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/` →
 `B write_mode/write_mode_arranging_tools/write_mode_copying_pasting_items_t.html`,
 `B …/write_mode_copying_pasting_multiple_staves_t.html`, `B …/write_mode_copying_pasting_across_selection_t.html`,

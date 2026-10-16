@@ -1,6 +1,6 @@
 <!-- markdownlint-disable -->
 # 11 - Note-input modes (Dorico's note-input model on MuseScore's)
-Status: done  -  Depends on: 00, 10 (land with 10)  -  Dorico refs: see list in Dorico behaviour; full text in [reference/dorico-key-commands.md](reference/dorico-key-commands.md) sections A2-A5
+Status: done  -  Depends on: 00, 10 (land with 10)  -  Dorico refs: see list in Dorico behaviour; full text in [reference/dorico-key-commands.md](../reference/dorico-key-commands.md) sections A2-A5
 
 ## Goal
 Make note input *feel* like Dorico: Shift-N / Return / Esc start and stop, letters only mean pitches during input, `Q` chord mode, `I` insert mode, `K` pitch-before-duration, `L` lock duration, `,`/`Y` rests, digits with double-tap dotting, forced octave above/below, voices, latching articulations. Gives back what spec 10 took away (`Shift+letter` add-to-chord is now Chord mode).

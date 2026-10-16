@@ -100,7 +100,7 @@ Status: todo | in-progress | pending review | done  -  Depends on: NN, NN  -  Do
 |---|---|---|---|
 | 00 | [Module skeleton](00-module-skeleton.md) | done | none |
 | 10 | [Keymap preset](10-keymap-preset.md) | done | 00 |
-| 11 | [Note-input modes](11-note-input-modes.md) | done | 00, 10 (land with 10) |
+| 11 | [Note-input modes](done/11-note-input-modes.md) | done | 00, 10 (land with 10) |
 | 12 | [Caret and navigation](12-caret-and-navigation.md) | done | 00, 10, 11 |
 | 13 | [Duration and rhythmic moves](13-duration-and-rhythmic-moves.md) | todo | 00, 10, 12 (for the grid) |
 | 20 | [Popover framework](20-popover-framework.md) | pending review | 00, 10 |
@@ -128,11 +128,11 @@ Status: todo | in-progress | pending review | done  -  Depends on: NN, NN  -  Do
 | 45 | [Filters](45-filters.md) | todo | 44 |
 | 46 | [Jump bar and Go To Bar](46-jump-bar.md) | todo | 20 (overlay), 10 |
 | 47 | [Explode / Reduce](47-explode-reduce.md) | todo | 41 (lowest priority) |
-| 50 | [UI shell and modes](50-ui-shell-and-modes.md) | done | 00, 10 |
-| 51 | [Status bar](51-status-bar.md) | done | 50 |
+| 50 | [UI shell and modes](done/50-ui-shell-and-modes.md) | done | 00, 10 |
+| 51 | [Status bar](done/51-status-bar.md) | done | 50 |
 | 52 | [Write: Notes toolbox and panel](52-write-notes-toolbox-and-panel.md) | pending review | 50, 11 |
 | 53 | [Write: Notations toolbox and panels](53-write-notations-toolbox-and-panels.md) | pending review | 50, 20 |
-| 54 | [Write: lower zone](54-write-lower-zone.md) | done | 50 |
+| 54 | [Write: lower zone](done/54-write-lower-zone.md) | done | 50 |
 | 55 | [Setup mode](55-setup-mode.md) | pending review | 50 |
 | 56 | [Engrave mode](56-engrave-mode.md) | pending review | 50 |
 | 57 | [Play mode](57-play-mode.md) | pending review | 50 |
@@ -188,5 +188,5 @@ Land **10 and 11 back to back**: spec 10 unbinds MuseScore's Shift+letter "add n
 5. Implement. Keep upstream edits to the ones the spec names. Add the new files to `src/dorico/CMakeLists.txt`.
 6. Build and test: `cmake -P build.cmake build install`, run with `cmake -P build.cmake run`. For parser tests: `cmake -P build.cmake -DMUSE_ENABLE_UNIT_TESTS=ON build`, then run the `dorico_tests` binary from the build dir (created in spec 00).
 7. Tick every box under **Acceptance criteria**. If one cannot be met, do not tick it; write the reason under **Deferred / unsupported** instead and tell the user.
-8. Set `Status: done` in the spec **and** in the status table above. Commit (docs and code separately if large). Commit messages end with the Co-Authored-By line given by the session.
+8. Set `Status: done` in the spec **and** in the status table above. If every acceptance box is ticked, `git mv` the spec into `specs/done/` and fix links to it (table row, other specs' **Depends on**, its own `reference/` links become `../reference/`). Commit (docs and code separately if large). Commit messages end with the Co-Authored-By line given by the session.
 9. If anything in a spec turned out wrong (a command id that does not exist, a Dorico behaviour that differs), fix the spec in the same commit.
