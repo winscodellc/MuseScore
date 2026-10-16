@@ -1,5 +1,5 @@
 # 21 — Dynamics popover (Shift-D)
-Status: todo · Depends on: 20 · Dorico refs: [dynamics reference](https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_dynamics_dynamics_r.html), [gradual](https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_dynamics_gradual_r.html), [modifiers](https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_dynamics_modifiers_r.html), [procedure](https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/write_mode/write_mode_notations_input/write_mode_dynamics_inputting_popover_t.html)
+Status: pending review · Depends on: 20 · Dorico refs: [dynamics reference](https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_dynamics_dynamics_r.html), [gradual](https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_dynamics_gradual_r.html), [modifiers](https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_dynamics_modifiers_r.html), [procedure](https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/write_mode/write_mode_notations_input/write_mode_dynamics_inputting_popover_t.html)
 
 Reference: `specs/reference/dorico-popovers.md` (Dynamics), `specs/reference/musescore-internals.md` (§3).
 
@@ -93,11 +93,24 @@ Phrases: `p<f>p`, `f>` create a grouped phrase. During note input each hairpin i
 - `itemTypes` (spec 20 replaced `handlesItem` with a type list): `DYNAMIC`, `HAIRPIN_SEGMENT` (selected hairpins are segments; check `isNotLine` inside `prefill`/`apply`).
 - Key binding: `Shift+D` → `command://dorico/popover/dynamics` is already bound (spec 20). Replace `temporaryDynamics()` in `src/dorico/popover/popoverregistry.cpp` with the real def; keep its tests' expectations or update them in `popoverregistry_tests.cpp`.
 
+## As built (wins over the Design section where they differ)
+- Parser `popover/parsers/dynamicsparser.{h,cpp}` (no score access) returns `DynamicsParse { status, DynamicEntry }`; items are `Immediate`, `Hairpin`, `GradualText`. `<>` / `><` and `< >` / `> <` all parse to two hairpins (no `MessaDiVoce` kind, no shared centre handle). Immediate names are MuseScore's dynamic names (also `sfp`, `sffz`, `fz`, `n`, ...), except the bare letters `m r s z`. Two immediates need a gradual between them (`p f` is Invalid). A modifier is the rest of the entry after a space, attached to the last immediate; `molto poco più meno` go before the dynamic, everything else (free text included) after. Decided: `f mo` = Ok, free text "mo".
+- Handler `popover/handlers/dynamicshandler.{h,cpp}` (`dynamicsPopover()`, replaces `temporaryDynamics()`). It adds items directly in one transaction (no `applyPaletteElement`):
+  - Immediate: `Dynamic` with the first dynamic's type; the text is built from SMuFL dynamic symbols (`Dynamic::dynamicText`) plus separator, second dynamic and modifier, and `( )` for parentheses (plain text, not `Pid::HAS_PARENTHESES`). A dynamic already at that position on the staff is changed instead of adding a second one.
+  - `<` `>`: `CRESC_HAIRPIN` / `DIM_HAIRPIN`; `o<` `>o` set the circled tip; `n<` `>n` add a niente `n` dynamic at the quiet end. `cresc` / `dim` / `decresc`: `CRESC_LINE` / `DIM_LINE` with that begin text, line hidden unless `...`.
+  - Positions: range selection = each staff (or one staff per instrument for Return) over the range; a list selection = the earliest item, spanning its chord/rest; a selected hairpin is replaced over its own span; note input = the caret with one quarter per gradual. A phrase's gradual dynamics split the span evenly, each boundary snapped forward to the next note/rest on the staff (the last one is the note after the selection).
+  - Return / Opt-Return: `setInitialTrackAndVoiceAssignment(track, local)`, i.e. all voices of the instrument vs the caret's / selected voice only.
+  - Open-ended at the caret (`p<`, `f cresc...`): the last gradual is held as a pending item and created up to the caret when the next dynamics entry (incl. `?`) is applied or note input ends. `PopoverDef::noteInputEnded` (new, optional) is called by `PopoverController` for that. Not live-extended.
+  - Outside note input the first new item is selected (Return reopens it). `prefill`: dynamic name or its plain text; hairpins give `<` `>` `o<` `>o`, lines their word (+ `...`).
+
 ## Deferred / unsupported
 - `?` stop token outside note input (no-op, status Ok).
 - Messa di voce shared centre handle (becomes two hairpins).
 - Modifier free text beyond the table is accepted but is placed after the dynamic.
 - Grouped hairpin pair behaviour for `< >` (two independent hairpins).
+- Modifiers on gradual dynamics (`poco cresc.`): a modifier needs an immediate dynamic.
+- Caret inside a rest (spec 12's grid caret): dynamics go to MuseScore's input position, not the virtual caret tick.
+- A phrase whose last dynamic falls after the end of the score drops that dynamic.
 - Linking dynamics across staves (Dorico auto-links; MuseScore applies per voice assignment).
 - `Unsupported`: `7+` p/f letters is **Invalid** (more than 6).
 
@@ -111,8 +124,8 @@ Phrases: `p<f>p`, `f>` create a grouped phrase. During note input each hairpin i
 - [ ] In note input, `p<` creates the `p` and the hairpin ends when the caret has advanced and the stop token/next dynamic/end of input occurs.
 - [ ] Return inserts into all voices/staves of the instrument; Opt-Return only the caret voice (check voice-assignment property).
 - [ ] Select an existing dynamic, press Return → popover prefilled; change to `f`, Return → replaced (no second dynamic).
-- [ ] `ppppppp` (7 p) is red/Invalid; `foo` is red/Invalid.
-- [ ] All GoogleTest parser cases below pass.
+- [x] `ppppppp` (7 p) is red/Invalid; `foo` is red/Invalid. *(parser tests; red border is spec 20)*
+- [x] All GoogleTest parser cases below pass (as adapted: `<>` = two hairpins, `f mo` = free text).
 
 ## Tests
 `src/dorico/tests/dynamicsparser_tests.cpp`:

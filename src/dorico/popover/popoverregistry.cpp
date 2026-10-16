@@ -25,12 +25,7 @@
 #include <algorithm>
 #include <memory>
 
-#include "engraving/dom/dynamic.h"
-#include "engraving/dom/factory.h"
-#include "engraving/dom/score.h"
-#include "engraving/types/typesconv.h"
-#include "notation/inotationelements.h"
-#include "notation/inotationinteraction.h"
+#include "handlers/dynamicshandler.h"
 
 using namespace mu::dorico;
 using namespace mu::engraving;
@@ -72,46 +67,12 @@ static PopoverDef placeholder(const std::string& id, const std::string& title, I
     return def;
 }
 
-// Temporary, replaced by spec 21: accepts MuseScore's own dynamic names (p, mf, sfz, ...) to prove the popover path.
-static PopoverDef temporaryDynamics()
-{
-    PopoverDef def = placeholder("dynamics", "Dynamics", IconCode::DYNAMIC_FORTE);
-    def.itemTypes = { ElementType::DYNAMIC };
-    def.validate = [](const std::string& text) {
-        if (text.empty()) {
-            return ParseStatus::Incomplete;
-        }
-        // Not TConv::fromXml: it asserts on unknown names, and this runs on every keystroke.
-        for (int t = int(DynamicType::OTHER) + 1; t < int(DynamicType::LAST); ++t) {
-            if (TConv::toXml(DynamicType(t)) == muse::AsciiStringView(text.c_str())) {
-                return ParseStatus::Ok;
-            }
-        }
-        return text.find_first_not_of("pmfszrn") == std::string::npos ? ParseStatus::Incomplete : ParseStatus::Invalid;
-    };
-    def.apply = [](const std::string& text, ApplyScope, mu::notation::INotationPtr notation) {
-        Score* score = notation->elements()->msScore();
-        // Dropped on a selected dynamic, Dynamic::drop changes that dynamic's type, so a reopened popover replaces it.
-        std::unique_ptr<Dynamic> dynamic(Factory::createDynamic(score->dummy()));
-        dynamic->setDynamicType(muse::String::fromStdString(text));
-        return notation->interaction()->applyPaletteElement(dynamic.get());
-    };
-    def.prefill = [](const EngravingItem* item) {
-        if (!item->isDynamic()) {
-            return std::string();
-        }
-        const muse::AsciiStringView name = TConv::toXml(toDynamic(item)->dynamicType());
-        return std::string(name.ascii(), name.size());
-    };
-    return def;
-}
-
 PopoverRegistry mu::dorico::makePopoverRegistry()
 {
     PopoverRegistry r;
     r.add(placeholder("bars", "Bars and Barlines", IconCode::DOUBLE_BAR_LINE));            // spec 25
     r.add(placeholder("clef", "Clefs and Octave Lines", IconCode::CLEF_TREBLE));           // spec 24
-    r.add(temporaryDynamics());                                                            // spec 21
+    r.add(dynamicsPopover());                                                              // spec 21
     r.add(placeholder("fingering", "Fingering", IconCode::FRETBOARD_DIAGRAM));             // spec 34
     r.add(placeholder("figuredbass", "Figured Bass", IconCode::MUSIC_NOTES));              // spec 36
     r.add(placeholder("holds", "Holds and Pauses", IconCode::FERMATA));                    // spec 27

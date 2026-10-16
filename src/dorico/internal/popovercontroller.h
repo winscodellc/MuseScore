@@ -27,6 +27,7 @@
 #include "rcommand/commandable.h"
 #include "rcommand/icommanddispatcher.h"
 #include "context/iglobalcontext.h"
+#include "notation/inotationnoteinput.h"
 #include "notationscene/inotationcommandscontroller.h"
 
 #include "../idoricomodestate.h"
@@ -65,6 +66,7 @@ private:
     engraving::EngravingItem* existingItem(const PopoverDef* def) const;
     void open(const PopoverDef* def, engraving::EngravingItem* editing);
     muse::RectF computeAnchor() const;
+    void subscribeNoteInput();
 
     PopoverRegistry m_registry = makePopoverRegistry();
     const PopoverDef* m_current = nullptr;
@@ -72,5 +74,6 @@ private:
     engraving::EngravingItem* m_editing = nullptr; // the item this popover replaces; nullptr = adds a new one
     muse::RectF m_anchor;
     muse::async::Notification m_stateChanged;
+    notation::INotationNoteInputPtr m_noteInput;
 };
 }

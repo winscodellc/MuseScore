@@ -64,8 +64,33 @@ void PopoverController::init()
         }
     });
 
-    globalContext()->currentNotationChanged().onNotify(this, [this]() { cancel(); });
+    globalContext()->currentNotationChanged().onNotify(this, [this]() {
+        cancel();
+        subscribeNoteInput();
+    });
+    subscribeNoteInput();
     modes()->modeChanged().onNotify(this, [this]() { cancel(); });
+}
+
+// Open-ended items (p< at the caret) are closed when note input stops.
+void PopoverController::subscribeNoteInput()
+{
+    if (m_noteInput) {
+        m_noteInput->noteInputEnded().disconnect(this);
+    }
+    INotationPtr notation = globalContext()->currentNotation();
+    m_noteInput = notation ? notation->interaction()->noteInput() : nullptr;
+    if (!m_noteInput) {
+        return;
+    }
+    m_noteInput->noteInputEnded().onNotify(this, [this]() {
+        INotationPtr notation = globalContext()->currentNotation();
+        for (const PopoverDef& def : m_registry.defs()) {
+            if (notation && def.noteInputEnded) {
+                def.noteInputEnded(notation);
+            }
+        }
+    });
 }
 
 const PopoverDef* PopoverController::current() const

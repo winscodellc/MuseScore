@@ -50,6 +50,10 @@ target_sources(dorico PRIVATE
     internal/partlayouts.h
     internal/popovercontroller.cpp
     internal/popovercontroller.h
+    popover/handlers/dynamicshandler.cpp
+    popover/handlers/dynamicshandler.h
+    popover/parsers/dynamicsparser.cpp
+    popover/parsers/dynamicsparser.h
     popover/popoverregistry.cpp
     popover/popoverregistry.h
     popover/popovertypes.h

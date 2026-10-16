@@ -65,7 +65,7 @@ TEST(DoricoPopoverRegistry, PlaceholderIsUnsupported)
     EXPECT_EQ(def->validate("G"), ParseStatus::Unsupported);
 }
 
-TEST(DoricoPopoverRegistry, TemporaryDynamicsValidate)
+TEST(DoricoPopoverRegistry, DynamicsValidate)
 {
     const PopoverRegistry registry = makePopoverRegistry();
     const PopoverDef* def = registry.find("dynamics");
@@ -74,6 +74,8 @@ TEST(DoricoPopoverRegistry, TemporaryDynamicsValidate)
     EXPECT_EQ(def->validate("p"), ParseStatus::Ok);
     EXPECT_EQ(def->validate("mf"), ParseStatus::Ok);
     EXPECT_EQ(def->validate("sfz"), ParseStatus::Ok);
-    EXPECT_EQ(def->validate("m"), ParseStatus::Ok); // MuseScore has a bare "m" dynamic
+    EXPECT_EQ(def->validate("m"), ParseStatus::Incomplete); // start of mp / mf
+    EXPECT_TRUE(def->supportsLocal);
+    EXPECT_EQ(registry.findByType(ElementType::HAIRPIN_SEGMENT)->id, "dynamics");
     EXPECT_EQ(def->validate("x"), ParseStatus::Invalid);
 }

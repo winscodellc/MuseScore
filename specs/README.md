@@ -103,7 +103,7 @@ Status: todo | in-progress | pending review | done  -  Depends on: NN, NN  -  Do
 | 12 | [Caret and navigation](12-caret-and-navigation.md) | pending review | 00, 10, 11 |
 | 13 | [Duration and rhythmic moves](13-duration-and-rhythmic-moves.md) | todo | 00, 10, 12 (for the grid) |
 | 20 | [Popover framework](20-popover-framework.md) | pending review | 00, 10 |
-| 21 | [Popover: dynamics (Shift-D)](21-popover-dynamics.md) | todo | 20 |
+| 21 | [Popover: dynamics (Shift-D)](21-popover-dynamics.md) | pending review | 20 |
 | 22 | [Popover: time signatures (Shift-M)](22-popover-time-signatures.md) | todo | 20 |
 | 23 | [Popover: key signatures (Shift-K)](23-popover-key-signatures.md) | todo | 20 |
 | 24 | [Popover: clefs and octave lines (Shift-C)](24-popover-clefs-octave-lines.md) | todo | 20 |

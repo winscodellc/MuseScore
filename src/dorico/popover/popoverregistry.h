@@ -35,6 +35,7 @@ public:
     bool add(PopoverDef def); // false if the id is taken
     const PopoverDef* find(const std::string& id) const;
     const PopoverDef* findByType(engraving::ElementType type) const;
+    const std::vector<PopoverDef>& defs() const { return m_defs; }
 
 private:
     std::vector<PopoverDef> m_defs;
