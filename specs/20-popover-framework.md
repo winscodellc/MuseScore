@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # 20 — Popover framework
 Status: pending review · Depends on: 00, 10 (key preset file exists), 11 (note-input commands) · Dorico refs: [popover concept](https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/program_concepts/program_concepts_popovers_c.html), [Notations toolbox](https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/write_mode/write_mode_notations_toolbox_r.html), [popover navigation](https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_navigation_r.html)
 

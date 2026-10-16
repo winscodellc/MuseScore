@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # 45 — Filters (Edit > Filter: Select Only / Deselect Only)
 
 Status: todo · Depends on: [44-selection](44-selection.md), [46-jump-bar](46-jump-bar.md) (discoverability: no default keys), [00-module-skeleton](00-module-skeleton.md)

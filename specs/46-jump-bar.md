@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # 46 — Jump bar (J) and Go To Bar (Cmd-G)
 
 Status: todo · Depends on: [00-module-skeleton](00-module-skeleton.md), [20-popover-framework](20-popover-framework.md) (overlay host in `NotationView.qml`), [10-keymap-preset](10-keymap-preset.md)

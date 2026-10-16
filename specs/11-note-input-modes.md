@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # 11 - Note-input modes (Dorico's note-input model on MuseScore's)
 Status: done  -  Depends on: 00, 10 (land with 10)  -  Dorico refs: see list in Dorico behaviour; full text in [reference/dorico-key-commands.md](reference/dorico-key-commands.md) sections A2-A5
 

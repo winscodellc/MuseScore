@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 \page ticklength Tick Length values
 
 Note and rest values are expressed in an internal unit, to express their mutual relationships and to make them independent from actual *tempo*. This unit is used by the following object properties:

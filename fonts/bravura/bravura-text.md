@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # An introduction to using Bravura Text
 
 *Version 1.1, 30 October 2015*

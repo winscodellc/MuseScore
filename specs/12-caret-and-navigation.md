@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # 12 - Caret and navigation
 Status: done  -  Depends on: 00, 10, 11  -  Dorico refs: `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/write_mode/write_mode_navigation/write_mode_navigation_items_music_area_t.html`, `.../write_mode_caret/write_mode_caret_moving_manually_t.html`, `.../write_mode_rhythmic_grid/write_mode_rhythmic_grid_c.html`, `.../write_mode_rhythmic_grid/write_mode_rhythmic_grid_resolution_changing_t.html`, `.../write_mode_transposing_tools/write_mode_notes_pitch_changing_t.html`, `.../write_mode_transposing_tools/write_mode_notes_respelling_t.html`
 

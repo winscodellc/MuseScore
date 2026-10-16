@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # 50 - UI shell and modes
 Status: done  -  Depends on: 00, 10  -  Dorico refs: `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/user_interface/user_interface_windows_c.html`, `.../user_interface_toolbar_r.html`, `.../user_interface_transport_options_r.html`, `.../user_interface_panels_r.html`, `.../user_interface_tab_bar_r.html`
 

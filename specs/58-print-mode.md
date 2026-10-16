@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # 58 - Print mode
 Status: pending review  -  Depends on: 50, 55  -  Dorico refs: `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/print_mode/print_mode_window_r.html`, `.../print_mode_layouts_panel_r.html`, `.../print_mode_print_options_panel_r.html`
 

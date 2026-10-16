@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # Bravura music font
 
 Bravura is an OpenType music font developed for Steinberg's [Dorico](https://www.steinberg.net/dorico) music notation and composition software.

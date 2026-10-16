@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # Dorico Pro 6.2 user interface inventory
 
 Source: the official Dorico Pro 6.2 manual. In this file `[M]` = `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/`. Key bindings are in `dorico-key-commands.md`, popover syntax in `dorico-popovers.md`; they are not repeated here.

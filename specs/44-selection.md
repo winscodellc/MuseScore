@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # 44 — Selection: extend, Select More, deselect, Tab cycling
 
 Status: todo · Depends on: [10-keymap-preset](10-keymap-preset.md), [12-caret-and-navigation](12-caret-and-navigation.md) (arrow-key semantics are owned by 12; this spec owns selection *extension*, *Select More*, *deselect*, *Tab*)

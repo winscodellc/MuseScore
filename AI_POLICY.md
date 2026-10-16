@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # AI / LLM Usage Policy for Contributors
 
 This policy applies to any use of AI tools (LLMs, coding assistants, autonomous agents) in

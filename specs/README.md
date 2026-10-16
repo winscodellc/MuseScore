@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # Specs: turning this MuseScore fork into a Dorico Pro 6 clone
 
 One spec = one implementation session. Read this file, the reference files it links, then the spec you were asked to do.

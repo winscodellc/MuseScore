@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # 40 — Copy / Cut / Paste (Dorico semantics)
 
 Status: todo · Depends on: [00-module-skeleton](00-module-skeleton.md), [10-keymap-preset](10-keymap-preset.md), [11-note-input-modes](11-note-input-modes.md) (Chord/Insert flags)

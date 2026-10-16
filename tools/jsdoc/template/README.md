@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 ## Generating Typeface Fonts
 
 The default template uses the [OpenSans](https://www.google.com/fonts/specimen/Open+Sans) typeface. The font files can be regenerated as follows:

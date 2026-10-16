@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # 59 - Menus
 Status: pending review  -  Depends on: 50  -  Dorico refs: no menu-reference page exists; menu paths are collected from topics ("Choose X > Y"), see `reference/dorico-ui.md` 0.7
 

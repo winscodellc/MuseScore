@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # 13 - Duration editing and rhythmic moves
 Status: todo  -  Depends on: 00, 10, 12 (grid service)  -  Dorico refs: `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/write_mode/write_mode_durations/write_mode_notes_duration_changing_t.html`, `.../write_mode_durations/write_mode_notes_splitting_by_duration_t.html`, `.../write_mode_arranging_tools/write_mode_notes_items_moving_rhythmically_t.html`, `.../write_mode_notations_input/write_mode_ties_inputting_t.html`, `.../write_mode_notations_input/write_mode_dynamics_inputting_popover_t.html` (hairpin keys)
 

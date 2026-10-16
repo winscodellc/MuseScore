@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # CLAUDE.md
 
 Personal fork of **MuseScore Studio** (GPLv3), base = upstream `main` (5.0-dev, not 4.x).

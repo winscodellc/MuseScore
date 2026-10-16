@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # 10 - Keymap preset (Dorico key commands replace MuseScore's)
 Status: done  -  Depends on: 00  -  Dorico refs: key conventions <https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/introduction/key_command_conventions_c.html>, key commands concept `.../program_concepts/program_concepts_key_commands_in_dorico_r.html`; per-row sources are in [reference/dorico-key-commands.md](reference/dorico-key-commands.md)
 

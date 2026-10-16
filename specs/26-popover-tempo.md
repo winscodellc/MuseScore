@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # 26 — Tempo popover (Shift-T)
 Status: todo · Depends on: 20 · Dorico refs: [tempo popover reference](https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_tempo_r.html) (page names `dorico_popovers_tempo_*_r.html`), [beat units](https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_beat_units_r.html)
 

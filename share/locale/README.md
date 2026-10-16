@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # Adding a new language
 
 Steps to follow after we receive a [request for a new language](https://github.com/musescore/MuseScore/wiki/Help-translate-MuseScore-Studio#adding-a-new-language):

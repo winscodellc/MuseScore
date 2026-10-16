@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # 47 — Paste Special: Explode and Reduce
 
 Status: todo (lowest priority) · Depends on: [40-copy-paste](40-copy-paste.md), [41-paste-special](41-paste-special.md), [46-jump-bar](46-jump-bar.md)

@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # 22 — Time signatures popover (Shift-M)
 Status: todo · Depends on: 20 · Dorico refs: [time signatures](https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_time_signatures_time_sigs_r.html), [pick-up bars](https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_time_signatures_pick_up_bars_r.html)
 

@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # 28 — Ornaments popover (Shift-O)
 Status: todo · Depends on: 20 · Dorico refs: ornament pages `dorico_popovers_ornaments_*_r.html` under [popover reference](https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/), [index](https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_ornaments_ornaments_r.html)
 

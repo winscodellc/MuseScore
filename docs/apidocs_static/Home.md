@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # Extensions
 
 Extensions are a way to extend the basic functionality and add new features to the application.  

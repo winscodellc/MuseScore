@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # Test Data Directory
 
 This directory contains all data files used for testing MNX import/export functionality for MuseScore. The contents are intentionally split by origin and purpose.

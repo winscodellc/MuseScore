@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # 60 - Appearance: colors, score canvas, icons
 Status: pending review  -  Depends on: 50  -  Dorico refs: `[M]user_interface/...` "Changing the window color theme" (API topic `iKF9BFI04pB8PG0opfbKpA`), "Project window in Write mode" (`gON2B7CLULjilph3Un5LwQ`), "Music area" (`bzfupzzVtDRcB8Dj1S612g`), "Changing the background color" (`H43HNanVmUSH0q2_mzu~6g`), "Changing music area colors" (`K2no0q0PuuZIF7iqOhsSIw`), "Changing the page color" (`hAV1f0AOkEajNr8cJlgtbw`)
 

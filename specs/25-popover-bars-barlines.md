@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # 25 — Bars and barlines popover (Shift-B)
 Status: todo · Depends on: 20 · Dorico refs: [bars](https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_bars_barlines_bars_r.html), [beats](https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_bars_barlines_beats_r.html), [barlines](https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_bars_barlines_barlines_r.html), [barline procedure](https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/write_mode/write_mode_notations_input/write_mode_barlines_inputting_popover_t.html), [deleting bars](https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/notation_reference/notation_reference_bars/notation_reference_bars_deleting_t.html)
 

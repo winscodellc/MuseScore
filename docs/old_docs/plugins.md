@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 Welcome to the MuseScore plugins documentation!
 
 This page gives a brief overview of the topics related to plugins development.

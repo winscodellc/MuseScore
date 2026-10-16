@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # MuseScore_General.sf2
 
 **Version 0.2**

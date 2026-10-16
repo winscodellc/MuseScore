@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 MS_General.sf2
 ---
 

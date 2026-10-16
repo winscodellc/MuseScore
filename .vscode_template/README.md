@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # Setup build with VS Code 
 
 ## Linux (Ubuntu)

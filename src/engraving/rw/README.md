@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # Reading and writing MuseScore files
 
 ## Public / internal

@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # 53 - Write mode: Notations toolbox and panels
 Status: pending review  -  Depends on: 50, 20  -  Dorico refs: `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/write_mode/write_mode_notations_toolbox_r.html`, `.../write_mode_notations_input/*_panel_r.html` (one per panel), `.../write_mode_panels/write_mode_right_zone_r.html`
 

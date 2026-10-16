@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 Braille tables for use with [liblouis]
 ======================================
 

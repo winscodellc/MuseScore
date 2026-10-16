@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 
 We use the [jsdoc](https://github.com/jsdoc/jsdoc) tool to create API documentation.  
   

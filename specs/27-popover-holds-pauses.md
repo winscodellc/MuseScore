@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # 27 — Holds and pauses popover (Shift-H)
 Status: todo · Depends on: 20 · Dorico refs: [fermatas](https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_holds_pauses_fermatas_r.html), [breath marks](https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_holds_pauses_breath_marks_r.html), [caesuras](https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_holds_pauses_caesuras_r.html)
 

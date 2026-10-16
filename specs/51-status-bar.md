@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # 51 - Status bar
 Status: done  -  Depends on: 50  -  Dorico refs: `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/user_interface/user_interface_status_bar_r.html`, `.../user_interface_view_types_r.html`
 

@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # MuseScore Studio Code of Conduct
 
 ## Our Pledge

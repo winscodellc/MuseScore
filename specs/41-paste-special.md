@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # 41 — Paste Special: Paste Into Voice, Duplicate/Move to Staff, Swap, Paste Articulations
 
 Status: todo · Depends on: [40-copy-paste](40-copy-paste.md) (paste engine/planner), [10-keymap-preset](10-keymap-preset.md)

@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # Standard Music Font Layout (SMuFL)
 
 SMuFL is a specification that provides a standard way of mapping the thousands of musical symbols required by conventional music notation into the Private Use Area in Unicode’s Basic Multilingual Plane for a single (format-independent) font.

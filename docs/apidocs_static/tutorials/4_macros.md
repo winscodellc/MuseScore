@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # Extension Macros  
 
 Macros are extensions that do not have a user interface, there is only a script that does something. Usually this is a way to automate some actions.  

@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # 00 - Module skeleton (`src/dorico/`)
 Status: done  -  Depends on: none  -  Dorico refs: none (infrastructure)
 

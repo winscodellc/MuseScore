@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # 29 — Playing techniques popover (Shift-P)
 Status: todo · Depends on: 20 · Dorico refs: pages `dorico_popovers_playing_techniques_*_r.html`, [pedal lines](https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_pedal_lines_r.html), [harp pedaling](https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_harp_pedaling_r.html), [harmonics](https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_harmonics_r.html) (all under `_shared/topics/dorico/dorico_popovers/`)
 

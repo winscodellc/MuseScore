@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 \page pitch Note Pitch values
 
 Note pitches are internally expressed with their respective MIDI pitch values. This corresponds to the absolute height of the note, regardless of the way it is actually written (enharmony; to retrieve the actual enharmony employed for a note, use its \ref tpc "Tonal Pitch Class" instead).

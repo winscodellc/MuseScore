@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # ![MuseScore Studio](share/icons/musescore_logo_full.png)
 
 Music notation and composition software

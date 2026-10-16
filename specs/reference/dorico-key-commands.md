@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # Dorico Pro 6.2 reference: key commands
 
 Reference extracted from Dorico Pro 6.2 manual (paraphrased facts: key bindings and syntax tokens). macOS first.

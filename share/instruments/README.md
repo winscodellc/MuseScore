@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # Instruments
 
 ## About the online spreadsheet

@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # 23 — Key signatures popover (Shift-K)
 Status: todo · Depends on: 20 · Dorico refs: [key signatures](https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_key_signatures_r.html)
 

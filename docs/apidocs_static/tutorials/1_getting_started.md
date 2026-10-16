@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 ﻿
 ### Adding a new non-visual extension  
 

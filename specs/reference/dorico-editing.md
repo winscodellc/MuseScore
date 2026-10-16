@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # Dorico Pro 6.2 reference: copy/paste, moving, deleting, selection, jump bar, caret, undo, transforms
 
 Reference material for the specs in `specs/`. Source: Dorico Pro 6.2 manual.

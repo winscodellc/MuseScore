@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 \page plugin2to3 Porting MuseScore 2 plugins
 
 This page describes changes between MuseScore 2.X and MuseScore 3 plugins API.

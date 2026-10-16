@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # Extension Forms 
 
 Forms are extensions that have a user interface. To create UI, Qml is used. For form extensions, we need to specify the appropriate type and file name using `.qml` in the extension manifest.   

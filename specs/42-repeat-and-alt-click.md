@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # 42 — Repeat (R) and Opt-click / Opt-drag copy
 
 Status: todo · Depends on: [40-copy-paste](40-copy-paste.md), [10-keymap-preset](10-keymap-preset.md), [11-note-input-modes](11-note-input-modes.md)

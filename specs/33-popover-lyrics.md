@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # 33 — Popover: lyrics (Shift-L)
 
 Status: todo · Depends on: [20-popover-framework](20-popover-framework.md) · Dorico refs:

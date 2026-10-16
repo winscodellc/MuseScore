@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # MuseScore Studio Visual Tests
 
 The main idea is to compare the current draw data with the reference data.

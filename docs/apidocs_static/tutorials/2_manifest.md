@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 ﻿
 Each extension must contain a **manifest.json** file. This is what is searched for to detect the extension and obtain information about it.  
   

@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # Leland music fonts
 
 This repository contains the **Leland music fonts, Version 0.80**.

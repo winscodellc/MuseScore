@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 The MuseScore_General soundfont provided here is just a placeholder in order to have
 sound during development if you cannot download the latest version of MuseScore_General.sf3.
 

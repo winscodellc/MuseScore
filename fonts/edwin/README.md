@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # Edwin font family
 
 This repository contains the **Edwin font family, Version 0.54**.

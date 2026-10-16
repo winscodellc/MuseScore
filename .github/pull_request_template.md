@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 Resolves: #NNNNN <!-- Replace `NNNNN` with a GitHub issue number, or a direct link if the issue is not on GitHub -->
 
 <!-- Add a short description of and motivation for the changes here -->

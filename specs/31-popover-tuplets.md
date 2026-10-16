@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # 31 — Popover: tuplets (`;` and `:`)
 
 Status: todo · Depends on: [20-popover-framework](20-popover-framework.md) · Dorico refs:

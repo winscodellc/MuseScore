@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # MuseScore Fonts
 
 This directory contains the fonts used internally by MuseScore and the sources used to generate them.

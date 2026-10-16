@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # 32 — Popover: chord symbols (Shift-Q)
 
 Status: todo · Depends on: [20-popover-framework](20-popover-framework.md) · Dorico refs:

@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # MuseScore Studio 5.0-dev internals relevant to the Dorico-clone specs
 
 > **Line numbers are as of main commit `ac156123d8` and must be re-verified with `grep` before relying on them.** The `muse/` submodule moves independently of this repo.

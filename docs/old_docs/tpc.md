@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 \page tpc Tonal Pitch Class
 
 The Tonal Pitch Class (tpc) is used to differentiate among notes with the same MIDI pitch but with different representation (also covering enharmony). The tpc is used by the following properties:

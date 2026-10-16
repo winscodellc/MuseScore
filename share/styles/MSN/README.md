@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # Modified Stave Notation (MSN)
 
 MSN style files created with help from the Royal National Institute of Blind People (RNIB).
