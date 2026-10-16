@@ -40,7 +40,8 @@ FlatButton {
     property bool available: true
     property var doricoIcon: IconCode.NONE
     readonly property bool hasCustomIcon: typeof root.doricoIcon === "string" && root.doricoIcon !== ""
-    property real iconBoxSize: 20
+    // Spec 60 sizes, measured against Dorico 6: 28 toolbox, 34 notation in panels, 24 panel actions, 22 bars.
+    property real iconBoxSize: 22
     readonly property bool isToolIcon: root.text === ""
 
     signal triggered()
@@ -50,9 +51,14 @@ FlatButton {
     iconColor: root.accentButton && root.isToolIcon ? (ui.theme.isDark ? "#000000" : "#FFFFFF") : ui.theme.fontPrimaryColor
     contentItem: root.hasCustomIcon ? customIconComponent : null
 
-    Binding on buttonType {
+    // A custom icon makes FlatButton a Custom button, which has no size of its own.
+    Binding on implicitWidth {
         when: root.hasCustomIcon
-        value: FlatButton.IconOnly
+        value: root.iconBoxSize + 10
+    }
+    Binding on implicitHeight {
+        when: root.hasCustomIcon
+        value: root.iconBoxSize + 10
     }
 
     opacity: root.available ? 1.0 : ui.theme.itemOpacityDisabled

@@ -80,6 +80,7 @@ Item {
 
             ToolSection {
                 width: parent.width
+                iconSize: 34
                 navigationPanel: navPanel
                 navigationOrderStart: 1
                 codes: root.durations.map(d => "command://notation/set-duration-" + d)
@@ -90,6 +91,7 @@ Item {
 
             ToolSection {
                 width: parent.width
+                iconSize: 34
                 navigationPanel: navPanel
                 navigationOrderStart: 20
                 codes: [
@@ -108,6 +110,7 @@ Item {
             // commands (MuseScore has no command for them), shown as text since MuseScore has no icon for them.
             ToolSection {
                 width: parent.width
+                iconSize: 34
                 navigationPanel: navPanel
                 navigationOrderStart: 30
                 codes: [

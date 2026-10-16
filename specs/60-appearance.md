@@ -55,8 +55,20 @@ Glyph icons use `Text.QtRendering` (grayscale antialiasing): native LCD renderin
 ## Design
 - **Theme colors (upstream edit, values only):** `src/app/configs/dark.cfg` and `light.cfg` take the table above. Button opacity normal/hover/hit = 1.0/0.8/0.6, so buttons are opaque like Dorico's. Keys stay the same, so Preferences' theme reset gives back the Dorico colors.
 - **Canvas colors and default theme (fork only):** `DoricoModule::onInit` (`src/dorico/doricomodule.cpp`) writes the music-area background (both themes), white paper and orange selection (voices 1-4 and "all voices") with `settings()->setSharedValue`, then switches to the Dark theme. It runs once per `APPEARANCE_VERSION`; bump the constant to re-apply after re-tuning. Same pattern as the one-time keymap switch next to it.
-- **Icons:** `DoricoButton.doricoIcon` takes an `IconCode`, a SMuFL glyph string (drawn in Bravura Text, ink-centered and fitted to a 20 px box, tiny glyphs capped at 60 px) or `"svg:<name>"` (a Lucide SVG from `qml/MuseScore/Dorico/icons/`, tinted with `EffectColorOverlay`). Checked icon-only buttons use Dorico's bright tool blue with a black (Dark) or white (Light) glyph, as in Dorico; text buttons keep the muted theme accent. `ToolSection.icons` accepts the same values.
+- **Icons:** `DoricoButton.doricoIcon` takes an `IconCode`, a SMuFL glyph string (drawn in Bravura Text, ink-centered and fitted to the icon box (see Icon sizes), tiny glyphs capped at a 100 px font) or `"svg:<name>"` (a Lucide SVG from `qml/MuseScore/Dorico/icons/`, tinted with `EffectColorOverlay`). Checked icon-only buttons use Dorico's bright tool blue with a black (Dark) or white (Light) glyph, as in Dorico; text buttons keep the muted theme accent. `ToolSection.icons` accepts the same values.
 - Lucide SVGs come from `https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/<name>.svg`. Only the icons in use are committed, with `icons/LICENSE-lucide.txt`. They are added to the QML module with a `file(GLOB CONFIGURE_DEPENDS icons/*.svg)` in its `CMakeLists.txt` (re-globbed when icons are added or removed).
+
+### Icon sizes
+Measured against Dorico 6 in the manual's Write-mode screenshot, using UI text height as the common scale: Dorico's toolbox icons are ~1.4x and its Notes-panel notation 2-3x (durations 2.2x, accidentals 2.5x, articulations 3x) bigger than our first build.
+
+| Where | Icon box (pt) | Button |
+|---|---|---|
+| Toolboxes (Notes, Notations, Engrave) | 28 | 38, dock thickness 48 (was 44) |
+| Notation in the Notes panel (durations, accidentals, articulations) | 34 | 44 |
+| Action icons in panels (`ToolSection` default) | 24 | 34 |
+| Top bar, status bar, other buttons (`DoricoButton` default) | 22 | 32 |
+
+Glyphs fill 85% of the box (capped at a 100 px font, so dots stay dot-sized); SVGs are rendered at the box size.
 
 ### Icon mapping
 Rule: the icon shows **what the button does in Dorico** (manual text), not just a related thing. Notation is drawn as notation (Bravura glyph or our own SVG of notes), actions as Lucide pictograms. Every icon button keeps its words as the tooltip and accessible name. Candidates were rendered side by side offscreen and checked before use.
@@ -69,7 +81,7 @@ Own SVGs (original, GPL, Lucide's 24 px / 2 px stroke style): `chord` (three sta
 | | Chords / Insert | `svg:chord` / `svg:text-cursor-input` (insertion caret) |
 | | Lock Duration / Force Duration | `svg:lock` / `svg:pin` (pins the exact duration; distinct from Lock) |
 | | Create Voice | `svg:voice` |
-| | Dotted notes / Rests / Tuplets / Grace notes | U+ECA5 U+ECB7 / U+E4E5 / U+E883 / U+E560 |
+| | Dotted notes / Rests / Tuplets / Grace notes | U+ECA5 U+ECB7 / U+E4E5 / U+E883 U+E88A U+E882 ("3:2", as Dorico) / U+E560 |
 | | Tie / Scissors | U+E1F0 U+E1FD U+E1F0 (two notes tied) / `svg:scissors` |
 | Notes panel | Durations breve ... 128th | U+ECA0, ECA2, ECA3, ECA5, ECA7, ECA9, ECAB, ECAD, ECAF |
 | | Flat / Natural / Sharp / Slur | U+E260 / E261 / E262 / `svg:slur` |

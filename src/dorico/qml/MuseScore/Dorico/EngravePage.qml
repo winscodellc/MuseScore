@@ -57,7 +57,7 @@ DoricoPage {
             floatable: false
             closable: false
             resizable: false
-            thickness: 44
+            thickness: 48
 
             navigationSection: root.noteInputKeyNavSec
 
@@ -98,6 +98,7 @@ DoricoPage {
                         readonly property bool isActive: modelData.id !== "" && root.tool === modelData.id
 
                         doricoIcon: modelData.icon
+                        iconBoxSize: 28
                         available: modelData.available
                         accentButton: isActive
                         transparent: !isActive

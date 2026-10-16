@@ -78,7 +78,7 @@ DoricoPage {
             floatable: false
             closable: false
             resizable: false
-            thickness: 44
+            thickness: 48
 
             navigationSection: root.noteInputKeyNavSec
 
@@ -99,7 +99,7 @@ DoricoPage {
             floatable: false
             closable: false
             resizable: false
-            thickness: 44
+            thickness: 48
 
             navigationSection: root.noteInputKeyNavSec
 

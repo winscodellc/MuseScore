@@ -38,6 +38,7 @@ Column {
     property alias codes: tools.codes
     property var labels: []
     property var icons: []
+    property real iconSize: 24
 
     // Lay the buttons out in one column (toolboxes) instead of rows.
     property bool vertical: false
@@ -86,6 +87,7 @@ Column {
 
                 visible: modelData.id !== ""
                 doricoIcon: iconSpec
+                iconBoxSize: root.iconSize
                 text: iconSpec === IconCode.NONE ? label : ""
                 available: modelData.enabled
                 accentButton: modelData.checked

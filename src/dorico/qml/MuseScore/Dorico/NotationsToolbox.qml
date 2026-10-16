@@ -95,6 +95,7 @@ Column {
         id: modeButton
 
         doricoIcon: root.popoversMode ? "svg:square-pen" : "svg:layout-grid"
+        iconBoxSize: 28
         transparent: true
         toolTipTitle: root.popoversMode ? qsTrc("dorico", "Popovers") : qsTrc("dorico", "Panels")
         toolTipDescription: qsTrc("dorico", "Switch between panels and popovers")
@@ -121,6 +122,7 @@ Column {
             readonly property bool isActive: root.currentPanelId === modelData.id
 
             doricoIcon: modelData.icon
+            iconBoxSize: 28
             accentButton: isActive
             transparent: !isActive
             toolTipTitle: modelData.title
@@ -149,6 +151,7 @@ Column {
             readonly property var spec: root.popovers[index]
 
             doricoIcon: spec.icon
+            iconBoxSize: 28
             available: modelData.enabled
             transparent: true
             toolTipTitle: spec.title

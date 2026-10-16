@@ -74,7 +74,7 @@ Column {
                 { "code": "command://notation/toggle-dot4", "title": qsTrc("dorico", "Four Rhythm Dots") }
             ] },
         { "code": "command://dorico/rest", "title": qsTrc("dorico", "Rests"), "icon": "\uE4E5" },
-        { "code": "command://notation/add-triplet", "title": qsTrc("dorico", "Tuplets"), "icon": "\uE883",
+        { "code": "command://notation/add-triplet", "title": qsTrc("dorico", "Tuplets"), "icon": "\uE883\uE88A\uE882",
             "menu": [
                 { "code": "command://notation/add-duplet", "title": "2:3" },
                 { "code": "command://notation/add-triplet", "title": "3:2" },
@@ -116,6 +116,7 @@ Column {
             readonly property bool hasMenu: spec.menu !== undefined
 
             doricoIcon: spec.icon
+            iconBoxSize: 28
             available: modelData.enabled
             accentButton: modelData.checked
             transparent: !modelData.checked
