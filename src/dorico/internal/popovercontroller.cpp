@@ -44,6 +44,27 @@ using namespace mu::engraving;
 using namespace mu::notation;
 using muse::RectF;
 
+namespace {
+// The one item the selection stands for. Clicking a time or key signature selects it on every staff: that list of
+// same-type items at one position counts as one item (the top staff's).
+EngravingItem* singleSelectedItem(const INotationSelectionPtr& selection)
+{
+    if (EngravingItem* e = selection->element()) {
+        return e;
+    }
+    EngravingItem* first = nullptr;
+    for (EngravingItem* e : selection->elements()) {
+        if (first && (e->type() != first->type() || e->tick() != first->tick())) {
+            return nullptr;
+        }
+        if (!first || e->staffIdx() < first->staffIdx()) {
+            first = e;
+        }
+    }
+    return first;
+}
+}
+
 void PopoverController::init()
 {
     for (const muse::rcommand::Command& command : DORICO_POPOVER_COMMANDS) {
@@ -130,7 +151,7 @@ bool PopoverController::openForSelection()
         return false;
     }
     INotationInteractionPtr interaction = globalContext()->currentNotation()->interaction();
-    EngravingItem* item = interaction->selection()->element();
+    EngravingItem* item = singleSelectedItem(interaction->selection());
     if (!item || interaction->noteInput()->isNoteInputMode()) {
         return false;
     }
@@ -149,7 +170,7 @@ bool PopoverController::openForSelection()
 EngravingItem* PopoverController::existingItem(const PopoverDef* def) const
 {
     INotationInteractionPtr interaction = globalContext()->currentNotation()->interaction();
-    EngravingItem* selected = interaction->selection()->element();
+    EngravingItem* selected = singleSelectedItem(interaction->selection());
     if (!def || !selected || interaction->noteInput()->isNoteInputMode()) {
         return nullptr;
     }

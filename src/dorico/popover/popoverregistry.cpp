@@ -26,6 +26,7 @@
 #include <memory>
 
 #include "handlers/dynamicshandler.h"
+#include "handlers/timesighandler.h"
 
 using namespace mu::dorico;
 using namespace mu::engraving;
@@ -79,7 +80,7 @@ PopoverRegistry mu::dorico::makePopoverRegistry()
     r.add(placeholder("notetools", "Note Tools", IconCode::NOTE_HEAD));                    // spec 35
     r.add(placeholder("keysig", "Key Signatures", IconCode::KEY_SIGNATURE));               // spec 23
     r.add(placeholder("lyrics", "Lyrics", IconCode::LYRICS));                              // spec 33
-    r.add(placeholder("timesig", "Time Signatures", IconCode::TIME_SIGNATURE));            // spec 22
+    r.add(timeSigPopover());                                                               // spec 22
     r.add(placeholder("ornaments", "Ornaments", IconCode::ORNAMENT));                      // spec 28
     r.add(placeholder("techniques", "Playing Techniques", IconCode::ARTICULATION));        // spec 29
     r.add(placeholder("chordsymbols", "Chord Symbols", IconCode::CHORD_SYMBOL));           // spec 32
