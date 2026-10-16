@@ -97,6 +97,15 @@ inline static const muse::rcommand::Command DORICO_SELECT_BOTTOM_STAFF_COMMAND("
 inline static const muse::rcommand::Command DORICO_RESPELL_ABOVE_COMMAND("command://dorico/respell-above");
 inline static const muse::rcommand::Command DORICO_RESPELL_BELOW_COMMAND("command://dorico/respell-below");
 
+// Duration edits and rhythmic moves (spec 13).
+inline static const muse::rcommand::Command DORICO_LENGTHEN_BY_GRID_COMMAND("command://dorico/lengthen-by-grid");
+inline static const muse::rcommand::Command DORICO_SHORTEN_BY_GRID_COMMAND("command://dorico/shorten-by-grid");
+inline static const muse::rcommand::Command DORICO_DOUBLE_DURATION_COMMAND("command://dorico/double-duration");
+inline static const muse::rcommand::Command DORICO_HALVE_DURATION_COMMAND("command://dorico/halve-duration");
+inline static const muse::rcommand::Command DORICO_MOVE_RIGHT_COMMAND("command://dorico/move-right");
+inline static const muse::rcommand::Command DORICO_MOVE_LEFT_COMMAND("command://dorico/move-left");
+inline static const muse::rcommand::Command DORICO_SCISSORS_COMMAND("command://dorico/scissors");
+
 // Project window modes and zones (spec 50). Mode commands are in `Mode` order (Setup, Write, Engrave, Play, Print).
 inline static const std::array<muse::rcommand::Command, 5> DORICO_MODE_COMMANDS = {
     muse::rcommand::Command("command://dorico/mode-setup"),

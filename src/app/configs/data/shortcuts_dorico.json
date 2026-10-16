@@ -246,7 +246,14 @@
         {"command": "command://dorico/select-top-staff", "sequences": ["Ctrl+Up"]},
         {"command": "command://dorico/select-bottom-staff", "sequences": ["Ctrl+Down"]},
         {"command": "command://dorico/respell-above", "sequences": ["Alt+="]},
-        {"command": "command://dorico/respell-below", "sequences": ["Alt+-"]}
+        {"command": "command://dorico/respell-below", "sequences": ["Alt+-"]},
+        {"command": "command://dorico/lengthen-by-grid", "sequences": ["Alt+Shift+Right"]},
+        {"command": "command://dorico/shorten-by-grid", "sequences": ["Alt+Shift+Left"]},
+        {"command": "command://dorico/double-duration", "sequences": ["Ctrl+Alt+Shift+Right"]},
+        {"command": "command://dorico/halve-duration", "sequences": ["Ctrl+Alt+Shift+Left"]},
+        {"command": "command://dorico/move-right", "sequences": ["Alt+Right"]},
+        {"command": "command://dorico/move-left", "sequences": ["Alt+Left"]},
+        {"command": "command://dorico/scissors", "sequences": ["U"]}
         ]
     },
     {

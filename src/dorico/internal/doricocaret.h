@@ -53,6 +53,7 @@ public:
     void navigateVertically(bool up, bool toEnd) override;
     void finerGrid() override;
     void coarserGrid() override;
+    int gridDenominator() const override { return m_gridDenominator; }
     bool paint(muse::draw::Painter* painter) override;
 
 private:

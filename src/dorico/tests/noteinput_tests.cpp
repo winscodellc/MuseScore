@@ -162,6 +162,17 @@ TEST(DoricoCaretMath, LeftStepsByGridOrToTheNoteStart)
 }
 
 // Dorico manual, "Respelling notes": G-sharp up -> A-flat -> B-triple-flat; G-sharp down -> F-triple-sharp.
+// Spec 13 reuses the caret steps for Shift-Opt-Right / Left on a hairpin: next grid position or note, whichever is closer.
+TEST(DoricoCaretMath, HairpinEndGoesToTheCloserOfGridAndNote)
+{
+    // 4/4 bar at 0, hairpin ends on beat 2 (480), eighth grid (240)
+    EXPECT_EQ(nextCaretTick(480, 0, 240, 1440), 720); // next note on beat 4: grid wins, beat 2.5
+    EXPECT_EQ(nextCaretTick(480, 0, 240, 600), 600);  // next note a 16th away: the note wins
+    EXPECT_EQ(nextCaretTick(480, 0, 240, 720), 720);  // equal distance: same tick either way
+    EXPECT_EQ(prevCaretTick(480, 0, 240, 0), 240);    // shortening: previous grid position
+    EXPECT_EQ(prevCaretTick(480, 0, 240, 360), 360);  // ... or a closer note
+}
+
 TEST(DoricoRespell, ManualExamples)
 {
     using namespace mu::engraving;

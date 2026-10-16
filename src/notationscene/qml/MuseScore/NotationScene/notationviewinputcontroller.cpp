@@ -1451,6 +1451,12 @@ bool NotationViewInputController::shortcutOverrideEvent(QKeyEvent* event)
         return true;
     }
 
+    // Dorico fork (spec 13): (Cmd-)Shift-Opt-Left/Right lengthen / shorten the selection, also on a selected line or text
+    if ((key == Qt::Key_Left || key == Qt::Key_Right) && event->modifiers().testFlags(Qt::AltModifier | Qt::ShiftModifier)
+        && !viewInteraction()->isTextEditingStarted()) {
+        return false;
+    }
+
     if (viewInteraction()->isEditingElement()) {
         return viewInteraction()->isEditAllowed(event);
     }

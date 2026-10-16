@@ -33,6 +33,8 @@ target_sources(dorico PRIVATE
     internal/doricoactionscontroller.h
     internal/doricocaret.cpp
     internal/doricocaret.h
+    internal/doricodurationscontroller.cpp
+    internal/doricodurationscontroller.h
     internal/doricomodestate.cpp
     internal/doricomodestate.h
     internal/doriconoteinputcontroller.cpp

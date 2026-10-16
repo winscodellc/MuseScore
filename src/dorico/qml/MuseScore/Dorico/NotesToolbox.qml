@@ -42,7 +42,7 @@ Column {
         accessible.name: qsTrc("dorico", "Notes toolbox")
     }
 
-    // ponytail: command ids for features no spec has built yet (select tool, force duration, scissors, insert
+    // ponytail: command ids for features no spec has built yet (select tool, force duration, insert
     // scopes, slash voices) are unregistered on purpose: DoricoToolsModel turns them into unavailable buttons.
     readonly property var buttons: [
         { "code": "command://dorico/toggle-zone-left", "title": qsTrc("dorico", "Show Left Zone"), "icon": "svg:panel-left" },

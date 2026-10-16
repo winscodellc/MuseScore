@@ -91,6 +91,17 @@ static std::vector<CommandInfo> makeCommandInfos()
     v.push_back(info(DORICO_SELECT_BOTTOM_STAFF_COMMAND, "Dorico: bottom staff", "Goes to the bottom staff at the same position"));
     v.push_back(info(DORICO_RESPELL_ABOVE_COMMAND, "Dorico: respell using note name above", "Respells the selected notes with the next note name up"));
     v.push_back(info(DORICO_RESPELL_BELOW_COMMAND, "Dorico: respell using note name below", "Respells the selected notes with the next note name down"));
+    v.push_back(info(DORICO_LENGTHEN_BY_GRID_COMMAND, "Dorico: lengthen by grid",
+                     "Lengthens the selected notes by the rhythmic grid; lines go to the next grid position or note"));
+    v.push_back(info(DORICO_SHORTEN_BY_GRID_COMMAND, "Dorico: shorten by grid",
+                     "Shortens the selected notes by the rhythmic grid; lines go to the previous grid position or note"));
+    v.push_back(info(DORICO_DOUBLE_DURATION_COMMAND, "Dorico: double duration", "Doubles the selected notes; lines extend to the next note"));
+    v.push_back(info(DORICO_HALVE_DURATION_COMMAND, "Dorico: halve duration", "Halves the selected notes; lines shorten to the previous note"));
+    v.push_back(info(DORICO_MOVE_RIGHT_COMMAND, "Dorico: move right",
+                     "Moves the selected note past the next one, or the selected dynamic or text to the next note"));
+    v.push_back(info(DORICO_MOVE_LEFT_COMMAND, "Dorico: move left",
+                     "Moves the selected note before the previous one, or the selected dynamic or text to the previous note"));
+    v.push_back(info(DORICO_SCISSORS_COMMAND, "Dorico: scissors", "Removes the ties of the selected tie chains"));
 
     static const char* MODES[] = { "Setup", "Write", "Engrave", "Play", "Print" };
     for (int i = 0; i < 5; ++i) {

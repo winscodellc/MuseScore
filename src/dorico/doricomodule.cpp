@@ -35,6 +35,7 @@
 #include "internal/doricocaret.h"
 #include "internal/doricocommandsregister.h"
 #include "internal/doricocommandsstate.h"
+#include "internal/doricodurationscontroller.h"
 #include "internal/doricomenuarranger.h"
 #include "internal/doricomodestate.h"
 #include "internal/doricoshell.h"
@@ -134,6 +135,7 @@ void DoricoContext::registerExports()
 {
     m_actionsController = std::make_shared<DoricoActionsController>(iocContext());
     m_caret = std::make_shared<DoricoCaret>(iocContext());
+    m_durationsController = std::make_shared<DoricoDurationsController>(iocContext());
     m_modeState = std::make_shared<DoricoModeState>();
     m_noteInputController = std::make_shared<DoricoNoteInputController>(iocContext());
     m_popoverController = std::make_shared<PopoverController>(iocContext());
@@ -156,6 +158,7 @@ void DoricoContext::onInit(const IApplication::RunMode&)
 {
     m_actionsController->init();
     m_caret->init();
+    m_durationsController->init();
     m_noteInputController->init();
     m_popoverController->init();
 }

@@ -52,6 +52,8 @@ public:
 
     virtual void finerGrid() = 0;
     virtual void coarserGrid() = 0;
+    //! The rhythmic grid as a note value denominator: 8 = eighth notes. Also used outside note input (spec 13).
+    virtual int gridDenominator() const = 0;
 
     //! Called by the score view. false = not handled, MuseScore paints its own caret.
     virtual bool paint(muse::draw::Painter* painter) = 0;
