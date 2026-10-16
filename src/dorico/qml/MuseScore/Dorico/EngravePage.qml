@@ -73,7 +73,7 @@ DoricoPage {
                     { "id": "frames", "title": qsTrc("dorico", "Frames"), "icon": "svg:frame", "available": true },
                     { "id": "staffSpacing", "title": qsTrc("dorico", "Staff Spacing"), "icon": "svg:move-vertical", "available": false },
                     { "id": "noteSpacing", "title": qsTrc("dorico", "Note Spacing"), "icon": "svg:move-horizontal", "available": false },
-                    { "id": "slices", "title": qsTrc("dorico", "Graphic Slices"), "icon": "svg:camera", "available": true }
+                    { "id": "slices", "title": qsTrc("dorico", "Graphic Slices"), "icon": "svg:crop", "available": true }
                 ]
 
                 NavigationPanel {
@@ -176,6 +176,7 @@ DoricoPage {
                             navigationOrderStart: 0
                             codes: ["command://notation/move-measure-to-prev-system", "command://notation/move-measure-to-next-system"]
                             labels: [qsTrc("dorico", "Move to Previous System"), qsTrc("dorico", "Move to Next System")]
+                            icons: ["svg:corner-left-up", "svg:corner-right-down"]
                         }
 
                         ToolSection {
@@ -185,6 +186,7 @@ DoricoPage {
                             navigationOrderStart: 10
                             codes: ["command://notation/toggle-system-break", "command://notation/toggle-system-lock", "command://notation/make-into-system"]
                             labels: [qsTrc("dorico", "Insert System Break"), qsTrc("dorico", "Lock System"), qsTrc("dorico", "Make into System")]
+                            icons: ["svg:wrap-text", "svg:lock", "svg:fold-horizontal"]
                         }
 
                         // MuseScore has no music frames; its page break is the closest to a frame break.
@@ -195,6 +197,7 @@ DoricoPage {
                             navigationOrderStart: 20
                             codes: ["command://notation/toggle-page-break", "command://dorico/lock-frame", "command://dorico/make-into-frame"]
                             labels: [qsTrc("dorico", "Insert Frame Break"), qsTrc("dorico", "Lock Frame"), qsTrc("dorico", "Make into Frame")]
+                            icons: ["svg:file-down", "svg:lock", "svg:fold-vertical"]
                         }
 
                         ToolSection {
@@ -204,6 +207,7 @@ DoricoPage {
                             navigationOrderStart: 30
                             codes: ["command://dorico/lock-layout", "command://notation/reset-to-default-layout"]
                             labels: [qsTrc("dorico", "Lock Layout"), qsTrc("dorico", "Reset Layout")]
+                            icons: ["svg:lock", "svg:rotate-ccw"]
                         }
 
                         ToolSection {
@@ -213,6 +217,7 @@ DoricoPage {
                             navigationOrderStart: 40
                             codes: ["command://dorico/create-coordination-line"]
                             labels: [qsTrc("dorico", "Create Coordination Line")]
+                            icons: ["svg:align-center-vertical"]
                         }
 
                         PaletteSections {
@@ -228,6 +233,7 @@ DoricoPage {
                             navigationOrderStart: 60
                             codes: ["command://dorico/change-barline-joins"]
                             labels: [qsTrc("dorico", "Change Barline Joins")]
+                            icons: ["svg:link-2"]
                         }
                     }
                 }
@@ -257,6 +263,7 @@ DoricoPage {
                         navigationOrderStart: 110
                         codes: ["command://dorico/frame-constraints"]
                         labels: [qsTrc("dorico", "Lock to Page Margins")]
+                        icons: ["svg:scan"]
                     }
                 }
 

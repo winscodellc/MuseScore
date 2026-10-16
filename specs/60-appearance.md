@@ -56,31 +56,49 @@ Glyph icons use `Text.QtRendering` (grayscale antialiasing): native LCD renderin
 - **Theme colors (upstream edit, values only):** `src/app/configs/dark.cfg` and `light.cfg` take the table above. Button opacity normal/hover/hit = 1.0/0.8/0.6, so buttons are opaque like Dorico's. Keys stay the same, so Preferences' theme reset gives back the Dorico colors.
 - **Canvas colors and default theme (fork only):** `DoricoModule::onInit` (`src/dorico/doricomodule.cpp`) writes the music-area background (both themes), white paper and orange selection (voices 1-4 and "all voices") with `settings()->setSharedValue`, then switches to the Dark theme. It runs once per `APPEARANCE_VERSION`; bump the constant to re-apply after re-tuning. Same pattern as the one-time keymap switch next to it.
 - **Icons:** `DoricoButton.doricoIcon` takes an `IconCode`, a SMuFL glyph string (drawn in Bravura Text, ink-centered and fitted to a 20 px box, tiny glyphs capped at 60 px) or `"svg:<name>"` (a Lucide SVG from `qml/MuseScore/Dorico/icons/`, tinted with `EffectColorOverlay`). Checked icon-only buttons use Dorico's bright tool blue with a black (Dark) or white (Light) glyph, as in Dorico; text buttons keep the muted theme accent. `ToolSection.icons` accepts the same values.
-- Lucide SVGs come from `https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/<name>.svg`. Only the icons in use are committed, with `icons/LICENSE-lucide.txt`. They are added to the QML module with a `file(GLOB icons/*.svg)` in its `CMakeLists.txt`.
+- Lucide SVGs come from `https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/<name>.svg`. Only the icons in use are committed, with `icons/LICENSE-lucide.txt`. They are added to the QML module with a `file(GLOB CONFIGURE_DEPENDS icons/*.svg)` in its `CMakeLists.txt` (re-globbed when icons are added or removed).
 
 ### Icon mapping
-| Button | Icon |
-|---|---|
-| Show Left Zone | `svg:panel-left` |
-| Select / Start Note Input / Pitch Before Duration | `svg:mouse-pointer-2` / `svg:pencil` / `svg:pencil-line` |
-| Chords / Insert / Lock Duration / Force Duration | `svg:layers` / `svg:between-vertical-start` / `svg:lock` / `svg:lock-keyhole` |
-| Create Voice / Scissors | `svg:split` / `svg:scissors` |
-| Dotted notes / Rests / Tuplets / Grace notes | U+ECA5 U+ECB7 (quarter + dot) / U+E4E5 restQuarter / U+E883 tuplet3 / U+E560 acciaccatura |
-| Durations breve ... 128th (Notes panel) | U+ECA0, ECA2, ECA3, ECA5, ECA7, ECA9, ECAB, ECAD, ECAF (metNote*) |
-| Flat / natural / sharp | U+E260 / E261 / E262 |
-| Accent / marcato / staccato / tenuto | U+E4A0 / E4AC / E4A2 / E4A4 |
-| Clefs / key signatures / time signatures | U+E050 gClef / U+E262 U+E262 / U+E08A timeSigCommon |
-| Tempo / dynamics / ornaments | `svg:gauge` / U+E522 dynamicForte / U+E566 ornamentTrill |
-| Repeat structures / bars and barlines / holds and pauses | U+E040 repeatLeft / U+E032 barlineFinal / U+E4C0 fermataAbove |
-| Playing techniques / lines | U+E610 stringsDownBow / `svg:spline` |
-| Note tools / figured bass | U+E0A4 noteheadBlack / U+EA5B figbass6 |
-| Cues, video, comments, proofreading | `svg:mic`, `svg:film`, `svg:message-square`, `svg:check-check` |
-| Rehearsal marks, text, lyrics, fingering, MIDI trigger | `svg:flag`, `svg:type`, `svg:text`, `svg:hand`, `svg:keyboard-music` |
-| Notations toolbox: popovers / panels switch | `svg:square-pen` / `svg:layout-grid` |
-| Top bar: Hide/Restore Zones, Mixer, Help | `svg:eye`, `svg:sliders-vertical`, `svg:circle-help` |
-| Engrave toolbox | `svg:panel-left`, `svg:pen-tool`, `svg:frame`, `svg:move-vertical`, `svg:move-horizontal`, `svg:camera` |
-| Setup / Layouts action bars | `svg:plus`, `svg:user-plus`, `svg:music`, `svg:list`, `svg:settings`, `svg:sliders-horizontal`, `svg:pencil`, `svg:trash-2` |
-| Tie, slur, chord symbols, bracket | MuseScore icons (`NOTE_TIE`, `NOTE_SLUR`, `CHORD_SYMBOL`, `BRACKET`): no fitting glyph or Lucide icon |
+Rule: the icon shows **what the button does in Dorico** (manual text), not just a related thing. Notation is drawn as notation (Bravura glyph or our own SVG of notes), actions as Lucide pictograms. Every icon button keeps its words as the tooltip and accessible name. Candidates were rendered side by side offscreen and checked before use.
+Own SVGs (original, GPL, Lucide's 24 px / 2 px stroke style): `chord` (three stacked noteheads on one stem), `voice` (stem-up and stem-down notes), `tempo` (quarter note "="), `cue` (small note in brackets), `slur` (arc), `rehearsal-mark` (boxed A), `chord-symbol` (C⁷).
+
+| Where | Button | Icon |
+|---|---|---|
+| Notes toolbox | Show Left Zone / Select (disable mouse input) / Start Note Input | `svg:panel-left` / `svg:mouse-pointer-2` / `svg:pencil` |
+| | Pitch Before Duration | U+E0A4 U+EB62 U+ECA5 (notehead, arrow, note: pitch then duration) |
+| | Chords / Insert | `svg:chord` / `svg:text-cursor-input` (insertion caret) |
+| | Lock Duration / Force Duration | `svg:lock` / `svg:pin` (pins the exact duration; distinct from Lock) |
+| | Create Voice | `svg:voice` |
+| | Dotted notes / Rests / Tuplets / Grace notes | U+ECA5 U+ECB7 / U+E4E5 / U+E883 / U+E560 |
+| | Tie / Scissors | U+E1F0 U+E1FD U+E1F0 (two notes tied) / `svg:scissors` |
+| Notes panel | Durations breve ... 128th | U+ECA0, ECA2, ECA3, ECA5, ECA7, ECA9, ECAB, ECAD, ECAF |
+| | Flat / Natural / Sharp / Slur | U+E260 / E261 / E262 / `svg:slur` |
+| | Accent / Marcato / Stressed / Unstressed | U+E4A0 / E4AC / E4B6 / E4B8 |
+| | Staccato / Tenuto / Staccatissimo / Tenuto-staccato | U+E4A2 / E4A4 / E4A6 / E4B2 |
+| Notations toolbox | Clefs / Key signatures / Time signatures | U+E050 / U+E262 U+E262 / U+E08A |
+| | Tempo / Dynamics / Ornaments | `svg:tempo` / U+E522 / U+E566 |
+| | Repeat structures / Bars and barlines / Holds and pauses | U+E040 / U+E032 / U+E4C0 |
+| | Playing techniques / Lines | U+E610 / `svg:move-up-right` |
+| | Cues / Video / Comments / Proofreading | `svg:cue` / `svg:film` / `svg:message-square` / `svg:check-check` |
+| | Rehearsal marks / Text / Lyrics / Chord symbols | `svg:rehearsal-mark` / `svg:type` / `svg:mic-vocal` / `svg:chord-symbol` |
+| | Note tools / Fingering / Figured bass / MIDI trigger | U+E0A4 / `svg:hand` / U+EA5B / `svg:keyboard-music` |
+| | Popovers / panels switch | `svg:square-pen` / `svg:layout-grid` |
+| Top bar | Hide/Restore Zones / Mixer / Help | `svg:panels-left-bottom` / `svg:sliders-vertical` / `svg:circle-help` |
+| Status bar | Follow playhead / Marquee tool / Page arrangement | `svg:locate-fixed` / `svg:square-dashed` / `svg:book-open` |
+| Key editor (lower zone) | Advance Caret / Delete Left / Set Duration / Slur | `svg:arrow-right` / `svg:delete` / U+ECA5 / `svg:slur` |
+| Engrave toolbox | Show Left Zone / Graphic Editing / Frames | `svg:panel-left` / `svg:pen-tool` / `svg:frame` |
+| | Staff Spacing / Note Spacing / Graphic Slices | `svg:move-vertical` / `svg:move-horizontal` / `svg:crop` |
+| Engrave Formatting | Move to Previous / Next System | `svg:corner-left-up` / `svg:corner-right-down` |
+| | Insert System Break / Lock System / Make into System | `svg:wrap-text` / `svg:lock` / `svg:fold-horizontal` |
+| | Insert Frame Break / Lock Frame / Make into Frame | `svg:file-down` / `svg:lock` / `svg:fold-vertical` |
+| | Lock Layout / Reset Layout / Coordination Line / Barline Joins | `svg:lock` / `svg:rotate-ccw` / `svg:align-center-vertical` / `svg:link-2` |
+| | Insert Frames (vertical / text / horizontal) / Lock to Page Margins | MuseScore's frame icons / `svg:scan` |
+| Setup: Players | Add Single / Section Player, Add Ensemble, Add Group, Sort, Settings | `svg:user-plus`, `svg:users`, `svg:boxes`, `svg:folder-plus`, `svg:arrow-down-wide-narrow`, `svg:settings` |
+| Setup: Flows | Add Flow, Notation Options, Flow Settings, Delete Flow | `svg:plus`, `svg:sliders-horizontal`, `svg:settings`, `svg:trash-2` |
+| Setup: Layouts | Add Full Score / Part / Custom Score Layout | `svg:file-music` / `svg:file-user` / `svg:file-pen` |
+| | Sort, Options, Settings, Delete | `svg:arrow-down-wide-narrow`, `svg:sliders-horizontal`, `svg:settings`, `svg:trash-2` |
+
+Still words, on purpose (Dorico shows words there too): status bar Grid value, Concert / Transposed Pitch, Order, Page / Galley / Fill; top-bar mode tabs, layout selector and View; Play mode's Track Inspector / VST and MIDI tabs; Print mode's options.
 
 ## Deferred / unsupported
 | Item | Reason |
@@ -90,7 +108,7 @@ Glyph icons use `Text.QtRendering` (grayscale antialiasing): native LCD renderin
 | Voice colors shown only with Dorico's "Voice colors" view option | MuseScore tints selection by voice; every voice's selection color is orange instead |
 | Theme "Auto" | MuseScore's "Follow system theme" preference does the same |
 | Dorico's UI typeface | Not documented; MuseScore's UI font stays |
-| Icons outside the Dorico shell (MuseScore dialogs, palettes, Home page, status bar arrows) | Keep MuseScore's icons |
+| Icons outside the Dorico shell (MuseScore dialogs, palettes, Home page, status-bar zone arrow) | Keep MuseScore's icons |
 | Pixel-exact colors | Measured from small, scaled screenshots; re-tune against a running Dorico if needed (bump `APPEARANCE_VERSION` for canvas colors) |
 
 ## Acceptance criteria

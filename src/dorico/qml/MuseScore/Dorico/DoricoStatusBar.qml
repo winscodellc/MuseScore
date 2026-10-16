@@ -82,7 +82,7 @@ Item {
     }
 
     // A control Dorico has but MuseScore cannot back yet: shown disabled so the layout matches.
-    component StubButton: FlatButton {
+    component StubButton: DoricoButton {
         Layout.alignment: Qt.AlignVCenter
         Layout.preferredHeight: 28
 
@@ -92,7 +92,7 @@ Item {
     }
 
     // FlatButton has no `checked`: a highlighted (accent) button is the "on" state.
-    component ToggleButton: FlatButton {
+    component ToggleButton: DoricoButton {
         property bool active: false
 
         Layout.alignment: Qt.AlignVCenter
@@ -208,7 +208,7 @@ Item {
 
             visible: root.shows("follow")
             active: tools.items.length > 1 && tools.items[1].checked
-            icon: IconCode.PAN_SCORE
+            doricoIcon: "svg:locate-fixed"
             toolTipTitle: qsTrc("dorico", "Follow playhead")
 
             navigation.panel: navPanel
@@ -219,8 +219,8 @@ Item {
 
         StubButton {
             visible: root.shows("tools")
-            text: qsTrc("dorico", "Marquee")
-            toolTipTitle: qsTrc("dorico", "Click-drag tool")
+            doricoIcon: "svg:square-dashed"
+            toolTipTitle: qsTrc("dorico", "Marquee tool")
         }
 
         SeparatorLine { orientation: Qt.Vertical; visible: root.shows("viewType") }
@@ -253,7 +253,7 @@ Item {
 
         StubButton {
             visible: root.shows("arrangement")
-            icon: IconCode.PAGE
+            doricoIcon: "svg:book-open"
             toolTipTitle: qsTrc("dorico", "Page arrangement")
         }
 

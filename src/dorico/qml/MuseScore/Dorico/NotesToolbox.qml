@@ -48,9 +48,9 @@ Column {
         { "code": "command://dorico/toggle-zone-left", "title": qsTrc("dorico", "Show Left Zone"), "icon": "svg:panel-left" },
         { "code": "command://dorico/select-tool", "title": qsTrc("dorico", "Select"), "icon": "svg:mouse-pointer-2" },
         { "code": "command://dorico/return", "title": qsTrc("dorico", "Start Note Input"), "icon": "svg:pencil" },
-        { "code": "command://notation/toggle-note-input-by-duration", "title": qsTrc("dorico", "Pitch Before Duration"), "icon": "svg:pencil-line" },
-        { "code": "command://dorico/toggle-chord-mode", "title": qsTrc("dorico", "Chords"), "icon": "svg:layers" },
-        { "code": "command://dorico/toggle-insert-mode", "title": qsTrc("dorico", "Insert"), "icon": "svg:between-vertical-start",
+        { "code": "command://notation/toggle-note-input-by-duration", "title": qsTrc("dorico", "Pitch Before Duration"), "icon": "\uE0A4\uEB62\uECA5" },
+        { "code": "command://dorico/toggle-chord-mode", "title": qsTrc("dorico", "Chords"), "icon": "svg:chord" },
+        { "code": "command://dorico/toggle-insert-mode", "title": qsTrc("dorico", "Insert"), "icon": "svg:text-cursor-input",
             "menu": [
                 { "code": "command://dorico/toggle-insert-mode", "title": qsTrc("dorico", "Voice") },
                 { "code": "command://dorico/insert-scope-player", "title": qsTrc("dorico", "Player") },
@@ -59,8 +59,8 @@ Column {
             ] },
         // Spec 11 maps Lock Duration (L) to MuseScore's re-pitch input method.
         { "code": "command://notation/toggle-note-input-repitch", "title": qsTrc("dorico", "Lock Duration"), "icon": "svg:lock" },
-        { "code": "command://dorico/force-duration", "title": qsTrc("dorico", "Force Duration"), "icon": "svg:lock-keyhole" },
-        { "code": "command://dorico/next-voice", "title": qsTrc("dorico", "Create Voice"), "icon": "svg:split",
+        { "code": "command://dorico/force-duration", "title": qsTrc("dorico", "Force Duration"), "icon": "svg:pin" },
+        { "code": "command://dorico/next-voice", "title": qsTrc("dorico", "Create Voice"), "icon": "svg:voice",
             "menu": [
                 { "code": "command://dorico/new-voice", "title": qsTrc("dorico", "Create Voice") },
                 { "code": "command://dorico/new-slash-voice", "title": qsTrc("dorico", "Create Slash Voice") },
@@ -90,7 +90,7 @@ Column {
                 { "code": "command://notation/add-appoggiatura", "title": qsTrc("dorico", "Unslashed") },
                 { "code": "command://notation/add-acciaccatura", "title": qsTrc("dorico", "Slashed") }
             ] },
-        { "code": "command://notation/toggle-tie", "title": qsTrc("dorico", "Tie"), "icon": IconCode.NOTE_TIE },
+        { "code": "command://notation/toggle-tie", "title": qsTrc("dorico", "Tie"), "icon": "\uE1F0\uE1FD\uE1F0" },
         { "code": "command://dorico/scissors", "title": qsTrc("dorico", "Scissors"), "icon": "svg:scissors" }
     ]
 

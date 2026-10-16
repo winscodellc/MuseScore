@@ -1,6 +1,6 @@
 <!-- @license lucide-static v0.460.0 - ISC -->
 <svg
-  class="lucide lucide-eye"
+  class="lucide lucide-fold-vertical"
   xmlns="http://www.w3.org/2000/svg"
   width="24"
   height="24"
@@ -11,6 +11,12 @@
   stroke-linecap="round"
   stroke-linejoin="round"
 >
-  <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" />
-  <circle cx="12" cy="12" r="3" />
+  <path d="M12 22v-6" />
+  <path d="M12 8V2" />
+  <path d="M4 12H2" />
+  <path d="M10 12H8" />
+  <path d="M16 12h-2" />
+  <path d="M22 12h-2" />
+  <path d="m15 19-3-3-3 3" />
+  <path d="m15 5-3 3-3-3" />
 </svg>

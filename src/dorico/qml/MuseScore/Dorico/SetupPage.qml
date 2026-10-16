@@ -110,7 +110,7 @@ DoricoPage {
                         qsTrc("dorico", "Sort Players"),
                         qsTrc("dorico", "Player Settings")
                     ]
-                    icons: ["svg:plus", "svg:user-plus", "svg:music", IconCode.BRACKET, "svg:list", "svg:settings"]
+                    icons: ["svg:user-plus", "svg:users", "svg:boxes", "svg:folder-plus", "svg:arrow-down-wide-narrow", "svg:settings"]
                 }
             }
         },

@@ -99,7 +99,7 @@ Item {
                     "command://notation/add-slur"
                 ]
                 labels: [qsTrc("dorico", "Flat"), qsTrc("dorico", "Natural"), qsTrc("dorico", "Sharp"), qsTrc("dorico", "Slur")]
-                icons: ["\uE260", "\uE261", "\uE262", IconCode.NOTE_SLUR]
+                icons: ["\uE260", "\uE261", "\uE262", "svg:slur"]
             }
 
             SeparatorLine {}
@@ -124,7 +124,7 @@ Item {
                     qsTrc("dorico", "Accent"), qsTrc("dorico", "Marcato"), qsTrc("dorico", "Stressed"), qsTrc("dorico", "Unstressed"),
                     qsTrc("dorico", "Staccato"), qsTrc("dorico", "Tenuto"), qsTrc("dorico", "Staccatissimo"), qsTrc("dorico", "Tenuto-staccato")
                 ]
-                icons: ["\uE4A0", "\uE4AC", IconCode.NONE, IconCode.NONE, "\uE4A2", "\uE4A4", IconCode.NONE, IconCode.NONE]
+                icons: ["\uE4A0", "\uE4AC", "\uE4B6", "\uE4B8", "\uE4A2", "\uE4A4", "\uE4A6", "\uE4B2"]
             }
         }
     }

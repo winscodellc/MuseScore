@@ -170,7 +170,7 @@ Item {
         DoricoButton {
             anchors.verticalCenter: parent.verticalCenter
 
-            doricoIcon: "svg:eye"
+            doricoIcon: "svg:panels-left-bottom"
             toolTipTitle: qsTrc("dorico", "Hide/Restore Zones")
             navigation.panel: root.navigationPanel
             navigation.order: 12

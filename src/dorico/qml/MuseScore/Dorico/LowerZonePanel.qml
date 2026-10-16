@@ -278,7 +278,11 @@ DockPanel {
                                 qsTrc("dorico", "Slur")
                             ]
 
-                            text: labels[index]
+                            readonly property var icons: ["svg:arrow-right", "svg:delete", "\uECA5", "svg:slur"]
+
+                            doricoIcon: icons[index]
+                            toolTipTitle: labels[index]
+                            navigation.accessible.name: labels[index]
                             available: modelData.enabled
 
                             onTriggered: keyTools.handleMenuItem(modelData.id)

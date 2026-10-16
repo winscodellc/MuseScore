@@ -171,7 +171,7 @@ Item {
         spacing: 4
 
         DoricoButton {
-            doricoIcon: "svg:music"
+            doricoIcon: "svg:file-music"
             toolTipTitle: qsTrc("dorico", "Add Full Score Layout")
             available: false
             transparent: true
@@ -180,7 +180,7 @@ Item {
         }
 
         DoricoButton {
-            doricoIcon: "svg:plus"
+            doricoIcon: "svg:file-user"
             toolTipTitle: qsTrc("dorico", "Add Instrumental Part Layout")
             transparent: true
             navigation.panel: navPanel
@@ -189,7 +189,7 @@ Item {
         }
 
         DoricoButton {
-            doricoIcon: "svg:user-plus"
+            doricoIcon: "svg:file-pen"
             toolTipTitle: qsTrc("dorico", "Add Custom Score Layout")
             available: false
             transparent: true
@@ -198,7 +198,7 @@ Item {
         }
 
         DoricoButton {
-            doricoIcon: "svg:list"
+            doricoIcon: "svg:arrow-down-wide-narrow"
             toolTipTitle: qsTrc("dorico", "Sort Layouts")
             available: false
             transparent: true
@@ -216,7 +216,7 @@ Item {
         }
 
         DoricoButton {
-            doricoIcon: "svg:pencil"
+            doricoIcon: "svg:settings"
             toolTipTitle: qsTrc("dorico", "Layout Settings")
             toolTipDescription: available ? qsTrc("dorico", "Rename the selected part") : qsTrc("dorico", "The full score is named after the project")
             available: root.selectedIndex > 0

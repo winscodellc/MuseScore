@@ -21,7 +21,7 @@
 muse_create_qml_module(dorico_qml FOR dorico)
 
 # Lucide icons (ISC, see icons/LICENSE-lucide.txt), used by DoricoButton (spec 60).
-file(GLOB DORICO_ICONS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} icons/*.svg)
+file(GLOB DORICO_ICONS CONFIGURE_DEPENDS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} icons/*.svg)
 
 qt_add_qml_module(dorico_qml
     URI MuseScore.Dorico
