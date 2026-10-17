@@ -112,7 +112,7 @@ Status: todo | in-progress | pending review | done  -  Depends on: NN, NN  -  Do
 | 22 | [Popover: time signatures (Shift-M)](done/22-popover-time-signatures.md) | done | 20 |
 | 23 | [Popover: key signatures (Shift-K)](done/23-popover-key-signatures.md) | done | 20 |
 | 24 | [Popover: clefs and octave lines (Shift-C)](done/24-popover-clefs-octave-lines.md) | done | 20 |
-| 25 | [Popover: bars and barlines (Shift-B)](25-popover-bars-barlines.md) | pending review | 20 |
+| 25 | [Popover: bars and barlines (Shift-B)](done/25-popover-bars-barlines.md) | done | 20 |
 | 26 | [Popover: tempo (Shift-T)](26-popover-tempo.md) | todo | 20 |
 | 27 | [Popover: holds and pauses (Shift-H)](27-popover-holds-pauses.md) | todo | 20 |
 | 28 | [Popover: ornaments (Shift-O)](28-popover-ornaments.md) | todo | 20 |

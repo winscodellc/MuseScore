@@ -1,6 +1,6 @@
 <!-- markdownlint-disable -->
 # 25 — Bars and barlines popover (Shift-B)
-Status: pending review · Depends on: 20 · Dorico refs: [bars](https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_bars_barlines_bars_r.html), [beats](https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_bars_barlines_beats_r.html), [barlines](https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_bars_barlines_barlines_r.html), [barline procedure](https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/write_mode/write_mode_notations_input/write_mode_barlines_inputting_popover_t.html), [deleting bars](https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/notation_reference/notation_reference_bars/notation_reference_bars_deleting_t.html)
+Status: done · Depends on: 20 · Dorico refs: [bars](https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_bars_barlines_bars_r.html), [beats](https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_bars_barlines_beats_r.html), [barlines](https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_bars_barlines_barlines_r.html), [barline procedure](https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/write_mode/write_mode_notations_input/write_mode_barlines_inputting_popover_t.html), [deleting bars](https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/notation_reference/notation_reference_bars/notation_reference_bars_deleting_t.html)
 
 Reference: `specs/reference/dorico-popovers.md` (Bars and barlines), `specs/reference/dorico-editing.md` (§3.4), `specs/reference/musescore-internals.md` (§3).
 
@@ -80,6 +80,7 @@ As built. Parser `popover/parsers/barsparser.{h,cpp}` (`parseBars` -> `BarsEntry
 - Beats: `+2q`, `-2q`, `+2-6`, `+2 6`, `+2/4` -> `Unsupported` (no beat-granular insert/delete in MuseScore). `trim` removes empty bars only, never part of a bar.
 - Triple barline `|||`, tick/short barlines (`'`, `tick`, `tickbottom`, `,`, `short`, `shorttop`) -> `Unsupported`. MuseScore has span presets (`BARLINE_SPAN_FROM/TO`) that could draw tick / short barlines; not wired.
 - Bars at a caret in the middle of a bar: whole bars go after that bar (Dorico adds beats to finish the caret's bar).
+- A caret between grid points inside a chord/rest (eighth grid on a quarter note, spec 12) counts as that chord/rest's start, as in every popover: popovers act at MuseScore's input position, not `DoricoCaret`'s private tick. So `+1` with the caret half-way through a bar's first note inserts before the bar.
 - Bars added or deleted on some staves only (Opt-Return).
 - `rest` over a range rewrites voice 1 only.
 - Final barline trimming the flow.
@@ -87,16 +88,16 @@ As built. Parser `popover/parsers/barsparser.{h,cpp}` (`parseBars` -> `BarsEntry
 - Signpost handling (no signposts in MuseScore).
 
 ## Acceptance criteria
-- [ ] Shift-B, `+4`, Return with bar 3 selected → 4 empty bars inserted before bar 3 (the manual: before selected items, after a selected barline); Cmd-Z removes them.
-- [ ] `2` behaves like `+2`.
-- [ ] `-2` on bar 2 deletes bars 2–3 and later music moves left; Cmd-Z restores.
-- [ ] `rest` on a bar with notes leaves a bar rest.
-- [ ] `trim` removes only trailing empty bars (a score ending in 3 empty bars shrinks by 3; with a note in the last bar nothing changes).
-- [ ] `double`, `||`, `final`, `|]`, `dashed`, `:`, `thick`, `doublethick` give the matching MuseScore barline.
-- [ ] `|:` at a bar start → start repeat; `:|` → end repeat; entering `|:` where an end repeat exists makes end/start.
-- [ ] Range selection + `|:` adds a closing `:|` at the range end.
-- [ ] Selecting an existing barline, Return, popover pre-filled; applying a new one replaces it.
-- [ ] `+2q`, `triple`, `tick` are red + "not supported yet".
+- [x] Shift-B, `+4`, Return with bar 3 selected → 4 empty bars inserted before bar 3 (the manual: before selected items, after a selected barline); Cmd-Z removes them.
+- [x] `2` behaves like `+2`.
+- [x] `-2` on bar 2 deletes bars 2–3 and later music moves left; Cmd-Z restores.
+- [x] `rest` on a bar with notes leaves a bar rest.
+- [x] `trim` removes only trailing empty bars (a score ending in 3 empty bars shrinks by 3; with a note in the last bar nothing changes).
+- [x] `double`, `||`, `final`, `|]`, `dashed`, `:`, `thick`, `doublethick` give the matching MuseScore barline.
+- [x] `|:` at a bar start → start repeat; `:|` → end repeat; entering `|:` where an end repeat exists makes end/start.
+- [x] Range selection + `|:` adds a closing `:|` at the range end.
+- [x] Selecting an existing barline, Return, popover pre-filled; applying a new one replaces it.
+- [x] `+2q`, `triple`, `tick` are red + "not supported yet".
 - [x] Parser tests pass.
 
 ## Tests
@@ -125,4 +126,6 @@ As built. Parser `popover/parsers/barsparser.{h,cpp}` (`parseBars` -> `BarsEntry
 | `+` | Incomplete |
 | `foo`, `+x`, `0` | Invalid |
 
-Built and unit-tested (`dorico_tests` 85/85, 6 new `DoricoBarsParser` tests). Manual check in the app pending.
+Built and unit-tested (`dorico_tests` 85/85, 6 new `DoricoBarsParser` tests).
+
+Manual test (2026-10-17, our build driven with ClaudeUIControl, 9-bar one-staff score: C D E F G A bars + 3 empty): every acceptance box above passed. Also checked: one Cmd-Z undoes a range `|:` (both repeats); `trim` with nothing to trim adds no undo step; Return on a selected double barline prefills `double`, on an end/start repeat `endstart`; a double barline on a mid-bar note splits the bar there; in note input `:` at a mid-bar caret splits the bar and note input carries on at the caret, `rest` gives the caret's bar a bar rest, `+2` at a bar start inserts before that bar, `+1` on beat 2 inserts after it, `-1` deletes the caret's bar and the caret moves to the next one. Not checked: Opt-Return on a multi-staff score.
