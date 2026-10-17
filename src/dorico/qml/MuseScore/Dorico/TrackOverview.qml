@@ -153,7 +153,8 @@ Rectangle {
 
                     width: root.headerWidth
                     height: root.trackHeight
-                    color: header.selected ? Utils.colorWithAlpha(ui.theme.accentColor, 0.3) : ui.theme.backgroundSecondaryColor
+                    // Selected: filled with a light tint of the track colour and dark text, as in Dorico
+                    color: header.selected ? Qt.tint(root.trackColor(header.index), "#99FFFFFF") : ui.theme.backgroundSecondaryColor
 
                     MouseArea {
                         anchors.fill: parent
@@ -174,6 +175,7 @@ Rectangle {
                         anchors.rightMargin: 4
                         horizontalAlignment: Text.AlignLeft
                         font: header.selected ? ui.theme.bodyBoldFont : ui.theme.bodyFont
+                        color: header.selected ? "#000000" : ui.theme.fontPrimaryColor
                         text: header.modelData.title
                     }
 

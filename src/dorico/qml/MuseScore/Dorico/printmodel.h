@@ -31,6 +31,7 @@
 #include "print/iprintprovider.h"
 #include "project/iexportprojectscenario.h"
 #include "notation/inotation.h"
+#include "notation/iexcerptnotation.h"
 
 namespace mu::dorico {
 //! Backs Print mode (spec 58): the layouts (full score + each part) with a "print this" check box, and the
@@ -78,10 +79,14 @@ private:
     struct Layout {
         QString title;
         notation::INotationPtr notation;
+        notation::IExcerptNotationPtr excerpt; // null for the full score
         bool checked = false;
     };
 
-    notation::INotationPtrList checkedNotations() const;
+    //! `keepChecks`: keep the checked layouts (a refresh) instead of checking only the current one (page shown).
+    void reload(bool keepChecks);
+    //! Creates the checked parts that were never opened (they have no score to print yet), then returns them all.
+    notation::INotationPtrList checkedNotations();
 
     std::vector<Layout> m_layouts;
 };

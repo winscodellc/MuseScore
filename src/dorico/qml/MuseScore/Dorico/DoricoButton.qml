@@ -32,7 +32,8 @@ import Muse.GraphicalEffects
 //! A FlatButton that can be "unavailable": it looks disabled but stays hoverable, so its tooltip can say why
 //! (a disabled FlatButton disables its MouseArea and shows no tooltip). Use `triggered`, not `clicked`.
 //! `doricoIcon` (spec 60) is an IconCode, a SMuFL glyph string (drawn in Bravura Text) or "svg:<name>" (a Lucide
-//! icon in icons/). Checked icon-only buttons use Dorico's bright tool blue with a black (Dark) or white (Light)
+//! icon in icons/) or "frac:<n>" (a stacked 1/n, Dorico's label for the shortest durations). Checked icon-only
+//! buttons use Dorico's bright tool blue with a black (Dark) or white (Light)
 //! icon; the theme accent (a muted blue) stays for text buttons, where it keeps the text readable.
 FlatButton {
     id: root
@@ -51,7 +52,9 @@ FlatButton {
     icon: root.hasCustomIcon ? IconCode.NONE : root.doricoIcon
     accentColor: root.isToolIcon ? (ui.theme.isDark ? "#40ACFF" : "#0068AD") : ui.theme.accentColor
     iconColor: root.accentButton && root.isToolIcon ? (ui.theme.isDark ? "#000000" : "#FFFFFF") : ui.theme.fontPrimaryColor
-    contentItem: root.hasCustomIcon ? (root.label !== "" ? labelledIconComponent : customIconComponent) : null
+    contentItem: !root.hasCustomIcon ? null
+               : root.label !== "" ? labelledIconComponent
+               : root.doricoIcon.startsWith("frac:") ? fractionComponent : customIconComponent
 
     // A custom icon makes FlatButton a Custom button, which has no size of its own. A labelled one sizes itself from
     // its content (FlatButton: content + 2 * margins).
@@ -102,6 +105,43 @@ FlatButton {
     }
 
     Component {
+        id: fractionComponent
+
+        Item {
+            implicitWidth: root.iconBoxSize
+            implicitHeight: root.iconBoxSize
+
+            Column {
+                anchors.centerIn: parent
+                spacing: 1
+
+                StyledTextLabel {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: "1"
+                    font.pixelSize: 11
+                    color: root.iconColor
+                    renderType: Text.CurveRendering // grayscale, see the glyph below
+                }
+
+                Rectangle {
+                    width: denominator.implicitWidth
+                    height: 1
+                    color: root.iconColor
+                }
+
+                StyledTextLabel {
+                    id: denominator
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: root.doricoIcon.slice(5)
+                    font.pixelSize: 11
+                    color: root.iconColor
+                    renderType: Text.CurveRendering // grayscale, see the glyph below
+                }
+            }
+        }
+    }
+
+    Component {
         id: customIconComponent
 
         Item {
@@ -133,8 +173,9 @@ FlatButton {
                 text: box.isSvg ? "" : root.doricoIcon
                 font.family: "Bravura Text"
                 font.pixelSize: Math.max(1, scale100 * 100)
-                // Grayscale antialiasing: native (LCD) rendering gives thin stems and barlines blue/orange fringes.
-                renderType: Text.QtRendering
+                // Grayscale antialiasing: native (LCD) rendering gives stems and noteheads blue/orange fringes, and
+                // QtRendering still falls back to it for Bravura on macOS (seen in the spec 52 review).
+                renderType: Text.CurveRendering
                 color: box.tint
 
                 // Center the ink, not the text box: glyphs sit at very different heights around the baseline.

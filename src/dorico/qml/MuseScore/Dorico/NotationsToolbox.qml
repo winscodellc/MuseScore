@@ -28,7 +28,7 @@ import QtQuick
 import Muse.Ui
 import Muse.UiComponents
 
-//! Write mode's Notations toolbox (spec 53): the vertical strip at the far right. A switch at the top chooses
+//! Write mode's Notations toolbox (spec 53): the vertical strip at the far right. Two buttons at the top choose
 //! Panels (each button shows that panel in the right zone, NotationsPanel.qml) or Popovers (each button opens a
 //! popover, spec 20; Cues and MIDI Trigger Region have no command and stay unavailable).
 Column {
@@ -91,23 +91,34 @@ Column {
     spacing: 2
     padding: 4
 
-    DoricoButton {
-        id: modeButton
+    // Dorico's two mode buttons: Panels (palette) and Popovers (keyboard); the current mode is highlighted.
+    Repeater {
+        model: [
+            { "popovers": false, "icon": "svg:palette", "title": qsTrc("dorico", "Panels") },
+            { "popovers": true, "icon": "svg:keyboard", "title": qsTrc("dorico", "Popovers") }
+        ]
 
-        doricoIcon: root.popoversMode ? "svg:square-pen" : "svg:layout-grid"
-        iconBoxSize: 28
-        transparent: true
-        toolTipTitle: root.popoversMode ? qsTrc("dorico", "Popovers") : qsTrc("dorico", "Panels")
-        toolTipDescription: qsTrc("dorico", "Switch between panels and popovers")
-        navigation.panel: root.navigationPanel
-        navigation.order: 0
-        onClicked: root.popoversMode = !root.popoversMode
+        DoricoButton {
+            required property var modelData
+            required property int index
+
+            readonly property bool isActive: root.popoversMode === modelData.popovers
+
+            doricoIcon: modelData.icon
+            iconBoxSize: 28
+            accentButton: isActive
+            transparent: !isActive
+            toolTipTitle: modelData.title
+            navigation.panel: root.navigationPanel
+            navigation.order: index
+            onTriggered: root.popoversMode = modelData.popovers
+        }
     }
 
     // Not SeparatorLine: it anchors to the parent's edges, which fights this padded Column's positioning (endless
     // polish loop, laggy UI).
     Rectangle {
-        width: modeButton.width
+        width: 38
         height: 1
         color: ui.theme.strokeColor
     }
@@ -128,7 +139,7 @@ Column {
             toolTipTitle: modelData.title
 
             navigation.panel: root.navigationPanel
-            navigation.order: 1 + index
+            navigation.order: 2 + index
             navigation.accessible.name: modelData.title
 
             onTriggered: root.panelClicked(modelData.id)
@@ -159,7 +170,7 @@ Column {
             toolTipShortcut: modelData.shortcuts
 
             navigation.panel: root.navigationPanel
-            navigation.order: 1 + index
+            navigation.order: 2 + index
             navigation.accessible.name: spec.title
 
             onTriggered: popoverTools.handleMenuItem(modelData.id)

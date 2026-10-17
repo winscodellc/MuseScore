@@ -64,6 +64,8 @@ DoricoPage {
     onVisibleChanged: {
         if (visible) {
             root.printModel.load()
+            // Dorico opens Print on one whole page. Later, so the preview has registered for zoom commands.
+            Qt.callLater(root.layouts.dispatch, "command://notation/view/zoom-to-whole-page")
         }
     }
 

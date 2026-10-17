@@ -107,7 +107,8 @@ DoricoPage {
                 navigationPanel.section: notationsToolbox.navigationSection
                 navigationPanel.order: 2
 
-                currentPanelId: root.notationsModel.panelId
+                // Highlight only while the zone shows it (a DockPanel's visible follows its open state).
+                currentPanelId: notationsPanel.visible ? root.notationsModel.panelId : ""
 
                 onPanelClicked: function(panelId) {
                     root.showNotationsPanel(panelId)

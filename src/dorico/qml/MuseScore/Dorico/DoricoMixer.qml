@@ -48,26 +48,32 @@ Item {
     // Colour slot of each row: the n-th instrument (secondary instruments share their part's slot)
     property var colorSlots: []
     property int instrumentCount: 0
+    // The master channel: pinned at the right edge, as in Dorico, instead of scrolling with the others
+    property MixerChannelItem masterChannel: null
 
     function updateColorSlots() {
         const slots = []
         let primaries = 0
+        let master = null
         for (let i = 0; i < mixerModel.rowCount(); ++i) {
             const type = mixerModel.get(i).channelItem.type
             if (type === MixerChannelItem.PrimaryInstrument) {
                 ++primaries
+            } else if (type === MixerChannelItem.Master) {
+                master = mixerModel.get(i).channelItem
             }
             slots.push(type === MixerChannelItem.PrimaryInstrument || type === MixerChannelItem.SecondaryInstrument
                        ? Math.max(0, primaries - 1) : -1)
         }
         root.instrumentCount = primaries
         root.colorSlots = slots
+        root.masterChannel = master
     }
 
     function shows(channel) {
         switch (channel.type) {
         case MixerChannelItem.Aux: return root.showFx
-        case MixerChannelItem.Master: return true
+        case MixerChannelItem.Master: return false // pinned, see masterStrip
         default: return root.showInstruments
         }
     }
@@ -228,7 +234,10 @@ Item {
     ListView {
         id: channels
 
-        anchors.fill: parent
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        anchors.left: parent.left
+        anchors.right: masterStrip.left
         anchors.margins: 4
 
         orientation: ListView.Horizontal
@@ -260,5 +269,19 @@ Item {
         }
 
         ScrollBar.horizontal: StyledScrollBar {}
+    }
+
+    DoricoChannelStrip {
+        id: masterStrip
+
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        anchors.right: parent.right
+        anchors.margins: 4
+        width: root.masterChannel ? 80 : 0
+        visible: root.masterChannel !== null
+
+        channelItem: root.masterChannel
+        labelColor: "#B8B8B8"
     }
 }

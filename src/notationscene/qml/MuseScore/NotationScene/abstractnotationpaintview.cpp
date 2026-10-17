@@ -124,6 +124,16 @@ void AbstractNotationPaintView::load()
     m_inputController->setReadonly(m_readonly);
     m_inputController->init();
 
+    // Dorico fork (spec 58): the Dorico mode pages stay alive, so the main view being shown takes the view commands
+    // (zoom, Whole Page), also Print's read-only preview. MuseScore registers only editable views, once, when created.
+    auto takeViewCommands = [this]() {
+        if (isVisible() && isMainView()) {
+            commandsController()->setViewController(m_inputController.get());
+        }
+    };
+    takeViewCommands();
+    connect(this, &QQuickItem::visibleChanged, this, takeViewCommands);
+
     m_elapsedTimer.start();
 
     onNotationSetup();

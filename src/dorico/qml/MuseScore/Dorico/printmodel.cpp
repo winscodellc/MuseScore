@@ -22,6 +22,8 @@
 
 #include "printmodel.h"
 
+#include <set>
+
 #include "engraving/dom/mscore.h"
 #include "notation/imasternotation.h"
 #include "notation/iexcerptnotation.h"
@@ -41,23 +43,42 @@ PrintModel::PrintModel(QObject* parent)
 
 void PrintModel::load()
 {
+    reload(/*keepChecks*/ false);
+}
+
+void PrintModel::reload(bool keepChecks)
+{
+    std::set<INotationPtr> checked;
+    for (const Layout& layout : m_layouts) {
+        if (layout.checked) {
+            checked.insert(layout.notation);
+        }
+    }
+
     beginResetModel();
     m_layouts.clear();
 
     IMasterNotationPtr master = globalContext()->currentMasterNotation();
     if (master) {
         const INotationPtr current = globalContext()->currentNotation();
-        m_layouts.push_back({ muse::qtrc("dorico", "Full score"), master->notation(), master->notation() == current });
+        auto isChecked = [&](const INotationPtr& notation) {
+            return keepChecks ? checked.count(notation) > 0 : notation == current;
+        };
 
-        // Only parts that exist (MuseScore's Export dialog lists the same): a never-created part has no pages.
+        m_layouts.push_back({ muse::qtrc("dorico", "Full score"), master->notation(), nullptr, isChecked(master->notation()) });
+
+        // Every layout, as in Dorico and the Setup Layouts panel: also the parts that were never opened (MuseScore's
+        // potential excerpts). checkedNotations() creates those before printing.
         ExcerptNotationList excerpts = master->excerpts();
+        const ExcerptNotationList potential = master->potentialExcerpts();
+        excerpts.insert(excerpts.end(), potential.begin(), potential.end());
         master->sortExcerpts(excerpts);
         for (const IExcerptNotationPtr& excerpt : excerpts) {
-            m_layouts.push_back({ excerpt->name(), excerpt->notation(), excerpt->notation() == current });
+            m_layouts.push_back({ excerpt->name(), excerpt->notation(), excerpt, isChecked(excerpt->notation()) });
         }
 
         master->excerptsChanged().onNotify(this, [this]() {
-            load();
+            reload(/*keepChecks*/ true);
         }, Asyncable::Mode::SetReplace);
     }
 
@@ -78,6 +99,10 @@ QVariant PrintModel::data(const QModelIndex& index, int role) const
     case CheckedRole:
         return layout.checked;
     case InfoRole: {
+        // A part that was never opened has no score yet, so it has no style to read.
+        if (layout.excerpt && !layout.excerpt->isInited()) {
+            return QString();
+        }
         const INotationStylePtr style = layout.notation->style();
         const int pages = layout.notation->painting()->pageCount();
         const QString size = layoutPageInfo(style->styleValue(engraving::Sid::pageWidth).toDouble(),
@@ -121,14 +146,29 @@ void PrintModel::setChecked(int row, bool checked)
     emit checkedChanged();
 }
 
-INotationPtrList PrintModel::checkedNotations() const
+INotationPtrList PrintModel::checkedNotations()
 {
     INotationPtrList result;
+    ExcerptNotationList toCreate;
     for (const Layout& layout : m_layouts) {
-        if (layout.checked) {
-            result.push_back(layout.notation);
+        if (!layout.checked) {
+            continue;
+        }
+        result.push_back(layout.notation);
+        if (layout.excerpt && !layout.excerpt->isInited()) {
+            toCreate.push_back(layout.excerpt);
         }
     }
+
+    // Same as opening the part from the layout selector (DoricoTopBarModel::selectLayout), without showing it.
+    // setExcerpts triggers excerptsChanged and so a reload, which is why the result is collected first.
+    IMasterNotationPtr master = globalContext()->currentMasterNotation();
+    if (master && !toCreate.empty()) {
+        ExcerptNotationList excerpts = master->excerpts();
+        excerpts.insert(excerpts.end(), toCreate.begin(), toCreate.end());
+        master->setExcerpts(excerpts);
+    }
+
     return result;
 }
 

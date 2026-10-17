@@ -45,9 +45,10 @@ Item {
     readonly property var allDurations: ["maxima", "longa", "breve", "whole", "half", "quarter", "eighth", "16th", "32nd",
         "64th", "128th", "256th", "512th", "1024th"]
     readonly property var durationIcons: ({
-        "maxima": "\uE95C", "longa": IconCode.LONGO, "breve": "\uECA1", "whole": "\uECA2", "half": "\uECA3",
+        "maxima": "\uE95C", "longa": "\uE95D", "breve": "\uECA1", "whole": "\uECA2", "half": "\uECA3",
         "quarter": "\uECA5", "eighth": "\uECA7", "16th": "\uECA9", "32nd": "\uECAB", "64th": "\uECAD",
-        "128th": "\uECAF", "256th": "\uECB1", "512th": "\uECB3", "1024th": "\uECB5"
+        // Dorico labels the four shortest values with fractions.
+        "128th": "frac:128", "256th": "frac:256", "512th": "frac:512", "1024th": "frac:1024"
     })
     readonly property var durations: root.showAllDurations ? root.allDurations : root.commonDurations
 
@@ -128,27 +129,44 @@ Item {
             SeparatorLine {}
 
             // Accent, marcato, staccato and tenuto are MuseScore's toggles; the other four are spec 11's Dorico
-            // commands (MuseScore has no command for them), shown as text since MuseScore has no icon for them.
-            ToolSection {
+            // commands (MuseScore has no command for them). Listed row by row so the two columns match Dorico's
+            // (left: accent, marcato, stressed, unstressed; right: staccato, tenuto, staccatissimo, tenuto-staccato),
+            // with Dorico's divider line between them.
+            Item {
                 width: parent.width
-                iconSize: 34
-                navigationPanel: navPanel
-                navigationOrderStart: 30
-                codes: [
-                    "command://notation/toggle-sforzato",
-                    "command://notation/toggle-marcato",
-                    "command://dorico/toggle-articulation-stressed",
-                    "command://dorico/toggle-articulation-unstressed",
-                    "command://notation/toggle-staccato",
-                    "command://notation/toggle-tenuto",
-                    "command://dorico/toggle-articulation-staccatissimo",
-                    "command://dorico/toggle-articulation-tenuto-staccato"
-                ]
-                labels: [
-                    qsTrc("dorico", "Accent"), qsTrc("dorico", "Marcato"), qsTrc("dorico", "Stressed"), qsTrc("dorico", "Unstressed"),
-                    qsTrc("dorico", "Staccato"), qsTrc("dorico", "Tenuto"), qsTrc("dorico", "Staccatissimo"), qsTrc("dorico", "Tenuto-staccato")
-                ]
-                icons: ["\uE4A0", "\uE4AC", "\uE4B6", "\uE4B8", "\uE4A2", "\uE4A4", "\uE4A6", "\uE4B2"]
+                implicitHeight: articulations.implicitHeight
+
+                ToolSection {
+                    id: articulations
+
+                    width: parent.width
+                    iconSize: 34
+                    navigationPanel: navPanel
+                    navigationOrderStart: 30
+                    codes: [
+                        "command://notation/toggle-sforzato",
+                        "command://notation/toggle-staccato",
+                        "command://notation/toggle-marcato",
+                        "command://notation/toggle-tenuto",
+                        "command://dorico/toggle-articulation-stressed",
+                        "command://dorico/toggle-articulation-staccatissimo",
+                        "command://dorico/toggle-articulation-unstressed",
+                        "command://dorico/toggle-articulation-tenuto-staccato"
+                    ]
+                    labels: [
+                        qsTrc("dorico", "Accent"), qsTrc("dorico", "Staccato"), qsTrc("dorico", "Marcato"), qsTrc("dorico", "Tenuto"),
+                        qsTrc("dorico", "Stressed"), qsTrc("dorico", "Staccatissimo"), qsTrc("dorico", "Unstressed"), qsTrc("dorico", "Tenuto-staccato")
+                    ]
+                    icons: ["\uE4A0", "\uE4A2", "\uE4AC", "\uE4A4", "\uE4B6", "\uE4A6", "\uE4B8", "\uE4B2"]
+                }
+
+                Rectangle {
+                    // Between the columns: a button is iconSize + 10 wide and the Flow's spacing is 4.
+                    x: articulations.iconSize + 10 + 1
+                    width: 1
+                    height: parent.height
+                    color: ui.theme.strokeColor
+                }
             }
         }
     }

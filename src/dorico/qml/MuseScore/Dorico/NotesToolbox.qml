@@ -45,13 +45,13 @@ Column {
     // ponytail: command ids for features no spec has built yet (select tool, force duration, insert
     // scopes, slash voices) are unregistered on purpose: DoricoToolsModel turns them into unavailable buttons.
     readonly property var buttons: [
-        { "code": "command://dorico/toggle-zone-left", "title": qsTrc("dorico", "Show Left Zone"), "icon": "svg:panel-left" },
+        { "code": "command://dorico/toggle-zone-left", "title": qsTrc("dorico", "Show Left Zone"), "icon": "svg:panel-left", "groupEnd": true },
         { "code": "command://dorico/select-tool", "title": qsTrc("dorico", "Select"), "icon": "svg:mouse-pointer-2" },
         { "code": "command://dorico/return", "title": qsTrc("dorico", "Start Note Input"), "icon": "svg:pencil" },
         { "code": "command://notation/toggle-note-input-by-duration", "title": qsTrc("dorico", "Pitch Before Duration"), "icon": "\uE0A4\uEB62\uECA5" },
         { "code": "command://dorico/toggle-chord-mode", "title": qsTrc("dorico", "Chords"), "icon": "svg:chord" },
         { "code": "command://dorico/toggle-insert-mode", "title": qsTrc("dorico", "Insert"), "icon": "svg:text-cursor-input",
-            "menu": [
+            "groupEnd": true, "menu": [
                 { "code": "command://dorico/toggle-insert-mode", "title": qsTrc("dorico", "Voice") },
                 { "code": "command://dorico/insert-scope-player", "title": qsTrc("dorico", "Player") },
                 { "code": "command://dorico/insert-scope-global", "title": qsTrc("dorico", "Global") },
@@ -59,7 +59,7 @@ Column {
             ] },
         // Spec 11 maps Lock Duration (L) to MuseScore's re-pitch input method.
         { "code": "command://notation/toggle-note-input-repitch", "title": qsTrc("dorico", "Lock Duration"), "icon": "svg:lock" },
-        { "code": "command://dorico/force-duration", "title": qsTrc("dorico", "Force Duration"), "icon": "svg:pin" },
+        { "code": "command://dorico/force-duration", "title": qsTrc("dorico", "Force Duration"), "icon": "svg:pin", "groupEnd": true },
         { "code": "command://dorico/next-voice", "title": qsTrc("dorico", "Create Voice"), "icon": "svg:voice",
             "menu": [
                 { "code": "command://dorico/new-voice", "title": qsTrc("dorico", "Create Voice") },
@@ -106,8 +106,9 @@ Column {
     Repeater {
         model: tools.items
 
-        DoricoButton {
-            id: button
+        // A button, plus Dorico's divider line under the last button of a group.
+        Column {
+            id: entry
 
             required property var modelData
             required property int index
@@ -115,46 +116,60 @@ Column {
             readonly property var spec: root.buttons[index]
             readonly property bool hasMenu: spec.menu !== undefined
 
-            doricoIcon: spec.icon
-            iconBoxSize: 28
-            available: modelData.enabled
-            accentButton: modelData.checked
-            transparent: !modelData.checked
+            spacing: root.spacing
 
-            toolTipTitle: spec.title
-            toolTipDescription: hasMenu ? qsTrc("dorico", "Click and hold for more options") : modelData.description
-            toolTipShortcut: modelData.shortcuts
+            DoricoButton {
+                id: button
 
-            navigation.panel: root.navigationPanel
-            navigation.order: index
-            navigation.accessible.name: spec.title
+                doricoIcon: entry.spec.icon
+                iconBoxSize: 28
+                available: entry.modelData.enabled
+                accentButton: entry.modelData.checked
+                transparent: !entry.modelData.checked
 
-            onTriggered: tools.handleMenuItem(modelData.id)
+                toolTipTitle: entry.spec.title
+                toolTipDescription: entry.hasMenu ? qsTrc("dorico", "Click and hold for more options") : entry.modelData.description
+                toolTipShortcut: entry.modelData.shortcuts
 
-            DoricoToolsModel {
-                id: menuModel
-                codes: button.hasMenu ? button.spec.menu.map(m => m.code) : []
-                titles: button.hasMenu ? button.spec.menu.map(m => m.title) : []
-                Component.onCompleted: menuModel.load()
-            }
+                navigation.panel: root.navigationPanel
+                navigation.order: entry.index
+                navigation.accessible.name: entry.spec.title
 
-            Connections {
-                target: button.mouseArea
-                enabled: button.hasMenu
+                onTriggered: tools.handleMenuItem(entry.modelData.id)
 
-                function onPressAndHold() {
-                    menuLoader.toggleOpened(menuModel.items)
+                DoricoToolsModel {
+                    id: menuModel
+                    codes: entry.hasMenu ? entry.spec.menu.map(m => m.code) : []
+                    titles: entry.hasMenu ? entry.spec.menu.map(m => m.title) : []
+                    Component.onCompleted: menuModel.load()
+                }
+
+                Connections {
+                    target: button.mouseArea
+                    enabled: entry.hasMenu
+
+                    function onPressAndHold() {
+                        menuLoader.toggleOpened(menuModel.items)
+                    }
+                }
+
+                StyledMenuLoader {
+                    id: menuLoader
+
+                    menuAnchorItem: root.Window.window ? root.Window.window.contentItem : null
+
+                    onHandleMenuItem: function(itemId) {
+                        Qt.callLater(menuModel.handleMenuItem, itemId)
+                    }
                 }
             }
 
-            StyledMenuLoader {
-                id: menuLoader
-
-                menuAnchorItem: root.Window.window ? root.Window.window.contentItem : null
-
-                onHandleMenuItem: function(itemId) {
-                    Qt.callLater(menuModel.handleMenuItem, itemId)
-                }
+            // Not SeparatorLine: it anchors to the parent's edges (see NotationsToolbox).
+            Rectangle {
+                visible: entry.spec.groupEnd === true
+                width: button.width
+                height: 1
+                color: ui.theme.strokeColor
             }
         }
     }

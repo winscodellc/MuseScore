@@ -84,6 +84,8 @@ class AbstractNotationPaintView : public muse::uicomponents::QuickPaintedView, p
     muse::ContextInject<muse::ui::IUiActionsRegister> actionsRegister = { this };
     // Dorico fork (spec 12): registered only by the Dorico module; null otherwise.
     muse::ContextInject<mu::dorico::IDoricoCaret> doricoCaret = { this };
+    // Dorico fork (spec 58): see load(), the main view being shown takes the view commands.
+    muse::ContextInject<INotationCommandsController> commandsController = { this };
 
 public:
     explicit AbstractNotationPaintView(QQuickItem* parent = nullptr);
