@@ -110,7 +110,7 @@ Status: todo | in-progress | pending review | done  -  Depends on: NN, NN  -  Do
 | 21 | [Popover: dynamics (Shift-D)](done/21-popover-dynamics.md) | done | 20 |
 | 22 | [Popover: time signatures (Shift-M)](done/22-popover-time-signatures.md) | done | 20 |
 | 23 | [Popover: key signatures (Shift-K)](done/23-popover-key-signatures.md) | done | 20 |
-| 24 | [Popover: clefs and octave lines (Shift-C)](24-popover-clefs-octave-lines.md) | todo | 20 |
+| 24 | [Popover: clefs and octave lines (Shift-C)](done/24-popover-clefs-octave-lines.md) | done | 20 |
 | 25 | [Popover: bars and barlines (Shift-B)](25-popover-bars-barlines.md) | todo | 20 |
 | 26 | [Popover: tempo (Shift-T)](26-popover-tempo.md) | todo | 20 |
 | 27 | [Popover: holds and pauses (Shift-H)](27-popover-holds-pauses.md) | todo | 20 |
