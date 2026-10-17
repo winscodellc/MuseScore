@@ -1,12 +1,12 @@
 <!-- markdownlint-disable -->
 # 30 — Popover: repeats and tremolos (Shift-R)
 
-Status: todo · Depends on: [20-popover-framework](done/20-popover-framework.md) · Dorico refs:
+Status: done · Depends on: [20-popover-framework](20-popover-framework.md) · Dorico refs:
 - [P] `https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_repeats_*_r.html`
 - [M] `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/write_mode/write_mode_notations_input/write_mode_repeats_popover_r.html`
 - [M] `.../write_mode_notations_input/write_mode_repeat_markers_inputting_popover_t.html`
 
-Reference: [popovers](reference/dorico-popovers.md) (B1, B2 "Repeats and tremolos") · [internals](reference/musescore-internals.md) (section 3).
+Reference: [popovers](../reference/dorico-popovers.md) (B1, B2 "Repeats and tremolos") · [internals](../reference/musescore-internals.md) (section 3).
 
 Names such as `parse`, `Result` and `apply` follow the contract in spec 20; rename to match its final API.
 
@@ -98,9 +98,7 @@ End-of-section markers (Fine, D.C. al Coda, and so on) right-align to the positi
 - No popover or text parser exists for any of this.
 
 ## Design
-- **New files** in `src/dorico/internal/popovers/repeats/`:
-  - `repeatsparser.h/.cpp`: pure function `parse(const std::string&) -> RepeatsResult`.
-  - `repeatsapply.cpp`: builds the elements and applies them.
+- **New files** (as built): `src/dorico/popover/parsers/repeatsparser.h/.cpp` (pure `parseRepeats(text) -> RepeatsParse`, `repeatsText(entry)` for prefill) and `src/dorico/popover/handlers/repeatshandler.h/.cpp` (`repeatsPopover()`).
 - **Result variant:**
   - `Marker{type}`
   - `Jump{type}`
@@ -122,23 +120,27 @@ End-of-section markers (Fine, D.C. al Coda, and so on) right-align to the positi
 ## Deferred / unsupported
 - Numbered bar regions: `number bars`, `numbars`, `num`, `nb`.
 - Grouped bar repeats: `%1,2`, `%1,4`, `%2,4`.
-- Right-aligning end-of-section markers (MuseScore places them per its own style).
+- Right-aligning end-of-section markers is not deferred after all: MuseScore's Fine, To Coda and every jump use the right-aligned `REPEAT_RIGHT` text style.
 - Ending-segment editing beyond `add`.
 - Tremolo variants with release or attack (`//rel`, `//att`): not available in MuseScore.
 - Any `%N` with N other than 1, 2, 4: MuseScore supports only those.
 - If buzz roll does not exist in this tree, `z` and `zonstem` are rejected as unknown.
 - Unsupported tokens go through the spec 20 invalid-input state.
+- `%N` empties the bars before adding the repeat: on bars with notes MuseScore's `makeMeasureRepeatGroup` otherwise shows a modal "Current contents of measures will be replaced" box, which stole the popover's focus and cancelled the entry. Dorico replaces without asking.
+- At the note-input caret: single-chord tremolos go on the next note input (shared `PendingAtCaret`, as for ornaments); two-chord tremolos, `0`/`clear` and `slash` need a selection (Return does nothing at the caret).
+- `slash` runs MuseScore's Fill With Slashes over the selection; Dorico's slash *region* (a spanner-like region) has no MuseScore model.
+- `add` needs a selected ending segment. It closes the ending's last segment with an end repeat and adds an open segment numbered one higher on the next bar.
 
 ## Acceptance criteria
-- [ ] Shift-R opens the popover at the selection; Esc closes it without changes.
-- [ ] `segno`, `s` and `$` insert a Segno on the selected measure.
-- [ ] `dc`, `D.C. al Coda` and `dsalf` insert the matching jump.
-- [ ] `end` on a bar range creates a volta over the range with an end-repeat barline; `add` adds a segment.
-- [ ] `2` on a selected chord gives a 2-stroke tremolo; `22` on two adjacent chords gives a 2-stroke two-chord tremolo; `0` removes it.
-- [ ] `%2` on a measure inserts a two-measure repeat.
-- [ ] Return on a selected marker or jump reopens the popover pre-filled with its text.
-- [ ] An unknown token (`xyz`) shows the error state and changes nothing.
-- [ ] One Cmd-Z undoes a whole insertion.
+- [x] Shift-R opens the popover at the selection; Esc closes it without changes.
+- [x] `segno`, `s` and `$` insert a Segno on the selected measure.
+- [x] `dc`, `D.C. al Coda` and `dsalf` insert the matching jump.
+- [x] `end` on a bar range creates a volta over the range with an end-repeat barline; `add` adds a segment.
+- [x] `2` on a selected chord gives a 2-stroke tremolo; `22` on two adjacent chords gives a 2-stroke two-chord tremolo; `0` removes it.
+- [x] `%2` on a measure inserts a two-measure repeat.
+- [x] Return on a selected marker or jump reopens the popover pre-filled with its text.
+- [x] An unknown token (`xyz`) shows the error state and changes nothing.
+- [x] One Cmd-Z undoes a whole insertion.
 
 ## Tests
 GoogleTest, in `src/dorico/tests/repeatsparser_tests.cpp` (follow the test setup defined in spec 20). Pure parser, no score needed:
@@ -161,6 +163,6 @@ GoogleTest, in `src/dorico/tests/repeatsparser_tests.cpp` (follow the test setup
 | `%4` | `MeasureRepeat{4}` |
 | `%1,2` | `Unsupported` |
 | `banana` | `Invalid` |
-| `""` | `Invalid` |
+| `""` | `Incomplete` (spec 20 convention: an empty popover has a neutral border) |
 
 Manual: the acceptance list above, on a four-bar score with two staves.

@@ -31,6 +31,7 @@
 #include "handlers/holdshandler.h"
 #include "handlers/keysighandler.h"
 #include "handlers/ornamentshandler.h"
+#include "handlers/repeatshandler.h"
 #include "handlers/techniqueshandler.h"
 #include "handlers/tempohandler.h"
 #include "handlers/timesighandler.h"
@@ -91,7 +92,7 @@ PopoverRegistry mu::dorico::makePopoverRegistry()
     r.add(ornamentsPopover());                                                             // spec 28
     r.add(techniquesPopover());                                                            // spec 29
     r.add(placeholder("chordsymbols", "Chord Symbols", IconCode::CHORD_SYMBOL));           // spec 32
-    r.add(placeholder("repeats", "Repeats and Tremolos", IconCode::REPEAT_START));         // spec 30
+    r.add(repeatsPopover());                                                               // spec 30
     r.add(tempoPopover());                                                                 // spec 26
     r.add(placeholder("tuplets", "Tuplets", IconCode::NOTE_TUPLET));                       // spec 31
     return r;
