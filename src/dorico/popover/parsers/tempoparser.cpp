@@ -105,7 +105,7 @@ std::string trimTempo(const std::string& s)
     return b == std::string::npos ? std::string() : s.substr(b, s.find_last_not_of(' ') - b + 1);
 }
 
-bool beginsWith(const std::string& word, const std::string& prefix)
+bool tempoBeginsWith(const std::string& word, const std::string& prefix)
 {
     return word.compare(0, prefix.size(), prefix) == 0;
 }
@@ -282,7 +282,7 @@ std::vector<std::string> mu::dorico::tempoSuggestions(const std::string& prefix)
     }
     for (const char* s : SUGGESTIONS) {
         const std::string word = lower(s);
-        if (beginsWith(word, p) && word != p && result.size() < MAX_SUGGESTIONS) { // the typed entry itself adds nothing
+        if (tempoBeginsWith(word, p) && word != p && result.size() < MAX_SUGGESTIONS) { // the typed entry itself adds nothing
             result.push_back(s);
         }
     }

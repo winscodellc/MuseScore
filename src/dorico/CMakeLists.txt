@@ -64,6 +64,10 @@ target_sources(dorico PRIVATE
     popover/handlers/keysighandler.h
     popover/handlers/ornamentshandler.cpp
     popover/handlers/ornamentshandler.h
+    popover/handlers/pendingatcaret.cpp
+    popover/handlers/pendingatcaret.h
+    popover/handlers/techniqueshandler.cpp
+    popover/handlers/techniqueshandler.h
     popover/handlers/tempohandler.cpp
     popover/handlers/tempohandler.h
     popover/handlers/timesighandler.cpp
@@ -80,6 +84,8 @@ target_sources(dorico PRIVATE
     popover/parsers/keysigparser.h
     popover/parsers/ornamentsparser.cpp
     popover/parsers/ornamentsparser.h
+    popover/parsers/techniquesparser.cpp
+    popover/parsers/techniquesparser.h
     popover/parsers/tempoparser.cpp
     popover/parsers/tempoparser.h
     popover/parsers/timesigparser.cpp

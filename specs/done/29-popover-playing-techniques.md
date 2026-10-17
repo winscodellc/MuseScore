@@ -1,6 +1,6 @@
 <!-- markdownlint-disable -->
 # 29 — Playing techniques popover (Shift-P)
-Status: todo · Depends on: 20 · Dorico refs: pages `dorico_popovers_playing_techniques_*_r.html`, [pedal lines](https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_pedal_lines_r.html), [harp pedaling](https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_harp_pedaling_r.html), [harmonics](https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_harmonics_r.html) (all under `_shared/topics/dorico/dorico_popovers/`)
+Status: done · Depends on: 20 · Dorico refs: pages `dorico_popovers_playing_techniques_*_r.html`, [pedal lines](https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_pedal_lines_r.html), [harp pedaling](https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_harp_pedaling_r.html), [harmonics](https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_harmonics_r.html) (all under `_shared/topics/dorico/dorico_popovers/`)
 
 Reference: `specs/reference/dorico-popovers.md` (Playing techniques), `specs/reference/musescore-internals.md` (§3).
 
@@ -98,7 +98,7 @@ Example: `harm nat n1 s1 p4 diamond`.
 - Note input: `PendingSpanner` helper (spec 21) for open-ended lines.
 
 ## Design
-- Technique registry: one static table in `popover/parsers/techniquestable.cpp`: each row `{canonical id, aliases[], category, mapping}` where `category ∈ { PlayTech, Text, Articulation, Line, Pedal }`. The `suggest` callback and the parser both read it; "valid technique only" is enforced by the table (matches Dorico's behaviour).
+- Technique registry: one static table (`TECHNIQUES` in `popover/parsers/techniquesparser.cpp`): each row `{entry, text, PlayingTechniqueType, SymId}`. A row with a `SymId` is a symbol (bowing, `o`, `+`, clicks, damp, strums); the others are a `PlayTechAnnotation` with that text. Rows without a MuseScore playback type (`flt`, `motor on`, `lh`, ...) use `PlayingTechniqueType::Undefined`, which saves and loads and is skipped by playback, so plain staff text (and Return on it) is never claimed by this popover. The `suggest` callback and the parser both read the table; "valid technique only" is enforced by it.
 - Parser: `popover/parsers/techniquesparser.{h,cpp}`.
   ```cpp
   struct TechniqueItem { std::string id; bool parenthesised = false; bool hidden = false; bool withDuration = false; };
@@ -109,14 +109,14 @@ Example: `harm nat n1 s1 p4 diamond`.
 - Handler: `handlers/techniqueshandler.cpp`.
   - PlayTech category (pizz, arco, con sord/senza sord, nat, open, damp…): `Factory::createPlayTechAnnotation`, `setTechniqueType`, apply via `applyPaletteElement`.
   - Text category: `StaffText` with the techniques text style, text from the table, parenthesised/hidden handled (`setVisible(false)` for hidden).
-  - Articulation category (`downbow`, `upbow`, `o`, `+`, `stopped`): `toggleArticulation(SymId)`.
-  - Line category (`vibrato->`): `Vibrato` spanner over the range; note input → `PendingSpanner`; `?` finalises.
-  - Pedal: `Pedal` spanner; `ped` over the range, `*`/`^` tokens set end/retake style (**verify** the pedal type that includes `*` and retake `^`); note input → `PendingSpanner` until `*`.
-  - Voice-specific placement: set placement by stem direction of the voice (`Pid::PLACEMENT` above for up-stem voices, below for down-stem).
+  - Symbol rows (`downbow`, `upbow`, `o`, `+`, ...): `EditChord::toggleArticulation`. In note input they wait for the note at the caret (`PendingAtCaret`, shared with the ornaments popover: `popover/handlers/pendingatcaret.{h,cpp}`).
+  - With duration (`vibrato->`, any technique): a `TextLine` with the technique as begin text, "(text)" as continue text and a 90° end hook (Dorico's default duration line: "a solid line with a hook cap at the end"; not MuseScore's wavy `Vibrato` spanner). It spans the range or the list selection; in note input it is open-ended (like `p<` in spec 21) and is created when `?`, a new technique, or the end of note input stops it.
+  - Pedal: `Pedal` spanner with "Ped." and a 90° end hook; `ped` spans the range/list. A retake (`^`) is two pedals joined by 45° hooks (`Pedal::connect45HookToNext`): on a selected note it splits the pedal there, `nonotch` joins them again; in note input `ped` opens a line, `^` closes it with a retake and opens the next, `*` closes it.
+  - Voice-specific placement: voices 2 and 4 (down-stem) below, set with `undoChangeProperty(Pid::PLACEMENT)` after adding (a bare `setPlacement` is reset by the style).
   - `A->B` outside note input: two items at consecutive selected notes, in order; v1 does not group them.
 - `suggest(text)`: prefix filter over all aliases, limit 8, sorted by table order.
 - `prefill`: `PlayTechAnnotation`/`StaffText` technique → alias; `Pedal` → `ped`.
-- `handlesItem`: `PlayTechAnnotation`, techniques `StaffText`, `Pedal`, `Vibrato`.
+- `itemTypes`: `PLAYTECH_ANNOTATION`, `PEDAL_SEGMENT`. `editsAttached = false` (new `PopoverDef` field): Shift-P on a note that already has `pizz.` adds a second technique instead of replacing it, as Dorico stacks techniques.
 - Key binding: `Shift+P` → `command://dorico/popover/techniques`.
 
 ## Deferred / unsupported
@@ -127,21 +127,25 @@ Example: `harm nat n1 s1 p4 diamond`.
 - Technique grouping of `A->B` and automatic continuation lines when a new technique starts.
 - Techniques absent from the registry: grow the table incrementally; unknown = Invalid.
 - Live extension of open-ended lines (spec 20 approximation).
+- A technique with duration (a `TextLine`) does not change playback; Dorico's duration-limited playback is not modelled.
+- Return on a duration line does not reopen the popover (`TEXTLINE_SEGMENT` is not claimed: it would capture every text line).
+- `nonotch` during note input does nothing. Brackets on symbol techniques are ignored (`[downbow]` hides it, `(downbow)` shows it plain).
+- Displayed text of entries the manual names only by meaning (`fluttertongue` → "f.t.", `full barre` → "B", `half barre` → "½B", `motor on/off`, `damp`/`damp large` → `pictDamp1`/`pictDamp2`) is our choice, not checked against Dorico.
 
 ## Acceptance criteria
-- [ ] Shift-P, `pizz`, Return on a note → a pizzicato annotation above the staff (up-stem voice) and playback uses pizzicato.
-- [ ] `arco` on a later note ends pizzicato playback there.
-- [ ] `[pizz]` is invisible but still affects playback; `(arco)` shows parentheses.
-- [ ] Typing `piz` shows a suggestion list containing `pizz`; Up/Down + Return applies it.
-- [ ] `con sord`, `senza sord`, `sul pont`, `sul tasto`, `nat`, `spicc` produce their text/annotation.
-- [ ] `downbow` / `upbow` toggle the bowing articulation.
-- [ ] `ped` on a range → a pedal line spanning it; in note input `ped` … `*` produces a line from the start to the stop point.
-- [ ] `vibrato->` in note input then `?` ends the vibrato line.
-- [ ] `pizz->arco` outside note input creates two annotations on consecutive notes.
-- [ ] Down-stem voice puts the technique below the staff.
-- [ ] `harm nat` and harp-pedal strings show red + "not supported yet"; `xyzzy` is Invalid.
-- [ ] Select an existing technique, Return → pre-filled; change and Return replaces.
-- [ ] Parser tests pass.
+- [x] Shift-P, `pizz`, Return on a note → a pizzicato annotation above the staff (up-stem voice) and playback uses pizzicato. (Playback by item type: the same `PlayTechAnnotation`/`Pizzicato` as MuseScore's palette; not listened to.)
+- [x] `arco` on a later note ends pizzicato playback there.
+- [x] `[pizz]` is invisible but still affects playback; `(arco)` shows parentheses.
+- [x] Typing `piz` shows a suggestion list containing `pizz`; Up/Down + Return applies it.
+- [x] `con sord`, `senza sord`, `sul pont`, `sul tasto`, `nat`, `spicc` produce their text/annotation.
+- [x] `downbow` / `upbow` toggle the bowing articulation.
+- [x] `ped` on a range → a pedal line spanning it; in note input `ped` … `*` produces a line from the start to the stop point.
+- [x] `vibrato->` in note input then `?` ends the vibrato line.
+- [x] `pizz->arco` outside note input creates two annotations on consecutive notes.
+- [x] Down-stem voice puts the technique below the staff.
+- [x] `harm nat` and harp-pedal strings show red + "not supported yet"; `xyzzy` is Invalid.
+- [x] Select an existing technique, Return → pre-filled; change and Return replaces.
+- [x] Parser tests pass.
 
 ## Tests
 `src/dorico/tests/techniquesparser_tests.cpp`:
@@ -170,3 +174,21 @@ Example: `harm nat n1 s1 p4 diamond`.
 | `piz` | Incomplete |
 | `xyzzy` | Invalid |
 | `` | Incomplete |
+
+### Manual test (2026-10-17, generated 6-bar piano score, Galley view)
+| Step | Result |
+|---|---|
+| Note, Shift-P `piz` | Suggestion list shows `pizz`; Down + Return adds "pizz." above, selected |
+| Return on "pizz." | Popover pre-filled `pizz`; `[pizz]` replaces it with a hidden (greyed) one |
+| `(arco)` on a note | "(arco)" |
+| Two notes (range), `pizz->arco` | "pizz." on the first, "arco" on the second |
+| `downbow`, `upbow` | Bowing symbols above the notes |
+| `con sord` (voice 1); `senza sord`, `sul pont` (voice 2) | Voice 1 above; voice 2 below the staff (after the placement fix) |
+| Voice 2 list (Cmd-click), `vibrato->` | "vibrato" with a line and an upward end hook below the staff |
+| Note input: `vibrato->` C D E `?` F | "vibrato" line from C, hook before F |
+| Note input: `ped` G A `^` B C `*` D | "Ped." line with a retake notch at B, ending before D |
+| Range bars 1-2, `ped`; note 3 `^`; again `nonotch` | Pedal over both bars; split with a notch at note 3; joined again |
+| Return on the pedal | Pre-filled `ped` |
+| `harm nat`, `--^\|^---` | Red border, "Not supported yet" |
+| `xyzzy` | Red border only |
+

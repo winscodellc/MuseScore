@@ -57,7 +57,7 @@ const std::vector<HoldWords> HOLDS = {
 };
 
 // Trimmed and lower case: hold entries ignore case.
-std::string normalised(const std::string& s)
+std::string holdsNormalised(const std::string& s)
 {
     const size_t b = s.find_first_not_of(' ');
     if (b == std::string::npos) {
@@ -73,7 +73,7 @@ std::string normalised(const std::string& s)
 
 HoldParse mu::dorico::parseHold(const std::string& input)
 {
-    const std::string text = normalised(input);
+    const std::string text = holdsNormalised(input);
     if (text.empty()) {
         return { ParseStatus::Incomplete, {} };
     }

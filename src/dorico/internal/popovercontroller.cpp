@@ -181,6 +181,9 @@ EngravingItem* PopoverController::existingItem(const PopoverDef* def) const
     if (owned(selected)) {
         return selected;
     }
+    if (!def->editsAttached) {
+        return nullptr;
+    }
 
     const EngravingItem* cr = selected->isNote() ? toNote(selected)->chord() : selected;
     if (!cr->isChordRest()) {

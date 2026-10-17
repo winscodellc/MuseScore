@@ -27,16 +27,12 @@
 #include <memory>
 #include <vector>
 
-#include "async/async.h"
-#include "async/asyncable.h"
-
 #include "engraving/dom/arpeggio.h"
 #include "engraving/dom/articulation.h"
 #include "engraving/dom/chord.h"
 #include "engraving/dom/chordline.h"
 #include "engraving/dom/factory.h"
 #include "engraving/dom/glissando.h"
-#include "engraving/dom/input.h"
 #include "engraving/dom/note.h"
 #include "engraving/dom/ornament.h"
 #include "engraving/dom/score.h"
@@ -52,6 +48,7 @@
 #include "notation/inotationundostack.h"
 
 #include "../parsers/ornamentsparser.h"
+#include "pendingatcaret.h"
 
 using namespace mu::dorico;
 using namespace mu::engraving;
@@ -351,92 +348,21 @@ bool applySelection(const OrnamentEntry& entry, Score* score, mu::notation::INot
 
 // --- Note input ---
 
-// Ornaments, trills and arpeggios entered at the caret, waiting for the note there: Dorico adds them once a note is
-// input or Space advances the caret, and a trill spans that advance. ponytail: one caret staff (the multi-staff caret
-// is deferred), and the check runs on the next event loop turn, after the note entry's own undo step.
-class PendingOrnaments : public muse::async::Asyncable
+// Ornaments, trills and arpeggios entered at the caret wait for the note there; a trill spans the caret's advance.
+bool addOrnamentAtCaret(const OrnamentEntry& entry, Score* score, ChordRest* cr, const Fraction& caret)
 {
-public:
-    bool add(const OrnamentEntry& entry, mu::notation::INotationPtr notation)
-    {
-        const InputState& is = notation->elements()->msScore()->inputState();
-        if (!is.segment() || is.beyondScore()) {
-            return false;
-        }
-        if (m_notation != notation || is.tick() != m_tick || is.track() != m_track) {
-            cancel();
-            m_notation = notation;
-            m_tick = is.tick();
-            m_track = is.track();
-            auto later = [this]() { muse::async::Async::call(this, [this]() { check(); }); };
-            notation->notationChanged().onReceive(this, [later](const muse::RectF&) { later(); }); // also rests (Space)
-            notation->interaction()->selectionChanged().onNotify(this, later);
-            notation->interaction()->noteInput()->stateChanged().onNotify(this, later);
-        }
-        m_entries.push_back(entry);
-        return true;
+    if (entry.kind == OKind::Trill) {
+        return addTrill(score, cr, caret, entry);
     }
-
-    void cancel()
-    {
-        if (m_notation) {
-            m_notation->notationChanged().disconnect(this);
-            m_notation->interaction()->selectionChanged().disconnect(this);
-            m_notation->interaction()->noteInput()->stateChanged().disconnect(this);
-        }
-        m_notation = nullptr;
-        m_entries.clear();
+    if (!cr->isChord()) {
+        return false;
     }
-
-private:
-    void check()
-    {
-        if (!m_notation || m_entries.empty()) {
-            return;
-        }
-        if (!m_notation->interaction()->noteInput()->isNoteInputMode()) {
-            cancel();
-            return;
-        }
-        Score* score = m_notation->elements()->msScore();
-        const Fraction caret = score->inputState().tick();
-        if (caret == m_tick) {
-            return; // nothing input yet (or a chord still being built in chord mode)
-        }
-        ChordRest* cr = score->findCR(m_tick, m_track);
-        if (caret < m_tick || !cr || cr->tick() != m_tick) {
-            cancel(); // our choice: the caret went back, or nothing was input there
-            return;
-        }
-
-        const std::vector<OrnamentEntry> entries = m_entries;
-        mu::notation::INotationPtr notation = m_notation;
-        cancel();
-        mu::notation::INotationUndoStackPtr undoStack = notation->undoStack();
-        undoStack->prepareChanges(ADD_ORNAMENT);
-        bool changed = false;
-        for (const OrnamentEntry& entry : entries) {
-            if (entry.kind == OKind::Trill) {
-                changed = addTrill(score, cr, caret, entry) || changed;
-            } else if (cr->isChord() && entry.kind == OKind::Arpeggio) {
-                changed = addArpeggio(score, toChord(cr), entry.arpeggio) || changed;
-            } else if (cr->isChord()) {
-                addSymbol(score, toChord(cr), entry);
-                changed = true;
-            }
-        }
-        if (changed) {
-            undoStack->commitChanges();
-        } else {
-            undoStack->rollbackChanges();
-        }
+    if (entry.kind == OKind::Arpeggio) {
+        return addArpeggio(score, toChord(cr), entry.arpeggio);
     }
-
-    mu::notation::INotationPtr m_notation;
-    std::vector<OrnamentEntry> m_entries;
-    Fraction m_tick;
-    track_idx_t m_track = 0;
-};
+    addSymbol(score, toChord(cr), entry);
+    return true; // a symbol entered again was toggled off
+}
 
 std::string ornamentPrefill(const EngravingItem* item)
 {
@@ -464,7 +390,7 @@ std::string ornamentPrefill(const EngravingItem* item)
 
 PopoverDef mu::dorico::ornamentsPopover()
 {
-    auto pending = std::make_shared<PendingOrnaments>();
+    auto pending = std::make_shared<PendingAtCaret>(ADD_ORNAMENT);
 
     PopoverDef def;
     def.id = "ornaments";
@@ -487,7 +413,9 @@ PopoverDef mu::dorico::ornamentsPopover()
         // the rest wait at the caret for the next note.
         if (notation->interaction()->noteInput()->isNoteInputMode() && kind != OKind::JazzArticulation
             && kind != OKind::Glissando) {
-            return pending->add(parsed.entry, notation);
+            return pending->add([entry = parsed.entry](Score* score, ChordRest* cr, const Fraction& caret) {
+                return addOrnamentAtCaret(entry, score, cr, caret);
+            }, notation);
         }
         return applySelection(parsed.entry, score, notation);
     };

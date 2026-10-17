@@ -57,6 +57,7 @@ struct PopoverDef {
     muse::ui::IconCode::Code icon = muse::ui::IconCode::Code::NONE; // MuseScore icon, never a Dorico asset
     bool supportsLocal = false;                                     // Opt-Return means something
     std::vector<engraving::ElementType> itemTypes;                  // selected item types whose Return reopens this popover
+    bool editsAttached = true; // opened on a note that has one of itemTypes, edit it (dynamics); false adds another
 
     std::function<ParseStatus(const std::string&)> validate;
     std::function<bool(const std::string&, ApplyScope, notation::INotationPtr)> apply; // true = applied
