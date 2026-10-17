@@ -237,7 +237,7 @@ void EngravingModule::onInit(const IApplication::RunMode&)
         fdb->insertSubstitution(u"Petaluma Text",  u"MuseJazz Text");
         fdb->insertSubstitution(u"Finale Maestro Text", u"Leland Text");
         fdb->insertSubstitution(u"Finale Broadway Text", u"MuseJazz Text");
-        fdb->insertSubstitution(u"ScoreFont",      u"Leland Text");// alias for current Musical Text Font
+        fdb->insertSubstitution(u"ScoreFont",      u"Bravura Text");// alias for current Musical Text Font
 
         // Symbols
         Smufl::init();

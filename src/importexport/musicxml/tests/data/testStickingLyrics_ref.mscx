@@ -16,7 +16,6 @@
       <pageTwosided>0</pageTwosided>
       <minSystemDistance>12</minSystemDistance>
       <barWidth>0.15625</barWidth>
-      <endBarWidth>0.5</endBarWidth>
       <stemWidth>0.125</stemWidth>
       <staffLineWidth>0.125</staffLineWidth>
       <ledgerLineWidth>0.15625</ledgerLineWidth>

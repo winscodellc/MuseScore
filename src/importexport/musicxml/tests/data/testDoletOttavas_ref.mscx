@@ -18,7 +18,6 @@
       <lyricsOddFontFace>Times New Roman</lyricsOddFontFace>
       <lyricsEvenFontFace>Times New Roman</lyricsEvenFontFace>
       <barWidth>0.15625</barWidth>
-      <endBarWidth>0.5</endBarWidth>
       <stemWidth>0.125</stemWidth>
       <staffLineWidth>0.09375</staffLineWidth>
       <ledgerLineWidth>0.15625</ledgerLineWidth>

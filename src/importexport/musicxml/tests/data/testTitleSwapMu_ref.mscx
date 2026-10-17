@@ -14,13 +14,19 @@
       <pageOddTopMargin>0.417323</pageOddTopMargin>
       <pageOddBottomMargin>0.417323</pageOddBottomMargin>
       <pageTwosided>0</pageTwosided>
+      <lyricsLineThickness>0.1</lyricsLineThickness>
       <lyricsDashLineThickness>0.15</lyricsDashLineThickness>
       <lyricsOddFontFace>MS Shell Dlg 2</lyricsOddFontFace>
       <lyricsOddFontSize>14.47</lyricsOddFontSize>
       <lyricsEvenFontFace>MS Shell Dlg 2</lyricsEvenFontFace>
       <lyricsEvenFontSize>14.47</lyricsEvenFontSize>
+      <barWidth>0.18</barWidth>
+      <endBarWidth>0.55</endBarWidth>
       <bracketWidth>0.44</bracketWidth>
       <stemWidth>0.11</stemWidth>
+      <staffLineWidth>0.11</staffLineWidth>
+      <hairpinLineWidth>0.12</hairpinLineWidth>
+      <pedalLineWidth>0.11</pedalLineWidth>
       <chordSymbolAFontFace>Plantin MT Std</chordSymbolAFontFace>
       <chordSymbolAFontSize>11.9365</chordSymbolAFontSize>
       <chordSymbolBFontFace>Plantin MT Std</chordSymbolBFontFace>
@@ -28,7 +34,12 @@
       <nashvilleNumberFontFace>Plantin MT Std</nashvilleNumberFontFace>
       <nashvilleNumberFontSize>11.9365</nashvilleNumberFontSize>
       <slurEndWidth>0.07</slurEndWidth>
+      <slurMidWidth>0.21</slurMidWidth>
       <tieEndWidth>0.07</tieEndWidth>
+      <tieMidWidth>0.21</tieMidWidth>
+      <voltaLineWidth>0.11</voltaLineWidth>
+      <ottavaLineWidth>0.11</ottavaLineWidth>
+      <tupletBracketWidth>0.1</tupletBracketWidth>
       <tupletFontFace>Plantin MT Std</tupletFontFace>
       <tupletFontSize>11.9365</tupletFontSize>
       <titleFontFace>Plantin MT Std</titleFontFace>

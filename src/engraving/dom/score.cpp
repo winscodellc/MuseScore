@@ -176,7 +176,7 @@ Score::Score(const modularity::ContextPtr& iocCtx)
     Score::validScores.insert(this);
     m_masterScore = nullptr;
 
-    m_engravingFont = engravingFonts()->fontByName("Leland");
+    m_engravingFont = engravingFonts()->fontByName("Bravura");
 
     m_fileDivision = Constants::DIVISION;
     m_style = DefaultStyle::defaultStyle();

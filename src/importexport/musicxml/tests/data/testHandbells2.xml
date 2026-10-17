@@ -213,7 +213,7 @@
         </note>
       <direction placement="above">
         <direction-type>
-          <words font-family="Leland Text" font-size="8"></words>
+          <words font-family="Bravura Text" font-size="8"></words>
           </direction-type>
         <sound>
           <play>
@@ -246,7 +246,7 @@
     <measure number="5">
       <direction placement="above">
         <direction-type>
-          <words font-family="Leland Text" font-size="8"></words>
+          <words font-family="Bravura Text" font-size="8"></words>
           </direction-type>
         <sound>
           <play>
@@ -268,7 +268,7 @@
         </note>
       <direction placement="above">
         <direction-type>
-          <words font-family="Leland Text" font-size="8"></words>
+          <words font-family="Bravura Text" font-size="8"></words>
           </direction-type>
         <sound>
           <play>
@@ -301,7 +301,7 @@
     <measure number="6">
       <direction placement="above">
         <direction-type>
-          <words font-family="Leland Text" font-size="8"></words>
+          <words font-family="Bravura Text" font-size="8"></words>
           </direction-type>
         <sound>
           <play>
@@ -374,7 +374,7 @@
         </note>
       <direction placement="above">
         <direction-type>
-          <words font-family="Leland Text" font-size="8"></words>
+          <words font-family="Bravura Text" font-size="8"></words>
           </direction-type>
         <sound>
           <play>
@@ -415,7 +415,7 @@
     <measure number="8">
       <direction placement="above">
         <direction-type>
-          <words font-family="Leland Text" font-size="8"></words>
+          <words font-family="Bravura Text" font-size="8"></words>
           </direction-type>
         <sound>
           <play>

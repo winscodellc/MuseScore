@@ -13,7 +13,31 @@
       <pageEvenBottomMargin>0.590551</pageEvenBottomMargin>
       <pageOddTopMargin>0.590551</pageOddTopMargin>
       <pageOddBottomMargin>0.590551</pageOddBottomMargin>
+      <lyricsLineThickness>0.1</lyricsLineThickness>
+      <barWidth>0.18</barWidth>
+      <doubleBarWidth>0.18</doubleBarWidth>
+      <endBarWidth>0.55</endBarWidth>
+      <doubleBarDistance>0.37</doubleBarDistance>
+      <endBarDistance>0.37</endBarDistance>
+      <repeatBarlineDotSeparation>0.37</repeatBarlineDotSeparation>
+      <bracketWidth>0.45</bracketWidth>
+      <stemWidth>0.1</stemWidth>
+      <staffLineWidth>0.11</staffLineWidth>
+      <ledgerLineLength>0.33</ledgerLineLength>
       <enableStaveSharing>1</enableStaveSharing>
+      <hairpinLineWidth>0.12</hairpinLineWidth>
+      <pedalLineWidth>0.11</pedalLineWidth>
+      <mmRestHBarThickness>0.7</mmRestHBarThickness>
+      <slurEndWidth>0.05</slurEndWidth>
+      <slurMidWidth>0.21</slurMidWidth>
+      <tieEndWidth>0.05</tieEndWidth>
+      <tieMidWidth>0.21</tieMidWidth>
+      <musicalSymbolFont>Leland</musicalSymbolFont>
+      <musicalTextFont>Leland Text</musicalTextFont>
+      <voltaLineWidth>0.11</voltaLineWidth>
+      <ottavaLineWidth>0.11</ottavaLineWidth>
+      <tupletBracketWidth>0.1</tupletBracketWidth>
+      <dynamicsFont>Leland</dynamicsFont>
       <spatium>1.75</spatium>
       </Style>
     <showInvisible>1</showInvisible>
