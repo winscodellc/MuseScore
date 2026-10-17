@@ -76,7 +76,7 @@ Select tool (mouse-input off), Insert scope other than Voice, Slash voices, Lock
 - 1/128..1/1024 are stacked fractions, as in Dorico (`DoricoButton` `frac:<n>` icons).
 - Toolbox divider lines after Show Left Zone, Insert and Force Duration (`groupEnd` in `NotesToolbox.qml`).
 - Articulations: two columns with a divider between them, in Dorico's order (left accent, marcato, stressed, unstressed; right staccato, tenuto, staccatissimo, tenuto-staccato). The list is row by row because the Flow lays out rows.
-- Not done: highlighting the input duration with nothing selected. MuseScore resets the input duration on every selection change outside note input (`InputState::update`), so there is nothing to show. It needs a remembered "last input duration" in engraving, which also changes the duration note input starts with.
+- Outside note input the duration highlight follows the selection, and nothing is highlighted with nothing selected. Checked in Dorico 6, which does the same (status bar "No selection", no duration lit), so MuseScore's behaviour is kept.
 
 ## Verification status
 
