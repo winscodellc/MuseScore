@@ -49,13 +49,13 @@ const TempoWord TEMPO_WORDS[] = {
 const char* const OTHER_ABSOLUTE[] = { "più", "meno", "Rubato" };
 const char* const RELATIVE[] = { "Mosso", "Lento", "più mosso", "meno mosso" };
 
-struct Gradual {
+struct TempoGradual {
     const char* entry; // lower case, without the continuation dots
     const char* text;  // what is printed
     GradualTempoChangeType type;
 };
 
-const Gradual GRADUALS[] = {
+const TempoGradual TEMPO_GRADUALS[] = {
     { "rit", "rit.", GradualTempoChangeType::Ritardando },
     { "rit.", "rit.", GradualTempoChangeType::Ritardando },
     { "ritardando", "ritardando", GradualTempoChangeType::Ritardando },
@@ -99,7 +99,7 @@ std::string lower(std::string s)
     return s;
 }
 
-std::string trim(const std::string& s)
+std::string trimTempo(const std::string& s)
 {
     const size_t b = s.find_first_not_of(' ');
     return b == std::string::npos ? std::string() : s.substr(b, s.find_last_not_of(' ') - b + 1);
@@ -181,13 +181,13 @@ ParseStatus parseMark(const std::string& s, TempoEntry& entry, std::string& word
     speedEnd = std::min(speedEnd, s.size());
     const size_t afterMark = close ? speedEnd + 1 : speedEnd;
 
-    const ParseStatus speed = parseSpeed(trim(s.substr(eq + 1, speedEnd - eq - 1)), entry.bpm);
+    const ParseStatus speed = parseSpeed(trimTempo(s.substr(eq + 1, speedEnd - eq - 1)), entry.bpm);
     if (speed != ParseStatus::Ok) {
         return speed;
     }
     entry.parenthesised = open == '(';
     entry.markHidden = open == '[';
-    words = trim(trim(s.substr(0, markStart)) + " " + trim(s.substr(std::min(afterMark, s.size()))));
+    words = trimTempo(trimTempo(s.substr(0, markStart)) + " " + trimTempo(s.substr(std::min(afterMark, s.size()))));
     return ParseStatus::Ok;
 }
 
@@ -201,7 +201,7 @@ TempoParse mu::dorico::parseTempo(const std::string& text)
 {
     TempoParse result;
     TempoEntry& entry = result.entry;
-    std::string s = trim(text);
+    std::string s = trimTempo(text);
     if (s.empty()) {
         result.status = ParseStatus::Incomplete;
         return result;
@@ -218,7 +218,7 @@ TempoParse mu::dorico::parseTempo(const std::string& text)
             return result;
         }
         entry.hidden = true;
-        s = trim(s.substr(1, s.size() - 2));
+        s = trimTempo(s.substr(1, s.size() - 2));
     }
 
     std::string words;
@@ -242,7 +242,7 @@ TempoParse mu::dorico::parseTempo(const std::string& text)
     if (!entry.unit) {
         const bool line = w.size() > 3 && w.compare(w.size() - 3, 3, "...") == 0;
         const std::string base = line ? w.substr(0, w.size() - 3) : w;
-        for (const Gradual& g : GRADUALS) {
+        for (const TempoGradual& g : TEMPO_GRADUALS) {
             if (base == g.entry) {
                 entry.kind = Kind::Gradual;
                 entry.text = g.text;
@@ -275,7 +275,7 @@ TempoParse mu::dorico::parseTempo(const std::string& text)
 
 std::vector<std::string> mu::dorico::tempoSuggestions(const std::string& prefix)
 {
-    const std::string p = lower(trim(prefix));
+    const std::string p = lower(trimTempo(prefix));
     std::vector<std::string> result;
     if (p.empty()) {
         return result;
