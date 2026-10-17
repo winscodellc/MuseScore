@@ -52,12 +52,16 @@ target_sources(dorico PRIVATE
     internal/partlayouts.h
     internal/popovercontroller.cpp
     internal/popovercontroller.h
+    popover/handlers/clefhandler.cpp
+    popover/handlers/clefhandler.h
     popover/handlers/dynamicshandler.cpp
     popover/handlers/dynamicshandler.h
     popover/handlers/keysighandler.cpp
     popover/handlers/keysighandler.h
     popover/handlers/timesighandler.cpp
     popover/handlers/timesighandler.h
+    popover/parsers/clefparser.cpp
+    popover/parsers/clefparser.h
     popover/parsers/dynamicsparser.cpp
     popover/parsers/dynamicsparser.h
     popover/parsers/keysigparser.cpp

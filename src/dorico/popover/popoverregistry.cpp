@@ -25,6 +25,7 @@
 #include <algorithm>
 #include <memory>
 
+#include "handlers/clefhandler.h"
 #include "handlers/dynamicshandler.h"
 #include "handlers/keysighandler.h"
 #include "handlers/timesighandler.h"
@@ -73,7 +74,7 @@ PopoverRegistry mu::dorico::makePopoverRegistry()
 {
     PopoverRegistry r;
     r.add(placeholder("bars", "Bars and Barlines", IconCode::DOUBLE_BAR_LINE));            // spec 25
-    r.add(placeholder("clef", "Clefs and Octave Lines", IconCode::CLEF_TREBLE));           // spec 24
+    r.add(clefPopover());                                                                  // spec 24
     r.add(dynamicsPopover());                                                              // spec 21
     r.add(placeholder("fingering", "Fingering", IconCode::FRETBOARD_DIAGRAM));             // spec 34
     r.add(placeholder("figuredbass", "Figured Bass", IconCode::MUSIC_NOTES));              // spec 36

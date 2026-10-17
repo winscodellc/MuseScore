@@ -59,7 +59,7 @@ TEST(DoricoPopoverRegistry, FindByItemType)
 
 TEST(DoricoPopoverRegistry, PlaceholderIsUnsupported)
 {
-    const PopoverDef* def = makePopoverRegistry().find("clef");
+    const PopoverDef* def = makePopoverRegistry().find("bars");
     ASSERT_NE(def, nullptr);
     EXPECT_EQ(def->validate(""), ParseStatus::Incomplete);
     EXPECT_EQ(def->validate("G"), ParseStatus::Unsupported);
