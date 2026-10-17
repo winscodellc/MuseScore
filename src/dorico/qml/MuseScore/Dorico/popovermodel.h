@@ -25,6 +25,7 @@
 #include <QObject>
 #include <QRectF>
 #include <QString>
+#include <QStringList>
 #include <QTransform>
 #include <QVariant>
 #include <qqmlintegration.h>
@@ -46,6 +47,9 @@ class PopoverModel : public QObject, public muse::Contextable, public muse::asyn
     Q_PROPERTY(bool supportsLocal READ supportsLocal NOTIFY changed)
     Q_PROPERTY(QString text READ text WRITE setText NOTIFY changed)
     Q_PROPERTY(int status READ status NOTIFY changed) // ParseStatus: 0 Ok, 1 Incomplete, 2 Unsupported, 3 Invalid
+    // The suggestion menu (tempo, spec 26): Up/Down move the highlight, Return applies the highlighted entry.
+    Q_PROPERTY(QStringList suggestions READ suggestions NOTIFY changed)
+    Q_PROPERTY(int currentSuggestion READ currentSuggestion NOTIFY changed) // -1 = none, Return applies the text
     // The paint view's `matrix` (canvas -> view); bound from QML so scroll and zoom move the popover.
     Q_PROPERTY(QVariant viewMatrix READ viewMatrix WRITE setViewMatrix NOTIFY changed)
     Q_PROPERTY(QRectF anchorRect READ anchorRect NOTIFY changed)
@@ -60,6 +64,7 @@ public:
     Q_INVOKABLE void load();
     Q_INVOKABLE void accept(bool local);
     Q_INVOKABLE void cancel();
+    Q_INVOKABLE void moveSuggestion(int delta);
 
     bool isOpen() const;
     int iconCode() const;
@@ -68,6 +73,8 @@ public:
     QString text() const { return m_text; }
     void setText(const QString& text);
     int status() const;
+    QStringList suggestions() const;
+    int currentSuggestion() const { return m_currentSuggestion; }
     QVariant viewMatrix() const { return m_viewMatrix; }
     void setViewMatrix(const QVariant& matrix);
     QRectF anchorRect() const;
@@ -78,6 +85,7 @@ signals:
 
 private:
     QString m_text;
+    int m_currentSuggestion = -1;
     QVariant m_viewMatrix;
 };
 }

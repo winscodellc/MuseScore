@@ -60,6 +60,8 @@ target_sources(dorico PRIVATE
     popover/handlers/dynamicshandler.h
     popover/handlers/keysighandler.cpp
     popover/handlers/keysighandler.h
+    popover/handlers/tempohandler.cpp
+    popover/handlers/tempohandler.h
     popover/handlers/timesighandler.cpp
     popover/handlers/timesighandler.h
     popover/parsers/barsparser.cpp
@@ -70,6 +72,8 @@ target_sources(dorico PRIVATE
     popover/parsers/dynamicsparser.h
     popover/parsers/keysigparser.cpp
     popover/parsers/keysigparser.h
+    popover/parsers/tempoparser.cpp
+    popover/parsers/tempoparser.h
     popover/parsers/timesigparser.cpp
     popover/parsers/timesigparser.h
     popover/popoverregistry.cpp

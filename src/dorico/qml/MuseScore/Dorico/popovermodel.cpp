@@ -22,6 +22,8 @@
 
 #include "popovermodel.h"
 
+#include <algorithm>
+
 using namespace mu::dorico;
 
 PopoverModel::PopoverModel(QObject* parent)
@@ -33,6 +35,7 @@ void PopoverModel::load()
 {
     controller()->stateChanged().onNotify(this, [this]() {
         m_text = QString::fromStdString(controller()->initialText());
+        m_currentSuggestion = -1;
         emit changed();
         if (isOpen()) {
             emit opened();
@@ -64,6 +67,7 @@ void PopoverModel::setText(const QString& text)
 {
     if (m_text != text) {
         m_text = text;
+        m_currentSuggestion = -1;
         emit changed();
     }
 }
@@ -71,6 +75,28 @@ void PopoverModel::setText(const QString& text)
 int PopoverModel::status() const
 {
     return static_cast<int>(controller()->validate(m_text.toStdString()));
+}
+
+QStringList PopoverModel::suggestions() const
+{
+    QStringList list;
+    const PopoverDef* def = controller()->current();
+    if (def && def->suggest) {
+        for (const std::string& s : def->suggest(m_text.toStdString())) {
+            list << QString::fromStdString(s);
+        }
+    }
+    return list;
+}
+
+void PopoverModel::moveSuggestion(int delta)
+{
+    const int count = static_cast<int>(suggestions().size());
+    const int next = std::clamp(m_currentSuggestion + delta, -1, count - 1);
+    if (next != m_currentSuggestion) {
+        m_currentSuggestion = next;
+        emit changed();
+    }
 }
 
 void PopoverModel::setViewMatrix(const QVariant& matrix)
@@ -86,7 +112,9 @@ QRectF PopoverModel::anchorRect() const
 
 void PopoverModel::accept(bool local)
 {
-    controller()->accept(m_text.toStdString(), local ? ApplyScope::Local : ApplyScope::Default);
+    const QStringList list = suggestions();
+    const QString text = m_currentSuggestion >= 0 && m_currentSuggestion < list.size() ? list.at(m_currentSuggestion) : m_text;
+    controller()->accept(text.toStdString(), local ? ApplyScope::Local : ApplyScope::Default);
 }
 
 void PopoverModel::cancel()

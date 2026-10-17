@@ -142,9 +142,11 @@ Item {
                         popoverModel.cancel()
                         root.giveFocusBackIfClosed()
                         event.accepted = true
-                    } else if (event.key === Qt.Key_Up || event.key === Qt.Key_Down
-                               || event.key === Qt.Key_Tab || event.key === Qt.Key_Backtab) {
-                        event.accepted = true // suggestions (spec 26) and in-popover navigation (specs 32, 33) come later
+                    } else if (event.key === Qt.Key_Up || event.key === Qt.Key_Down) {
+                        popoverModel.moveSuggestion(event.key === Qt.Key_Down ? 1 : -1)
+                        event.accepted = true
+                    } else if (event.key === Qt.Key_Tab || event.key === Qt.Key_Backtab) {
+                        event.accepted = true // in-popover navigation (specs 32, 33) comes later
                     }
                 }
 
@@ -171,6 +173,56 @@ Item {
             visible: popoverModel.status === root.statusUnsupported
             text: qsTrc("dorico", "Not supported yet")
             color: root.errorColor
+        }
+
+        // Suggestion menu (spec 26): Down / Up highlight an entry, Return or a click applies it.
+        Rectangle {
+            anchors.top: parent.bottom
+            anchors.topMargin: 2
+            anchors.left: parent.left
+            width: parent.width // wider than any suggestion: the entry field alone is 180 px
+            height: suggestionColumn.implicitHeight + 4
+            visible: popoverModel.suggestions.length > 0 && popoverModel.status !== root.statusUnsupported
+            color: ui.theme.popupBackgroundColor
+            radius: 4
+            border.width: 1
+            border.color: ui.theme.strokeColor
+
+            Column {
+                id: suggestionColumn
+
+                y: 2
+                width: parent.width
+
+                Repeater {
+                    model: popoverModel.suggestions
+
+                    Rectangle {
+                        required property string modelData
+                        required property int index
+
+                        width: suggestionColumn.width
+                        height: 22
+                        color: index === popoverModel.currentSuggestion ? ui.theme.accentColor : "transparent"
+
+                        StyledTextLabel {
+                            anchors.verticalCenter: parent.verticalCenter
+                            x: 8
+                            text: modelData
+                        }
+
+                        // A MouseArea takes no focus, so the click does not close the popover first.
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: {
+                                popoverModel.moveSuggestion(index - popoverModel.currentSuggestion)
+                                popoverModel.accept(false)
+                                root.giveFocusBackIfClosed()
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

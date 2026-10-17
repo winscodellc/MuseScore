@@ -29,6 +29,7 @@
 #include "handlers/clefhandler.h"
 #include "handlers/dynamicshandler.h"
 #include "handlers/keysighandler.h"
+#include "handlers/tempohandler.h"
 #include "handlers/timesighandler.h"
 
 using namespace mu::dorico;
@@ -88,7 +89,7 @@ PopoverRegistry mu::dorico::makePopoverRegistry()
     r.add(placeholder("techniques", "Playing Techniques", IconCode::ARTICULATION));        // spec 29
     r.add(placeholder("chordsymbols", "Chord Symbols", IconCode::CHORD_SYMBOL));           // spec 32
     r.add(placeholder("repeats", "Repeats and Tremolos", IconCode::REPEAT_START));         // spec 30
-    r.add(placeholder("tempo", "Tempo", IconCode::TEMPO_CHANGE));                          // spec 26
+    r.add(tempoPopover());                                                                 // spec 26
     r.add(placeholder("tuplets", "Tuplets", IconCode::NOTE_TUPLET));                       // spec 31
     return r;
 }
