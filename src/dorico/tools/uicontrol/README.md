@@ -34,4 +34,11 @@ src/dorico/tools/uicontrol/uictl.sh key mscore cmd+1 ";" wait 1500 ";" bounds ms
 src/dorico/tools/uicontrol/uictl.sh click 120 300 right
 ```
 
+Screenshots: `shot.sh <dorico|mscore|screen> out.png [x,y,w,h] [max]` captures the app's window (or a crop of it, `x,y,w,h` relative to the window) and shrinks it to a long edge of `max` pixels (default 1200). Claude pays for an image by its pixels (about w*h/750 tokens), not its file size, so take the whole window only to get your bearings and crop the part you are checking, which stays at native size and legible. It prints the token estimate and `screen = ox+ix*s, oy+iy*s`, which turns an image pixel into the screen point for `click`. It captures what is on screen in that rectangle, so bring the app to the front first.
+
+```sh
+src/dorico/tools/uicontrol/shot.sh mscore /tmp/m.png              # whole window
+src/dorico/tools/uicontrol/shot.sh mscore /tmp/m.png 0,0,700,300  # top-left 700x300 at native size
+```
+
 Commands: `trusted`, `prompt`, `front <app>`, `bounds <app>`, `key <app> <combo>`, `type <text>`, `click <x> <y> [right|double|cmd|shift|alt|ctrl]`, `drag <x1> <y1> <x2> <y2>`, `move <x> <y>`, `wait <ms>`. `<app>` is `dorico` or `mscore`. Coordinates are screen points, top-left origin (the same as `screencapture -R`).
