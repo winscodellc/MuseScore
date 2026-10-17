@@ -46,6 +46,7 @@ Namespace `mu::dorico`, commands `command://dorico/<name>`. It is created in spe
 - Note-input caret (spec 12): `notationscene/qml/MuseScore/NotationScene/abstractnotationpaintview.{h,cpp}` lets an optional `IDoricoCaret` paint the caret and grid ruler.
 - Appearance (spec 60): `app/configs/dark.cfg` and `light.cfg` hold Dorico's measured colors (values only).
 - Notes panel articulations (spec 52): `notationscene/internal/notationcommandsstate.cpp` also refreshes the articulation toggles on selection change; `engraving/dom/chord.cpp` `updateArticulations` removes any articulation (not only the basic four), `articulation.cpp` knows stress / unstress placements; test in `engraving/tests/note_tests.cpp`.
+- Print zoom (spec 58): `notationscene/qml/MuseScore/NotationScene/abstractnotationpaintview.{h,cpp}` `load()`: the main view being shown takes the view commands (zoom, Whole Page). The Dorico pages stay alive and Print's preview is read-only, so MuseScore's "register editable views once, when created" left zoom on the wrong view.
 - Duration keys (spec 13): `notationscene/qml/MuseScore/NotationScene/notationviewinputcontroller.cpp` `shortcutOverrideEvent` lets (Cmd-)Shift-Opt-Left/Right reach the shortcuts when a line or text is selected.
 - Dorico pages hide MuseScore's score/part tabs (spec 50): `notationscene/qml/MuseScore/NotationScene/NotationView.qml` `showNotationTabs`.
 

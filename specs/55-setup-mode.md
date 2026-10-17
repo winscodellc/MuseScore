@@ -59,7 +59,7 @@ Built and unit-tested (`dorico_tests` 26/26: Setup zone table, `layoutPageInfo`)
 - [x] Layouts panel lists the score and each part; add, rename, delete a part work.
 - [x] Flows panel shows a single card; disabled buttons have a "not available yet" tooltip.
 - [x] Cmd-7/8/9 toggle Players/Flows/Layouts zones.
-- [ ] Top bar with Add button, arrows to move and trash can must be removed and thas can ca go to the bottom with the other controls
+- [x] Top bar with Add button, arrows to move and trash can removed; the trash can is in the bottom action bar (checked in the app, 2026-10-16).
 
 ## Tests
 

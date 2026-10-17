@@ -70,6 +70,14 @@ Select tool (mouse-input off), Insert scope other than Voice, Slash voices, Lock
 - **Write page**: MuseScore's note-input bar and the Layout (instruments) panel are gone from Write (instruments live in Setup, spec 55). Palettes moved to the right zone, closed by default. `zoneDocks(Write)`: left = `notesPanel`; right = palettes, selection filter, history (spec 53 puts the Notations panel first).
 - The lower zone Keyboard tab's Set Duration stays a placeholder: MuseScore has no "apply the input duration to the selection" command.
 
+### After the side-by-side check with Dorico 6 (2026-10-16, second pass)
+
+- Bravura icons use `Text.CurveRendering` (grayscale): `QtRendering` still drew them with LCD antialiasing on macOS, which tinted stems and noteheads blue and orange. Longa is Bravura's `mensuralWhiteLonga` (U+E95D, like the maxima) instead of MuseScore's icon-font glyph.
+- 1/128..1/1024 are stacked fractions, as in Dorico (`DoricoButton` `frac:<n>` icons).
+- Toolbox divider lines after Show Left Zone, Insert and Force Duration (`groupEnd` in `NotesToolbox.qml`).
+- Articulations: two columns with a divider between them, in Dorico's order (left accent, marcato, stressed, unstressed; right staccato, tenuto, staccatissimo, tenuto-staccato). The list is row by row because the Flow lays out rows.
+- Not done: highlighting the input duration with nothing selected. MuseScore resets the input duration on every selection change outside note input (`InputState::update`), so there is nothing to show. It needs a remembered "last input duration" in engraving, which also changes the duration note input starts with.
+
 ## Verification status
 
 Built and unit-tested (`dorico_tests` 29/29), QML linted. Manual check in the app pending (the vertical toolbar orientation after View > Reset layout is worth a look: `DockToolBarView::resetToDefault` forces horizontal).
@@ -81,8 +89,8 @@ Built and unit-tested (`dorico_tests` 29/29), QML linted. Manual check in the ap
 - [x] Every enabled button runs the command named in the table; disabled ones show a tooltip "not available yet".
 - [x] Panel's durations enter notes and set the duration of a selection.
 - [x] Cmd-7 hides/shows the toolbox panel (the toolbox itself stays).
-- [ ] (FAILING, NEEDS FIX. e.g. staccatissimo. CHECK THE OTHERS) articualtions from the toolbox panel are toggle buttons.
-- [] (ASK ME ABOUT PROVIDING AN IMAGE FROM DORICO WITH MORE OPTIONS THAT NEED TO BE ADDED) Arrow at the top of tolbox panel toggles more duration options
+- [x] Articulations from the toolbox panel are toggle buttons (all 8 checked in the app, 2026-10-16: second click removes, highlight follows).
+- [x] Arrow at the top of the toolbox panel toggles more duration options (maxima..1/1024).
 
 ## Tests
 

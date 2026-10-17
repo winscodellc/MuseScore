@@ -65,6 +65,11 @@ Not built (need a new model or are larger): Tempo and Chords tracks, the overvie
 - **Track Inspector**: equal-width tabs; sections with Dorico's title bar and chevron (`InspectorSection.qml`). Routing: sound picker (`ResourceDropdown.qml`, MuseScore's sound menu), Port / Ch. fields shown as "–", Endpoint Setup (unavailable), Edit Instrument (the sound's editor window), Ex. map (disabled "Default"), Enable Independent Voice Playback (unavailable). Insert Effects: four slots with on/off, effect picker and edit. Channel: one `DoricoChannelStrip`.
 - **Colours**: `trackcolor.js` is shared by the track overview, the Mixer and the Channel strip (the n-th instrument of the score).
 
+### After the side-by-side check with Dorico 6 (2026-10-16, second pass)
+
+- The Output (master) strip is pinned at the right edge of the Mixer, as in Dorico, instead of scrolling after the last channel.
+- The selected track header is filled with a light tint of its track colour, with dark text.
+
 ## Verification status
 
 Built and unit-tested (`dorico_tests` 41/41), QML linted. Manual check in the app pending.

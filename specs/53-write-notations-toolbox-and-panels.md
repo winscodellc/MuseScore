@@ -99,6 +99,12 @@ Cues, Video, Proofreading panels; Comments if no mapping; Tonality System manage
 |                                     | Vertical                                                       | Lines: chord brackets                                                                     |
 | Cues, Video, Comments, Proofreading |                                                                | stub                                                                                      |
 
+### After the side-by-side check with Dorico 6 (2026-10-16)
+
+- Two mode buttons at the top, as in Dorico: Panels (Lucide `palette`) and Popovers (`keyboard`); the current mode is highlighted.
+- Fix: closing the zone by clicking the active panel button left the button highlighted. `WritePage` passes the panel id only while the dock is visible (a DockPanel's `visible` follows its open state), so Cmd-9 closing it clears the highlight too.
+- Still open (medium): Dorico's collapsible sections ("Common Clefs" etc., Uncommon / Archaic closed by default) with 2-3 large cells per row and no "Notations" title bar.
+
 ## Verification status
 
 Built and unit-tested (`dorico_tests` 32/32: name patterns, rest resolution, panel list), QML linted. Manual check in the app pending; check the log for "Dorico panel ... no palette cell for" warnings, which name table entries that need correcting.

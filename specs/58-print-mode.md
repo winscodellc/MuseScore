@@ -60,6 +60,11 @@ Not built: paper size / orientation / scale in the panel (Page Setup... opens Mu
 
 - Layouts: compact rows (score / part icon, name), the layouts to print filled blue (`#45A6F5`); details in the tooltip. Print Options: collapsible sections (Duplex Printing and Annotations closed), no title bar. Music area grey (`#AAAAAE`) while Print is open (`DoricoActionsController::applyPrintBackground`, restored on leaving and at start-up).
 
+### After the side-by-side check with Dorico 6 (2026-10-16, second pass)
+
+- The Layouts panel lists every layout, as in Dorico and the Setup Layouts panel, including parts that were never opened (MuseScore's potential excerpts). Printing or exporting such a part creates it first (`PrintModel::checkedNotations`, same as choosing it in the layout selector); checks survive the reload this triggers. Checked in the app: printing a never-opened part opens the print dialog.
+- Print opens on Whole Page (dispatched when the page is shown). Fix: Whole Page / Page Width / zoom did nothing in Print, because MuseScore only sends view commands to editable views; see the README's upstream edits. MuseScore's whole-page fit puts the page at the top left, where Dorico centres it.
+
 ## Verification status
 
 Built and unit-tested (`dorico_tests` 28/28: Print zones, `exportUnitType`), QML linted. Manual check in the app pending.
