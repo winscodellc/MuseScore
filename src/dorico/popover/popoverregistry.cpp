@@ -25,6 +25,7 @@
 #include <algorithm>
 #include <memory>
 
+#include "handlers/barshandler.h"
 #include "handlers/clefhandler.h"
 #include "handlers/dynamicshandler.h"
 #include "handlers/keysighandler.h"
@@ -73,7 +74,7 @@ static PopoverDef placeholder(const std::string& id, const std::string& title, I
 PopoverRegistry mu::dorico::makePopoverRegistry()
 {
     PopoverRegistry r;
-    r.add(placeholder("bars", "Bars and Barlines", IconCode::DOUBLE_BAR_LINE));            // spec 25
+    r.add(barsPopover());                                                                  // spec 25
     r.add(clefPopover());                                                                  // spec 24
     r.add(dynamicsPopover());                                                              // spec 21
     r.add(placeholder("fingering", "Fingering", IconCode::FRETBOARD_DIAGRAM));             // spec 34
