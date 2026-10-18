@@ -23,6 +23,7 @@
 #include <gtest/gtest.h>
 
 #include "dorico/doricocommands.h"
+#include "dorico/popover/popovernavigation.h"
 #include "dorico/popover/popoverregistry.h"
 
 using namespace mu::dorico;
@@ -78,4 +79,16 @@ TEST(DoricoPopoverRegistry, DynamicsValidate)
     EXPECT_TRUE(def->supportsLocal);
     EXPECT_EQ(registry.findByType(ElementType::HAIRPIN_SEGMENT)->id, "dynamics");
     EXPECT_EQ(def->validate("x"), ParseStatus::Invalid);
+}
+
+TEST(DoricoPopoverNavigation, BeatsFollowTheTimeSignature)
+{
+    using mu::engraving::Fraction;
+    EXPECT_EQ(beatLength(Fraction(4, 4)), Fraction(1, 4));
+    EXPECT_EQ(beatLength(Fraction(2, 2)), Fraction(1, 2));
+    EXPECT_EQ(beatLength(Fraction(6, 8)), Fraction(3, 8)); // compound: dotted quarter
+    EXPECT_EQ(beatLength(Fraction(3, 8)), Fraction(1, 8));
+    EXPECT_EQ(beatStart(Fraction(3, 8), Fraction(4, 4)), Fraction(1, 4)); // inside beat 2
+    EXPECT_EQ(beatStart(Fraction(1, 2), Fraction(4, 4)), Fraction(1, 2)); // on beat 3
+    EXPECT_EQ(beatStart(Fraction(5, 8), Fraction(6, 8)), Fraction(3, 8));
 }

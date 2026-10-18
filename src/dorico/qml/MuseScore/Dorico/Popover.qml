@@ -35,6 +35,13 @@ Item {
 
     readonly property int statusUnsupported: 2
     readonly property int statusInvalid: 3
+    // PopoverMove
+    readonly property int moveNextBeat: 0
+    readonly property int movePrevBeat: 1
+    readonly property int moveNextBar: 2
+    readonly property int movePrevBar: 3
+    readonly property int moveNextItem: 4
+    readonly property int movePrevItem: 5
     // The theme has no error colour.
     readonly property color errorColor: "#E0453D"
 
@@ -146,7 +153,18 @@ Item {
                         popoverModel.moveSuggestion(event.key === Qt.Key_Down ? 1 : -1)
                         event.accepted = true
                     } else if (event.key === Qt.Key_Tab || event.key === Qt.Key_Backtab) {
-                        event.accepted = true // in-popover navigation (specs 32, 33) comes later
+                        if (popoverModel.navigates) {
+                            popoverModel.move(event.key === Qt.Key_Tab ? root.moveNextBar : root.movePrevBar)
+                        }
+                        event.accepted = true
+                    } else if (popoverModel.navigates && event.key === Qt.Key_Space) {
+                        popoverModel.move((event.modifiers & Qt.ShiftModifier) ? root.movePrevBeat : root.moveNextBeat)
+                        event.accepted = true
+                    } else if (popoverModel.navigates && (event.modifiers & Qt.ControlModifier)
+                               && (event.key === Qt.Key_Right || event.key === Qt.Key_Left)) {
+                        // macOS Cmd arrives as Control
+                        popoverModel.move(event.key === Qt.Key_Right ? root.moveNextItem : root.movePrevItem)
+                        event.accepted = true
                     }
                 }
 

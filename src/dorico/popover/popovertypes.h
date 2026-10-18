@@ -47,6 +47,22 @@ enum class ApplyScope {
     Local    // Opt-Return
 };
 
+//! Space / Shift-Space, Tab / Shift-Tab, Cmd-Right / Cmd-Left in a navigating popover (spec 32).
+enum class PopoverMove {
+    NextBeat,
+    PrevBeat,
+    NextBar,
+    PrevBar, // start of the bar if mid-bar, otherwise the previous bar
+    NextItem,
+    PrevItem
+};
+
+//! Where a navigating popover sits: a beat on a staff, which may have no note of its own (inside a half note).
+struct PopoverPosition {
+    engraving::Fraction tick;
+    engraving::track_idx_t track = 0; // voice 1 of the staff
+};
+
 //! One popover (spec 20). A plain record of callbacks, like a TS object literal; specs 21-36 each provide one.
 //! `apply` runs inside the popover's undo step and acts on the current selection or note-input caret.
 //! When the popover edits an existing item (Return on it, or opened on a note that already has one), that item is
@@ -65,5 +81,10 @@ struct PopoverDef {
     std::function<std::string(notation::INotationPtr)> selectionPrefill; // optional: entry text suggested for the selection
     std::function<void(notation::INotationPtr)> noteInputEnded; // optional: close open-ended items (p<) when input stops
     std::function<std::vector<std::string>(const std::string&)> suggest; // optional: suggestion menu for the typed text
+
+    //! Navigating popovers (spec 32) sit at a PopoverPosition instead of acting on the selection: opening one stops
+    //! note input, Return enters the text there, and Space / Tab / Cmd-arrows enter it and move on. Set it instead of
+    //! `apply`.
+    std::function<bool(const std::string&, const PopoverPosition&, notation::INotationPtr)> applyAt;
 };
 }

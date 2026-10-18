@@ -63,6 +63,11 @@ bool PopoverModel::supportsLocal() const
     return isOpen() && controller()->current()->supportsLocal;
 }
 
+bool PopoverModel::navigates() const
+{
+    return isOpen() && controller()->current()->applyAt != nullptr;
+}
+
 void PopoverModel::setText(const QString& text)
 {
     if (m_text != text) {
@@ -115,6 +120,11 @@ void PopoverModel::accept(bool local)
     const QStringList list = suggestions();
     const QString text = m_currentSuggestion >= 0 && m_currentSuggestion < list.size() ? list.at(m_currentSuggestion) : m_text;
     controller()->accept(text.toStdString(), local ? ApplyScope::Local : ApplyScope::Default);
+}
+
+void PopoverModel::move(int popoverMove)
+{
+    controller()->move(m_text.toStdString(), static_cast<PopoverMove>(popoverMove));
 }
 
 void PopoverModel::cancel()

@@ -26,6 +26,7 @@
 #include <memory>
 
 #include "handlers/barshandler.h"
+#include "handlers/chordsymbolshandler.h"
 #include "handlers/clefhandler.h"
 #include "handlers/dynamicshandler.h"
 #include "handlers/holdshandler.h"
@@ -92,7 +93,7 @@ PopoverRegistry mu::dorico::makePopoverRegistry()
     r.add(timeSigPopover());                                                               // spec 22
     r.add(ornamentsPopover());                                                             // spec 28
     r.add(techniquesPopover());                                                            // spec 29
-    r.add(placeholder("chordsymbols", "Chord Symbols", IconCode::CHORD_SYMBOL));           // spec 32
+    r.add(chordSymbolsPopover());                                                          // spec 32
     r.add(repeatsPopover());                                                               // spec 30
     r.add(tempoPopover());                                                                 // spec 26
     r.add(tupletsPopover());                                                               // spec 31

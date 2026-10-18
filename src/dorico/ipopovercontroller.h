@@ -49,6 +49,8 @@ public:
 
     virtual ParseStatus validate(const std::string& text) const = 0;
     virtual bool accept(const std::string& text, ApplyScope scope) = 0; // false = still open
+    //! Navigating popovers (spec 32): enter the text, if any, and move the popover on. False = text invalid or no move.
+    virtual bool move(const std::string& text, PopoverMove move) = 0;
     virtual void cancel() = 0;
 };
 }

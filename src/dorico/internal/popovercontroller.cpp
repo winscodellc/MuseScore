@@ -25,12 +25,16 @@
 #include <algorithm>
 
 #include "engraving/dom/chordrest.h"
+#include "engraving/dom/input.h"
 #include "engraving/dom/measure.h"
+#include "engraving/dom/mscore.h"
 #include "engraving/dom/note.h"
+#include "engraving/dom/score.h"
 #include "engraving/dom/segment.h"
 #include "engraving/dom/system.h"
 
 #include "notation/inotation.h"
+#include "notation/inotationelements.h"
 #include "notation/inotationinteraction.h"
 #include "notation/inotationnoteinput.h"
 #include "notation/inotationselection.h"
@@ -38,6 +42,7 @@
 #include "notationscene/notationcommands.h"
 
 #include "../doricocommands.h"
+#include "../popover/popovernavigation.h"
 
 using namespace mu::dorico;
 using namespace mu::engraving;
@@ -58,6 +63,18 @@ EngravingItem* singleSelectedItem(const INotationSelectionPtr& selection)
             return nullptr;
         }
         if (!first || e->staffIdx() < first->staffIdx()) {
+            first = e;
+        }
+    }
+    return first;
+}
+
+// The top staff's earliest selected item.
+const EngravingItem* earliestSelected(const INotationSelectionPtr& selection)
+{
+    const EngravingItem* first = nullptr;
+    for (const EngravingItem* e : selection->elements()) {
+        if (!first || e->staffIdx() < first->staffIdx() || (e->staffIdx() == first->staffIdx() && e->tick() < first->tick())) {
             first = e;
         }
     }
@@ -201,7 +218,18 @@ void PopoverController::open(const PopoverDef* def, EngravingItem* editing)
 {
     m_current = def; // replaces any open popover: Dorico shows one at a time
     m_editing = editing;
-    m_initialText = def && editing ? def->prefill(editing) : std::string();
+    m_position = def && def->applyAt ? startPosition(editing) : std::nullopt;
+    if (m_position) {
+        // Dorico: the chord symbols popover stops note input when it opens.
+        INotationPtr notation = globalContext()->currentNotation();
+        if (notation->interaction()->noteInput()->isNoteInputMode()) {
+            notation->interaction()->noteInput()->endNoteInput();
+        }
+        if (!m_editing) {
+            m_editing = itemAt(notation->elements()->msScore(), *m_position, def->itemTypes);
+        }
+    }
+    m_initialText = def && m_editing ? def->prefill(m_editing) : std::string();
     if (def && !editing && def->selectionPrefill) {
         m_initialText = def->selectionPrefill(globalContext()->currentNotation()); // tuplets: a ratio for the selected notes
     }
@@ -209,21 +237,39 @@ void PopoverController::open(const PopoverDef* def, EngravingItem* editing)
     m_stateChanged.notify();
 }
 
+// Where a navigating popover starts: the item it edits, the caret, or the earliest selected item; on voice 1 of its staff.
+std::optional<PopoverPosition> PopoverController::startPosition(EngravingItem* editing) const
+{
+    INotationPtr notation = globalContext()->currentNotation();
+    const Score* score = notation->elements()->msScore();
+    if (!editing && notation->interaction()->noteInput()->isNoteInputMode()) {
+        const InputState& is = score->inputState();
+        if (!is.segment() || is.beyondScore()) {
+            return std::nullopt;
+        }
+        return PopoverPosition { is.tick(), trackZeroVoice(is.track()) };
+    }
+    const EngravingItem* e = editing ? editing : earliestSelected(notation->interaction()->selection());
+    if (!e) {
+        return std::nullopt;
+    }
+    return PopoverPosition { e->tick(), trackZeroVoice(e->track()) };
+}
+
 // The caret, or the earliest selected item, with the top raised to its staff's top line so the box sits above the staff.
 RectF PopoverController::computeAnchor() const
 {
-    INotationInteractionPtr interaction = globalContext()->currentNotation()->interaction();
+    INotationPtr notation = globalContext()->currentNotation();
+    if (m_position) {
+        return m_editing ? m_editing->canvasBoundingRect() : positionRect(notation->elements()->msScore(), *m_position);
+    }
+    INotationInteractionPtr interaction = notation->interaction();
     if (interaction->noteInput()->isNoteInputMode()) {
         return interaction->noteInput()->cursorRect();
     }
 
     INotationSelectionPtr selection = interaction->selection();
-    const EngravingItem* first = nullptr;
-    for (const EngravingItem* e : selection->elements()) {
-        if (!first || e->staffIdx() < first->staffIdx() || (e->staffIdx() == first->staffIdx() && e->tick() < first->tick())) {
-            first = e;
-        }
-    }
+    const EngravingItem* first = earliestSelected(selection);
 
     RectF rect = selection->canvasBoundingRect();
     if (rect.isEmpty() && first) { // a list of several items: anchor at the earliest one
@@ -249,32 +295,67 @@ bool PopoverController::accept(const std::string& text, ApplyScope scope)
         cancel();
         return true;
     }
+    if (!applyEntry(text, scope)) {
+        return false;
+    }
+    cancel();
+    return true;
+}
+
+// Space / Tab / Cmd-arrows: an entry that leaves the existing item as it was adds no undo step.
+bool PopoverController::move(const std::string& text, PopoverMove move)
+{
+    INotationPtr notation = globalContext()->currentNotation();
+    if (!m_current || !m_position || !notation) {
+        return false;
+    }
+    const bool unchanged = text.empty() || (m_editing && text == m_initialText);
+    if (!unchanged && !applyEntry(text, ApplyScope::Default)) {
+        return false;
+    }
+
+    const Score* score = notation->elements()->msScore();
+    if (std::optional<PopoverPosition> next = movePosition(score, *m_position, move, m_current->itemTypes)) {
+        m_position = next;
+    }
+    m_editing = itemAt(score, *m_position, m_current->itemTypes); // at the end of the score: the entry just made
+    m_initialText = m_editing ? m_current->prefill(m_editing) : std::string();
+    m_anchor = computeAnchor();
+    m_stateChanged.notify();
+    return true;
+}
+
+bool PopoverController::applyEntry(const std::string& text, ApplyScope scope)
+{
+    INotationPtr notation = globalContext()->currentNotation();
     if (m_current->validate(text) != ParseStatus::Ok) {
         return false;
     }
 
     // One undo step per Return, however many transactions the handler makes.
     // Handlers act on the selection; selecting the edited item makes the entry replace it.
-    if (m_editing && notation->interaction()->selection()->element() != m_editing) {
+    if (!m_position && m_editing && notation->interaction()->selection()->element() != m_editing) {
         notation->interaction()->select({ m_editing });
     }
 
     INotationUndoStackPtr undoStack = notation->undoStack();
     const size_t start = undoStack->currentStateIndex();
-    if (!m_current->apply(text, m_current->supportsLocal ? scope : ApplyScope::Default, notation)) {
+    const bool applied = m_current->applyAt
+                         ? m_position && m_current->applyAt(text, *m_position, notation)
+                         : m_current->apply(text, m_current->supportsLocal ? scope : ApplyScope::Default, notation);
+    if (!applied) {
         return false;
     }
     if (undoStack->currentStateIndex() > start + 1) {
         undoStack->mergeTransactions(start);
     }
-
-    cancel();
     return true;
 }
 
 void PopoverController::cancel()
 {
     m_editing = nullptr;
+    m_position.reset();
     if (m_current) {
         m_current = nullptr;
         m_stateChanged.notify();

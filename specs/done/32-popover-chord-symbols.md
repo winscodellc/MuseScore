@@ -1,12 +1,12 @@
 <!-- markdownlint-disable -->
 # 32 — Popover: chord symbols (Shift-Q)
 
-Status: in-progress · Depends on: [20-popover-framework](done/20-popover-framework.md) · Dorico refs:
+Status: done · Depends on: [20-popover-framework](20-popover-framework.md) · Dorico refs:
 - [P] `https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_chord_symbols_*_r.html`
 - [P] `.../dorico_popovers_navigation_r.html`
 - [M] `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/write_mode/write_mode_notations_input/write_mode_chord_symbols_inputting_t.html`
 
-Reference: [popovers](reference/dorico-popovers.md) (B1, B2 "Chord symbols") · [internals](reference/musescore-internals.md) (section 3, `addTextToItem`).
+Reference: [popovers](../reference/dorico-popovers.md) (B1, B2 "Chord symbols") · [internals](../reference/musescore-internals.md) (section 3, `addTextToItem`).
 
 Names such as `parse`, `Result` and `apply` follow the contract in spec 20; rename to match its final API.
 
@@ -66,14 +66,13 @@ Accidentals: `#`; `b`; `x` or `##`; `x#`, `#x`, `###`; `bb`; `bbb`.
 - MuseScore has no local/global chord-symbol distinction. A chord symbol belongs to a segment on one staff.
 
 ## Design
-- **New files** in `src/dorico/internal/popovers/chordsymbols/`:
-  - `chordsymbolparser.h/.cpp`: pure `parse(const std::string&) -> ChordResult`.
+- **New files**: `src/dorico/popover/parsers/chordsymbolsparser.h/.cpp` (`parseChordSymbol(text) -> ChordSymbolParse`), `popover/handlers/chordsymbolshandler.h/.cpp` (`chordSymbolsPopover()`), and `popover/popovernavigation.h/.cpp` (beat / bar / item moves, shared with later navigating popovers such as figured bass).
 - **Approach:** do not write a second chord parser. The Dorico parser is a translation layer:
   1. Normalise Dorico spellings to MuseScore's input spelling: `^7` → `maj7`, `half-dim` / `halfdim` / `hd` → `m7b5`, `o` → `dim`, `ag` / `au` → `aug`, `%` / `69` → `6/9`, `x` → `##`, `no3` → `omit3`, German and fixed-do roots → English.
-  2. Pass the normalised text to the engraving harmony parser to validate it.
+  2. Validate: the root and bass must be notes, and MuseScore's `ParsedChord::parse` must find every token of the rest understandable (`Harmony::parseHarmony` alone accepts any text after a valid root, so `Cxyz` would pass).
   3. The result holds both the original text and the normalised text.
 - **Apply:** create the chord symbol on the selected chord/rest's segment, using the `HARMONY_A` style (or the roman/Nashville style from a setting). Set its text to the normalised string inside one `startEdit()` / `apply()`.
-- **Space / Shift-Space / Tab / Shift-Tab:** after applying, move the popover's anchor to the next beat, previous beat, next bar or previous bar. Reuse the cursor-moving primitives in `INotationInteraction` (confirm names). The popover model re-anchors itself rather than closing.
+- **Space / Shift-Space / Tab / Shift-Tab:** a *navigating* popover (`PopoverDef::applyAt` set) sits at a `PopoverPosition` (tick + staff) rather than the selection, because a beat inside a long note has nothing to select. These keys apply the entry there (no undo step if the text is unchanged) and move the position; the popover reopens there, prefilled with any chord symbol it finds. Beats follow MuseScore's own chord-symbol navigation (dotted quarter in compound time). `INotationInteraction::navigateToNearHarmony` and friends were not reusable: they only work while a harmony is being text-edited. A beat with no note gets an empty ChordRest segment (`Measure::undoGetSegment`), as MuseScore's own Space does.
 - **Cmd-Right / Cmd-Left:** jump to the next/previous existing harmony on the staff.
 - **Opt-Return, Opt-L, Opt-G:** accepted and ignored. They produce the same result as Return (see Deferred).
 - **Up / Down line number:** deferred.
@@ -85,25 +84,27 @@ Accidentals: `#`; `b`; `x` or `##`; `x#`, `#x`, `###`; `bb`; `bbb`.
 - Chord symbol regions (`reg`).
 - Chord symbol line numbers (Up / Down).
 - MIDI keyboard and Keyboard-panel entry into the popover.
-- Parenthesised chords `(Cmaj7)` unless the MuseScore harmony parser accepts them.
-- Modal chord names (`dorian` and the rest). The first version accepts only chord-symbol spellings.
-- Polychord `|` / `;` forms unless the MuseScore parser accepts them.
-- Nashville and roman-numeral entry (needs the style switch).
+- Modal chord names (`dorian` and the rest), triple accidentals (`x#`, `bbb`) and added notes by name (`addF#`): "not supported yet". Parenthesised chords and polychords (`|`, `;`) work, as MuseScore's Harmony parses them itself.
+- Nashville and roman-numeral entry (needs the style switch): "not supported yet".
+- Right / Left moving the popover to the nearest note, rest or grid position: the arrows move the text cursor only.
+- Entries with a space (`no chord`, `melodic minor`) cannot be typed, because Space moves the popover. The parser accepts them; `NC` / `N.C.` are the way to type a no-chord symbol.
+- Editing an existing chord symbol replaces it with a new one, so manual offsets on the old one are lost.
+- Lower-case English roots (`c`, `f#m`): only upper-case English and German roots, and lower-case fixed-do syllables (`do`, `fa#`) are roots.
 - Anything the MuseScore harmony parser rejects after normalisation goes through the spec 20 invalid-input state.
 
 ## Acceptance criteria
-- [ ] Shift-Q on a selected note opens the popover; typing `Cmaj7` and Return adds a chord symbol reading Cmaj7.
-- [ ] `Dm7b5/G` produces a half-diminished chord with bass G.
-- [ ] Space inputs the entry and moves the popover to the next beat; five entries in a row fill five beats.
-- [ ] Tab moves to the next bar; Shift-Tab to the bar start.
-- [ ] Return on an existing chord symbol reopens it pre-filled; changing the text and pressing Return replaces it.
-- [ ] `N.C.` and `NC` insert a no-chord symbol.
-- [ ] Opening the popover during note input stops note input.
-- [ ] `xyz!` shows the error state.
-- [ ] One undo per entry.
+- [x] Shift-Q on a selected note opens the popover; typing `Cmaj7` and Return adds a chord symbol reading Cmaj7.
+- [x] `Dm7b5/G` produces a half-diminished chord with bass G.
+- [x] Space inputs the entry and moves the popover to the next beat; five entries in a row fill five beats.
+- [x] Tab moves to the next bar; Shift-Tab to the bar start.
+- [x] Return on an existing chord symbol reopens it pre-filled; changing the text and pressing Return replaces it.
+- [x] `N.C.` and `NC` insert a no-chord symbol.
+- [x] Opening the popover during note input stops note input.
+- [x] `xyz!` shows the error state.
+- [x] One undo per entry.
 
 ## Tests
-GoogleTest, `src/dorico/tests/chordsymbolparser_tests.cpp`. "Normalised" is the text handed to the MuseScore parser:
+GoogleTest, `src/dorico/tests/chordsymbolsparser_tests.cpp` (plus the beat math in `popoverregistry_tests.cpp`). "Normalised" is the text handed to the MuseScore parser:
 
 | Input | Normalised | Valid |
 |---|---|---|

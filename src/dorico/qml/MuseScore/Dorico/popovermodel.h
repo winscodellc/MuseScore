@@ -45,6 +45,7 @@ class PopoverModel : public QObject, public muse::Contextable, public muse::asyn
     Q_PROPERTY(int iconCode READ iconCode NOTIFY changed)
     Q_PROPERTY(QString title READ title NOTIFY changed)
     Q_PROPERTY(bool supportsLocal READ supportsLocal NOTIFY changed)
+    Q_PROPERTY(bool navigates READ navigates NOTIFY changed) // Space / Tab / Cmd-arrows move it along the score (spec 32)
     Q_PROPERTY(QString text READ text WRITE setText NOTIFY changed)
     Q_PROPERTY(int status READ status NOTIFY changed) // ParseStatus: 0 Ok, 1 Incomplete, 2 Unsupported, 3 Invalid
     // The suggestion menu (tempo, spec 26): Up/Down move the highlight, Return applies the highlighted entry.
@@ -65,11 +66,13 @@ public:
     Q_INVOKABLE void accept(bool local);
     Q_INVOKABLE void cancel();
     Q_INVOKABLE void moveSuggestion(int delta);
+    Q_INVOKABLE void move(int popoverMove); // PopoverMove: 0 next beat, 1 previous beat, 2 next bar, 3 previous bar, 4/5 next/previous item
 
     bool isOpen() const;
     int iconCode() const;
     QString title() const;
     bool supportsLocal() const;
+    bool navigates() const;
     QString text() const { return m_text; }
     void setText(const QString& text);
     int status() const;

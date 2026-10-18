@@ -54,6 +54,8 @@ target_sources(dorico PRIVATE
     internal/popovercontroller.h
     popover/handlers/barshandler.cpp
     popover/handlers/barshandler.h
+    popover/handlers/chordsymbolshandler.cpp
+    popover/handlers/chordsymbolshandler.h
     popover/handlers/clefhandler.cpp
     popover/handlers/clefhandler.h
     popover/handlers/dynamicshandler.cpp
@@ -78,6 +80,8 @@ target_sources(dorico PRIVATE
     popover/handlers/tupletshandler.h
     popover/parsers/barsparser.cpp
     popover/parsers/barsparser.h
+    popover/parsers/chordsymbolsparser.cpp
+    popover/parsers/chordsymbolsparser.h
     popover/parsers/clefparser.cpp
     popover/parsers/clefparser.h
     popover/parsers/dynamicsparser.cpp
@@ -98,6 +102,8 @@ target_sources(dorico PRIVATE
     popover/parsers/timesigparser.h
     popover/parsers/tupletparser.cpp
     popover/parsers/tupletparser.h
+    popover/popovernavigation.cpp
+    popover/popovernavigation.h
     popover/popoverregistry.cpp
     popover/popoverregistry.h
     popover/popovertypes.h

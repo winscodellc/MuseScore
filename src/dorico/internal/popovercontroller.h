@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <optional>
+
 #include "async/asyncable.h"
 #include "modularity/ioc.h"
 #include "rcommand/commandable.h"
@@ -59,6 +61,7 @@ public:
 
     ParseStatus validate(const std::string& text) const override;
     bool accept(const std::string& text, ApplyScope scope) override;
+    bool move(const std::string& text, PopoverMove move) override;
     void cancel() override;
 
 private:
@@ -66,12 +69,15 @@ private:
     engraving::EngravingItem* existingItem(const PopoverDef* def) const;
     void open(const PopoverDef* def, engraving::EngravingItem* editing);
     muse::RectF computeAnchor() const;
+    std::optional<PopoverPosition> startPosition(engraving::EngravingItem* editing) const;
+    bool applyEntry(const std::string& text, ApplyScope scope);
     void subscribeNoteInput();
 
     PopoverRegistry m_registry = makePopoverRegistry();
     const PopoverDef* m_current = nullptr;
     std::string m_initialText;
     engraving::EngravingItem* m_editing = nullptr; // the item this popover replaces; nullptr = adds a new one
+    std::optional<PopoverPosition> m_position; // navigating popovers only
     muse::RectF m_anchor;
     muse::async::Notification m_stateChanged;
     notation::INotationNoteInputPtr m_noteInput;
