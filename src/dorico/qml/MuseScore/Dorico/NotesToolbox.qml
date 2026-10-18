@@ -82,8 +82,7 @@ Column {
                 { "code": "command://notation/add-quintuplet", "title": "5:4" },
                 { "code": "command://notation/add-sextuplet", "title": "6:4" },
                 { "code": "command://notation/add-septuplet", "title": "7:8" },
-                // Until the tuplets popover (spec 31) exists, x:y opens MuseScore's custom tuplet dialog.
-                { "code": "command://notation/open-tuplet-configure", "title": "x:y" }
+                { "code": "command://dorico/popover/tuplets", "title": "x:y" }
             ] },
         { "code": "command://notation/add-appoggiatura", "title": qsTrc("dorico", "Grace Notes"), "icon": "\uE560",
             "menu": [

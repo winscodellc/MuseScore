@@ -62,6 +62,7 @@ struct PopoverDef {
     std::function<ParseStatus(const std::string&)> validate;
     std::function<bool(const std::string&, ApplyScope, notation::INotationPtr)> apply; // true = applied
     std::function<std::string(const engraving::EngravingItem*)> prefill;              // entry text for Return-to-edit
+    std::function<std::string(notation::INotationPtr)> selectionPrefill; // optional: entry text suggested for the selection
     std::function<void(notation::INotationPtr)> noteInputEnded; // optional: close open-ended items (p<) when input stops
     std::function<std::vector<std::string>(const std::string&)> suggest; // optional: suggestion menu for the typed text
 };

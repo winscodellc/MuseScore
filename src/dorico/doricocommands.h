@@ -96,6 +96,7 @@ inline static const muse::rcommand::Command DORICO_SELECT_TOP_STAFF_COMMAND("com
 inline static const muse::rcommand::Command DORICO_SELECT_BOTTOM_STAFF_COMMAND("command://dorico/select-bottom-staff");
 inline static const muse::rcommand::Command DORICO_RESPELL_ABOVE_COMMAND("command://dorico/respell-above");
 inline static const muse::rcommand::Command DORICO_RESPELL_BELOW_COMMAND("command://dorico/respell-below");
+inline static const muse::rcommand::Command DORICO_STOP_TUPLET_COMMAND("command://dorico/stop-tuplet");
 
 // Duration edits and rhythmic moves (spec 13).
 inline static const muse::rcommand::Command DORICO_LENGTHEN_BY_GRID_COMMAND("command://dorico/lengthen-by-grid");

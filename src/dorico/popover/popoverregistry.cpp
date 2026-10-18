@@ -35,6 +35,7 @@
 #include "handlers/techniqueshandler.h"
 #include "handlers/tempohandler.h"
 #include "handlers/timesighandler.h"
+#include "handlers/tupletshandler.h"
 
 using namespace mu::dorico;
 using namespace mu::engraving;
@@ -94,6 +95,6 @@ PopoverRegistry mu::dorico::makePopoverRegistry()
     r.add(placeholder("chordsymbols", "Chord Symbols", IconCode::CHORD_SYMBOL));           // spec 32
     r.add(repeatsPopover());                                                               // spec 30
     r.add(tempoPopover());                                                                 // spec 26
-    r.add(placeholder("tuplets", "Tuplets", IconCode::NOTE_TUPLET));                       // spec 31
+    r.add(tupletsPopover());                                                               // spec 31
     return r;
 }

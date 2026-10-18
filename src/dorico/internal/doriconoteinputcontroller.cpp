@@ -29,6 +29,7 @@
 #include <set>
 
 #include "settings.h"
+#include "async/async.h"
 
 #include "engraving/dom/chord.h"
 #include "engraving/dom/input.h"
@@ -54,6 +55,7 @@
 #include "playback/playbackcommands.h"
 
 #include "../doricocommands.h"
+#include "../popover/handlers/tupletshandler.h"
 
 #include "log.h"
 
@@ -125,6 +127,7 @@ void DoricoNoteInputController::init()
     reg(DORICO_SELECT_BOTTOM_STAFF_COMMAND, [this]() { onVertical(false, true); });
     reg(DORICO_RESPELL_ABOVE_COMMAND, [this]() { onRespell(true); });
     reg(DORICO_RESPELL_BELOW_COMMAND, [this]() { onRespell(false); });
+    reg(DORICO_STOP_TUPLET_COMMAND, [this]() { stopTupletInput(currentNotation(), false); });
 
     for (int i = 0; i < 7; ++i) {
         reg(DORICO_PITCH_COMMANDS[i], [this, i]() { onPitch(i); });
@@ -591,8 +594,9 @@ void DoricoNoteInputController::onToggleArticulation(mu::engraving::SymId sym)
 
 void DoricoNoteInputController::onCaretStep(bool right)
 {
-    // Moving the caret ends a chord in progress, like Space.
+    // Moving the caret ends a chord in progress, like Space, and tuplet input (Dorico).
     m_chordPending = false;
+    stopTupletInput(currentNotation(), true);
     m_dotTap.reset();
     if (!caret()->step(right)) {
         dispatcher()->dispatch(right ? MOVE_RIGHT_COMMAND : MOVE_LEFT_COMMAND);
@@ -601,8 +605,9 @@ void DoricoNoteInputController::onCaretStep(bool right)
 
 void DoricoNoteInputController::onVertical(bool up, bool toEnd)
 {
-    // Moving the caret ends a chord in progress, like Space.
+    // Moving the caret ends a chord in progress, like Space, and tuplet input (Dorico).
     m_chordPending = false;
+    stopTupletInput(currentNotation(), true);
     m_dotTap.reset();
     caret()->navigateVertically(up, toEnd);
 }
@@ -654,8 +659,16 @@ void DoricoNoteInputController::enterAtCaret(const std::function<void()>& enter)
     INotationUndoStackPtr undoStack = currentNotation()->undoStack();
     const size_t before = undoStack->currentStateIndex();
     const bool cut = caret()->materialize();
+    const bool tuplet = startTupletAtCaret(currentNotation()); // tuplets popover: the active tuplet starts here
     enter();
-    if (cut && undoStack->currentStateIndex() > before + 1) {
-        undoStack->mergeTransactions(before);
+    if (!cut && !tuplet) {
+        return;
     }
+    // The entry's own undo step is recorded after this returns: merge on the next event loop turn, so one undo
+    // removes the cut or the new tuplet together with the note.
+    muse::async::Async::call(this, [undoStack, before]() {
+        if (undoStack->currentStateIndex() > before + 1) {
+            undoStack->mergeTransactions(before);
+        }
+    });
 }

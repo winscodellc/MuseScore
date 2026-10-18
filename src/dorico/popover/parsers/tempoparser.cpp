@@ -289,6 +289,11 @@ std::vector<std::string> mu::dorico::tempoSuggestions(const std::string& prefix)
     return result;
 }
 
+std::optional<BeatUnit> mu::dorico::parseBeatUnit(const std::string& token, bool lettersOnly)
+{
+    return parseUnit(token, lettersOnly);
+}
+
 std::string mu::dorico::beatUnitText(const BeatUnit& unit)
 {
     for (const auto& [entry, type] : UNITS) {

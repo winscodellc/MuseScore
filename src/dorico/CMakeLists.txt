@@ -74,6 +74,8 @@ target_sources(dorico PRIVATE
     popover/handlers/tempohandler.h
     popover/handlers/timesighandler.cpp
     popover/handlers/timesighandler.h
+    popover/handlers/tupletshandler.cpp
+    popover/handlers/tupletshandler.h
     popover/parsers/barsparser.cpp
     popover/parsers/barsparser.h
     popover/parsers/clefparser.cpp
@@ -94,6 +96,8 @@ target_sources(dorico PRIVATE
     popover/parsers/tempoparser.h
     popover/parsers/timesigparser.cpp
     popover/parsers/timesigparser.h
+    popover/parsers/tupletparser.cpp
+    popover/parsers/tupletparser.h
     popover/popoverregistry.cpp
     popover/popoverregistry.h
     popover/popovertypes.h

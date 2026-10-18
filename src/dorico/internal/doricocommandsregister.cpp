@@ -91,6 +91,7 @@ static std::vector<CommandInfo> makeCommandInfos()
     v.push_back(info(DORICO_SELECT_BOTTOM_STAFF_COMMAND, "Dorico: bottom staff", "Goes to the bottom staff at the same position"));
     v.push_back(info(DORICO_RESPELL_ABOVE_COMMAND, "Dorico: respell using note name above", "Respells the selected notes with the next note name up"));
     v.push_back(info(DORICO_RESPELL_BELOW_COMMAND, "Dorico: respell using note name below", "Respells the selected notes with the next note name down"));
+    v.push_back(info(DORICO_STOP_TUPLET_COMMAND, "Dorico: stop tuplet input", "Note input: stops the innermost tuplet started from the tuplets popover"));
     v.push_back(info(DORICO_LENGTHEN_BY_GRID_COMMAND, "Dorico: lengthen by grid",
                      "Lengthens the selected notes by the rhythmic grid; lines go to the next grid position or note"));
     v.push_back(info(DORICO_SHORTEN_BY_GRID_COMMAND, "Dorico: shorten by grid",

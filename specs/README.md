@@ -118,7 +118,7 @@ Status: todo | in-progress | pending review | done  -  Depends on: NN, NN  -  Do
 | 28 | [Popover: ornaments (Shift-O)](done/28-popover-ornaments.md) | done | 20 |
 | 29 | [Popover: playing techniques (Shift-P)](done/29-popover-playing-techniques.md) | done | 20 |
 | 30 | [Popover: repeats and tremolos (Shift-R)](done/30-popover-repeats-tremolos.md) | done | 20 |
-| 31 | [Popover: tuplets (;)](31-popover-tuplets.md) | todo | 20, 11 |
+| 31 | [Popover: tuplets (;)](done/31-popover-tuplets.md) | done | 20, 11 |
 | 32 | [Popover: chord symbols (Shift-Q)](32-popover-chord-symbols.md) | todo | 20 |
 | 33 | [Popover: lyrics (Shift-L)](33-popover-lyrics.md) | todo | 20 |
 | 34 | [Popover: fingering (Shift-F)](34-popover-fingering.md) | todo | 20 |

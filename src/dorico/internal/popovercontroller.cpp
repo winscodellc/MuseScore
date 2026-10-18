@@ -202,6 +202,9 @@ void PopoverController::open(const PopoverDef* def, EngravingItem* editing)
     m_current = def; // replaces any open popover: Dorico shows one at a time
     m_editing = editing;
     m_initialText = def && editing ? def->prefill(editing) : std::string();
+    if (def && !editing && def->selectionPrefill) {
+        m_initialText = def->selectionPrefill(globalContext()->currentNotation()); // tuplets: a ratio for the selected notes
+    }
     m_anchor = computeAnchor();
     m_stateChanged.notify();
 }

@@ -59,7 +59,7 @@ TEST(DoricoPopoverRegistry, FindByItemType)
 
 TEST(DoricoPopoverRegistry, PlaceholderIsUnsupported)
 {
-    const PopoverDef* def = makePopoverRegistry().find("tuplets");
+    const PopoverDef* def = makePopoverRegistry().find("fingering");
     ASSERT_NE(def, nullptr);
     EXPECT_EQ(def->validate(""), ParseStatus::Incomplete);
     EXPECT_EQ(def->validate("G"), ParseStatus::Unsupported);

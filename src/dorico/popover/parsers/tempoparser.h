@@ -62,6 +62,10 @@ TempoParse parseTempo(const std::string& text);
 //! Tempo words and gradual changes starting with `prefix` (case-insensitive), for the suggestion menu.
 std::vector<std::string> tempoSuggestions(const std::string& prefix);
 
+//! A beat unit token: "q", "e.", "2w", or a digit code "6." (2 = 64th ... 9 = double whole) unless lettersOnly.
+//! Shared with the tuplets popover (spec 31).
+std::optional<BeatUnit> parseBeatUnit(const std::string& token, bool lettersOnly);
+
 //! The entry form of a beat unit: "q", "e.", "2w".
 std::string beatUnitText(const BeatUnit& unit);
 }

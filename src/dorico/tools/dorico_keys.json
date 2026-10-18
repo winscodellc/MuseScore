@@ -123,7 +123,7 @@
   {"key": "/", "dorico": "/", "command": "command://notation/add-acciaccatura", "owner": "10-interim"},
   {"key": "Alt+/", "dorico": "Opt-/", "command": "deferred", "owner": "10"},
   {"key": ";", "dorico": ";", "command": "command://dorico/popover/tuplets", "owner": "20"},
-  {"key": "Shift+;", "dorico": ":", "command": "reserved:31", "owner": "10"},
+  {"key": "Shift+;", "dorico": ":", "command": "command://dorico/stop-tuplet", "owner": "31"},
   {"key": "[", "dorico": "[", "command": "command://notation/toggle-sforzato", "owner": "10"},
   {"key": "'", "dorico": "'", "command": "command://notation/toggle-marcato", "owner": "10"},
   {"key": "]", "dorico": "]", "command": "command://notation/toggle-staccato", "owner": "10"},
