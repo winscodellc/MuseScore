@@ -42,3 +42,16 @@ src/dorico/tools/uicontrol/shot.sh mscore /tmp/m.png 0,0,700,300  # top-left 700
 ```
 
 Commands: `trusted`, `prompt`, `front <app>`, `bounds <app>`, `key <app> <combo>`, `type <text>`, `click <x> <y> [right|double|cmd|shift|alt|ctrl]`, `drag <x1> <y1> <x2> <y2>`, `move <x> <y>`, `wait <ms>`. `<app>` is `dorico` or `mscore`. Coordinates are screen points, top-left origin (the same as `screencapture -R`).
+
+## Linux
+
+`uictl.sh` hands off to `x11.sh`, which runs our build alone in a headless X server (Xvfb, display `:99`, 1600x1000, `QT_QPA_PLATFORM=xcb`). Input goes to that display only, so it cannot reach the desktop or any other app, and no permission is needed. Install `xorg-server-xvfb` and `xdotool` (ImageMagick does the screenshots).
+
+```sh
+src/dorico/tools/uicontrol/uictl.sh start /tmp/x/score.mscx   # Xvfb + newest builds/*/install/bin/mscore (or $MSCORE)
+src/dorico/tools/uicontrol/uictl.sh key mscore shift+n ";" type cde ";" wait 300
+src/dorico/tools/uicontrol/shot.sh mscore /tmp/m.png 0,0,700,300
+src/dorico/tools/uicontrol/uictl.sh stop                      # kills it: no save dialog
+```
+
+`cmd` is sent as Ctrl. Dorico does not run on Linux. To watch live, run `x11vnc -display :99` and connect a VNC viewer.

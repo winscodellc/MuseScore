@@ -18,12 +18,20 @@ case $win in *[!0-9,-]* | "") echo "$win" >&2; exit 1 ;; esac
 rect=$(echo "$win $crop" | awk -F'[ ,]' '{ x = $1 < 0 ? 0 : $1; y = $2 < 0 ? 0 : $2; w = $3; h = $4
     if ($5 != "") { x += $5; y += $6; w = $7; h = $8 }
     print x "," y "," w "," h }')
-if [ "$rect" = 0,0,0,0 ]; then screencapture -x "$out"; else screencapture -x -R "$rect" "$out"; fi
-
-dims() { sips -g pixelWidth -g pixelHeight "$out" | awk '/pixelWidth/ { w = $2 } /pixelHeight/ { h = $2 } END { print w, h }'; }
+if [ "$(uname)" = Linux ]; then  # captures the Xvfb display of x11.sh
+    export DISPLAY=${UICTL_DISPLAY:-:99}
+    geo=$(echo "$rect" | awk -F, '{ print $3 "x" $4 "+" $1 "+" $2 }')
+    if [ "$rect" = 0,0,0,0 ]; then import -window root "$out"; else import -window root -crop "$geo" +repage "$out"; fi
+    dims() { magick identify -format '%w %h' "$out"; }
+    shrink() { magick "$out" -resize "${max}x${max}>" "$out"; }
+else
+    if [ "$rect" = 0,0,0,0 ]; then screencapture -x "$out"; else screencapture -x -R "$rect" "$out"; fi
+    dims() { sips -g pixelWidth -g pixelHeight "$out" | awk '/pixelWidth/ { w = $2 } /pixelHeight/ { h = $2 } END { print w, h }'; }
+    shrink() { sips -Z "$max" "$out" >/dev/null; }
+fi
 set -- $(dims)
 pw=${rect#*,*,}; pw=${pw%,*}; [ "$pw" != 0 ] || pw=$1   # width in screen points (whole screen: 1x display assumed)
-if [ "$1" -gt "$max" ] || [ "$2" -gt "$max" ]; then sips -Z "$max" "$out" >/dev/null; set -- $(dims); fi
+if [ "$1" -gt "$max" ] || [ "$2" -gt "$max" ]; then shrink; set -- $(dims); fi
 
 echo "$1 $2 $rect $pw" | awk -v f="$out" '{ split($3, r, ","); s = $4 / $1
     printf "%s %dx%d ~%d tokens; screen = %d+ix*%.3f, %d+iy*%.3f\n", f, $1, $2, $1 * $2 / 750, r[1], s, r[2], s }'

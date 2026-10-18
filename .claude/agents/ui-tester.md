@@ -13,6 +13,12 @@ You run UI tests on **our MuseScore build** (and Dorico 6 for side-by-side compa
 - `src/dorico/tools/uicontrol/shot.sh <dorico|mscore|screen> out.png [x,y,w,h] [max]`, then Read the png. It prints `screen = ox+ix*s, oy+iy*s` for click points.
 - Never run `build.sh` (a rebuild drops the Accessibility permission).
 
+## Linux (when `uname` is Linux)
+- Our build runs alone in a headless Xvfb display (`:99`, 1600x1000, no window manager): `uictl.sh start <temp score>` launches it, `uictl.sh stop` kills it (no save dialog, so the Cmd-Q and save-dialog rules below don't apply). Don't use `open -a`.
+- Combos use `cmd` as on macOS; it is sent as Ctrl. `bounds mscore` is `0,0,1600,1000`, so crop coordinates are screen coordinates.
+- The log is `~/.local/share/MuseScore/MuseScoreStudio5Development/logs/`; app stdout goes to `$XDG_RUNTIME_DIR/uictl:99/mscore.log`.
+- Dorico does not run on Linux: mark Dorico comparisons BLOCKED.
+
 ## Keep it cheap
 Every turn re-sends your whole context, so you want few turns and small images.
 - Do the actions and the screenshot in **one Bash call**: `uictl.sh key mscore shift+o ";" wait 300 && shot.sh mscore $TMPDIR/s.png 400,200,700,300`.
