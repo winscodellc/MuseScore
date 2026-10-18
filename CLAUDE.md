@@ -37,7 +37,7 @@ cmake -P build.cmake clean                # delete the build dir
 - System Qt 6.11.2 (pacman), gcc 16 / clang 22. `build_overrides.cmake` sets Ninja, `CPUS 6` (8 can exhaust RAM) and `compile_commands.json`. Build dir: `builds/Linux-Qt-usr-Ninja-RelWithDebInfo/`, binary `install/bin/mscore`. Root `compile_commands.json` is a symlink into it, for the clangd-lsp plugin (project scope).
 - Build in the background with output to a file, then report only `grep -m20 'error:'` and `tail -5`. Never stream build output.
 - UI control: the same `uictl.sh`/`shot.sh` drive our build in a headless Xvfb (`uictl.sh start <score>` / `stop`), see the README's Linux section. No Dorico on Linux, so compare against the manual.
-- Logs: `~/.local/share/MuseScore/MuseScoreStudio5Development/logs/`.
+- Logs: `~/.local/share/MuseScore/MuseScoreStudio5Development/logs/`; the Xvfb test instance uses its own profile, `~/.cache/uictl-profile`.
 
 ## Driving the UI (Dorico 6 + our build): ClaudeUIControl (macOS)
 Claude can see and control **Dorico 6** and **our MuseScore build** through `~/Applications/ClaudeUIControl.app` (user-built, holds the Accessibility permission). Use it when the user asks, and **offer it** whenever a change needs checking in the real UI or a Dorico behaviour must be compared side by side (ask before driving the apps). Docs: `src/dorico/tools/uicontrol/README.md`.

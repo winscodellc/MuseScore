@@ -45,7 +45,7 @@ Commands: `trusted`, `prompt`, `front <app>`, `bounds <app>`, `key <app> <combo>
 
 ## Linux
 
-`uictl.sh` hands off to `x11.sh`, which runs our build alone in a headless X server (Xvfb, display `:99`, 1600x1000, `QT_QPA_PLATFORM=xcb`). Input goes to that display only, so it cannot reach the desktop or any other app, and no permission is needed. Install `xorg-server-xvfb` and `xdotool` (ImageMagick does the screenshots).
+`uictl.sh` hands off to `x11.sh`, which runs our build alone in a headless X server (Xvfb, display `:99`, `QT_QPA_PLATFORM=xcb`) with its own settings profile in `~/.cache/uictl-profile` (logs under `data/MuseScore/MuseScoreStudio5Development/logs`). Input goes to that display only, so it cannot reach the desktop or any other app, and no permission is needed. Install `xorg-server-xvfb` and `xdotool` (ImageMagick does the screenshots).
 
 ```sh
 src/dorico/tools/uicontrol/uictl.sh start /tmp/x/score.mscx   # Xvfb + newest builds/*/install/bin/mscore (or $MSCORE)

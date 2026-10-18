@@ -6,14 +6,20 @@
 #   src/dorico/tools/uicontrol/uictl.sh start /tmp/x/score.mscx ";" key mscore shift+n ";" type cde
 #   src/dorico/tools/uicontrol/uictl.sh stop
 # Commands match main.swift (cmd maps to ctrl), plus `start [score]` and `stop`. Dorico does not run on Linux.
-# Needs: xorg-server-xvfb, xdotool. Env: UICTL_DISPLAY (default :99), MSCORE (default: newest builds/*/install/bin/mscore).
+# Needs: xorg-server-xvfb, xdotool. Env: UICTL_DISPLAY (default :99), MSCORE (default: newest builds/*/install/bin/mscore),
+# UICTL_PROFILE (default ~/.cache/uictl-profile; app log in $UICTL_PROFILE/data/MuseScore/MuseScoreStudio5Development/logs).
 D=${UICTL_DISPLAY:-:99}
 S=${XDG_RUNTIME_DIR:-/tmp}/uictl$D
+P=${UICTL_PROFILE:-$HOME/.cache/uictl-profile}  # app settings + logs of the test instance
 ROOT=$(cd "$(dirname "$0")/../../../.." && pwd)
 export DISPLAY=$D
 mkdir -p "$S"
 
-win() { xdotool search --onlyvisible --class mscore 2>/dev/null | tail -1; }
+win() {  # largest visible window with instance name mscore (the main window, not a popup)
+    for w in $(xdotool search --onlyvisible --classname mscore 2>/dev/null); do
+        xdotool getwindowgeometry --shell "$w" | awk -F= -v w="$w" '/WIDTH/ { a = $2 } /HEIGHT/ { print a * $2, w }'
+    done | sort -n | tail -1 | cut -d' ' -f2
+}
 
 keysym() {  # main.swift key names -> xdotool keysyms
     echo "$1" | tr '+' '\n' | while read -r k; do
@@ -40,17 +46,24 @@ start() {
     fi
     bin=${MSCORE:-$(ls -t "$ROOT"/builds/*/install/bin/mscore 2>/dev/null | head -1)}
     [ -x "$bin" ] || { echo "no mscore binary (set MSCORE)"; return 1; }
-    env -u WAYLAND_DISPLAY QT_QPA_PLATFORM=xcb QT_SCALE_FACTOR=1 "$bin" "$@" >"$S/mscore.log" 2>&1 &
+    # Own settings profile, so tests never touch the user's; its session file goes, else a killed run's
+    # "restore the session?" recovery mode would win over the score given here.
+    rm -f "$P/data/MuseScore/MuseScoreStudio5Development/session/session.json"
+    env -u WAYLAND_DISPLAY XDG_CONFIG_HOME="$P/config" XDG_DATA_HOME="$P/data" QT_QPA_PLATFORM=xcb QT_SCALE_FACTOR=1 \
+        "$bin" "$@" >"$S/mscore.log" 2>&1 &
     echo $! >"$S/mscore.pid"
     i=0; while [ -z "$(win)" ] && [ $i -lt 120 ]; do sleep 0.5; i=$((i + 1)); done
     w=$(win); [ -n "$w" ] || { echo "no window after 60 s, see $S/mscore.log"; return 1; }
-    sleep 1; xdotool windowmove "$w" 0 0 windowsize "$w" 1600 1000 windowfocus "$w"  # no window manager in Xvfb
+    sleep 1; xdotool windowfocus "$w"  # no window manager in Xvfb; the app keeps its own size (1150x800), so use `bounds`
     echo "started pid $(cat "$S/mscore.pid") on $D, log $S/mscore.log"
 }
 
 stop() {  # kill, not quit: no save dialog can appear, files on disk stay as they are
     for p in mscore xvfb; do
-        [ -f "$S/$p.pid" ] && { kill "$(cat "$S/$p.pid")" 2>/dev/null; sleep 1; kill -9 "$(cat "$S/$p.pid")" 2>/dev/null; rm -f "$S/$p.pid"; }
+        [ -f "$S/$p.pid" ] || continue
+        pid=$(cat "$S/$p.pid"); kill "$pid" 2>/dev/null
+        i=0; while kill -0 "$pid" 2>/dev/null && [ $i -lt 30 ]; do sleep 0.1; i=$((i + 1)); done
+        kill -9 "$pid" 2>/dev/null; rm -f "$S/$p.pid"
     done
     echo stopped
 }

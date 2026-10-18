@@ -14,9 +14,9 @@ You run UI tests on **our MuseScore build** (and Dorico 6 for side-by-side compa
 - Never run `build.sh` (a rebuild drops the Accessibility permission).
 
 ## Linux (when `uname` is Linux)
-- Our build runs alone in a headless Xvfb display (`:99`, 1600x1000, no window manager): `uictl.sh start <temp score>` launches it, `uictl.sh stop` kills it (no save dialog, so the Cmd-Q and save-dialog rules below don't apply). Don't use `open -a`.
-- Combos use `cmd` as on macOS; it is sent as Ctrl. `bounds mscore` is `0,0,1600,1000`, so crop coordinates are screen coordinates.
-- The log is `~/.local/share/MuseScore/MuseScoreStudio5Development/logs/`; app stdout goes to `$XDG_RUNTIME_DIR/uictl:99/mscore.log`.
+- Our build runs alone in a headless Xvfb display (`:99`, no window manager) with its own settings profile: `uictl.sh start <temp score>` launches it, `uictl.sh stop` kills it (no save dialog, so the Cmd-Q and save-dialog rules below don't apply). Don't use `open -a`.
+- Combos use `cmd` as on macOS; it is sent as Ctrl. The main window sits at 0,0 (about 1150x800), so crop coordinates are screen coordinates.
+- The log is `~/.cache/uictl-profile/data/MuseScore/MuseScoreStudio5Development/logs/` (not the macOS path below); app stdout goes to `$XDG_RUNTIME_DIR/uictl:99/mscore.log`. Check processes with `pgrep -x mscore`.
 - Dorico does not run on Linux: mark Dorico comparisons BLOCKED.
 
 ## Keep it cheap
