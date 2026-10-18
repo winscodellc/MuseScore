@@ -143,6 +143,14 @@ Plain NOTATION-scope bindings: A–G (and H) for `enter-note-*` (`shortcuts.json
 
 There is no dedicated fermata, barline or repeat API; those go through `applyPaletteElement` with an element created by `Factory::create*`.
 
+### Chord symbols (found in spec 32)
+- Create one in code: `Factory::createHarmony(segment)`, `setTrack`, `setHarmonyType(HarmonyType::STANDARD)`, `setHarmony(text)`, `setXmlText(harmonyName())`, then `score->undoAddElement`. That is what `FretDiagram::setHarmony` and `Harmony::endEdit` do. `harmonyName()` gives the text back for prefilling.
+- A beat with no note of its own: `measure->undoGetSegment(SegmentType::ChordRest, tick)` makes an empty ChordRest segment to hang the chord on (inside a transaction).
+- Validating: `Harmony::parseHarmony` and the editor's misspelling check only reject an invalid **root**; any text after a valid root passes. `ParsedChord::parse(body, &chordList)` with a default-constructed `ChordList` and `syntaxOnly = false` sets `understandable()` false on unknown tokens (`Cxyz`). With `syntaxOnly = true` it does not. The root is parsed separately by `convertNote` (`pitchspelling.cpp`).
+- MuseScore's spelling quirks: a capital `M` lowercases to `m` (minor) in most token checks, so translate Dorico's `M` to `maj`; a leading `-` means minor and `+` augmented; `|` splits polychords; `(...)` sets parentheses on the Harmony itself.
+- `NotationInteraction::navigateToNearHarmony`, `navigateToHarmonyInNearMeasure` and `navigateToHarmony` (`notationinteraction.cpp:7242-7420`) only act while a Harmony is being text-edited (`editedHarmony()`), so a popover cannot call them. Their beat rule (dotted quarter in compound time) is copied in `src/dorico/popover/popovernavigation.cpp`.
+- `Measure::tick2pos` starts with `tck -= ticks()` (the measure length, not its start tick) and returns an x relative to the system: do not use it for canvas positions. `positionRect` in `popovernavigation.cpp` interpolates between segment canvas positions instead.
+
 ## 4. Copy, paste and duplicate
 
 Handlers are registered in `src/notationscene/internal/notationactioncontroller.cpp:424-443`; implementations are in `notationinteraction.cpp`.

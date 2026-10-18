@@ -13,14 +13,12 @@ Remotes: `origin` = the fork, `upstream` = github.com/musescore/MuseScore.
 - Upstream `AI_POLICY.md` applies if anything is ever sent upstream (disclose with an `Assisted-by:` trailer).
 
 ## About the user
-Software developer (Java/Scala/JS/TS), **minimal C++**. Explain C++ idioms (headers vs .cpp, smart pointers, Qt signals/slots, `Q_PROPERTY`) briefly when they matter, using Java/TS analogies. Was macOS Intel (Xcode 26.5); **now Linux** (Arch/Omarchy, Hyprland, 8 cores, 15 GB RAM). The macOS-only notes below are marked.
+Software developer (Java/Scala/JS/TS), **minimal C++**. Explain C++ idioms (headers vs .cpp, smart pointers, Qt signals/slots, `Q_PROPERTY`) briefly when they matter, using Java/TS analogies. Works on **Linux** (Arch/Omarchy, Hyprland, 8 cores, 15 GB RAM). Previously macOS: its build and Dorico UI-control notes are in `specs/reference/macos-setup.md`.
 
-## Environment & build (macOS paths; Linux overrides below)
-- Needs: AppleClang >= 21, CMake >= 3.31, Ninja (required on macOS), Qt >= 6.8. CI uses Qt 6.11.2.
-- Qt lives in `~/Qt/6.11.2/macos` (installed with aqtinstall from the venv `~/.venvs/aqt`; modules qt5compat, qtnetworkauth, qtshadertools, qtwebsockets).
-- `build_overrides.cmake` (gitignored, repo root) sets `QTDIR` and `GENERATOR=Ninja`, so no env vars are needed.
+## Environment & build
+- System Qt 6.11.2 (pacman; CI uses Qt 6.11.2 too), gcc 16 / clang 22, CMake >= 3.31, Ninja.
+- `build_overrides.cmake` (gitignored, repo root) sets Ninja, `CPUS 6` (8 can exhaust RAM) and `compile_commands.json`. Build dir: `builds/Linux-Qt-usr-Ninja-RelWithDebInfo/`, binary `install/bin/mscore`. Root `compile_commands.json` is a symlink into it, for the clangd-lsp plugin (project scope).
 - Submodules must be initialised: `git submodule update --init --recursive` (`muse/` = framework, `muse_deps/` = prebuilt third-party libs fetched automatically).
-- Build dir: `builds/Mac-Qt6.11.2-macos-Ninja-RelWithDebInfo/` (gitignored); install tree is `install/` inside it.
 
 ```sh
 cmake -P build.cmake build install        # build + install (incremental)
@@ -28,23 +26,16 @@ cmake -P build.cmake run                  # run the installed app
 cmake -P build.cmake -DCMAKE_BUILD_TYPE=Debug build install   # separate Debug build dir
 cmake -P build.cmake clean                # delete the build dir
 ```
-- Unit tests: configure with `-DMUSE_ENABLE_UNIT_TESTS=ON` (e.g. `cmake -P build.cmake -DMUSE_ENABLE_UNIT_TESTS=ON build`), then run test binaries (`engraving_tests`, ...) from the build dir (GoogleTest).
-- Formatting: uncrustify via `./hooks/install.sh` (not installed yet).
-- `brew install ccache` was attempted and abandoned: it tried to rebuild cmake from source. Retry later if rebuild times hurt.
-- A dev build is `org.musescore.MuseScoreStudio5Development`, so its settings are separate from an installed MuseScore 4. No rename is needed to run side by side.
-
-## Linux
-- System Qt 6.11.2 (pacman), gcc 16 / clang 22. `build_overrides.cmake` sets Ninja, `CPUS 6` (8 can exhaust RAM) and `compile_commands.json`. Build dir: `builds/Linux-Qt-usr-Ninja-RelWithDebInfo/`, binary `install/bin/mscore`. Root `compile_commands.json` is a symlink into it, for the clangd-lsp plugin (project scope).
 - Build in the background with output to a file, then report only `grep -m20 'error:'` and `tail -5`. Never stream build output.
-- UI control: the same `uictl.sh`/`shot.sh` drive our build in a headless Xvfb (`uictl.sh start <score>` / `stop`), see the README's Linux section. No Dorico on Linux, so compare against the manual.
-- Logs: `~/.local/share/MuseScore/MuseScoreStudio5Development/logs/`; the Xvfb test instance uses its own profile, `~/.cache/uictl-profile`.
+- Unit tests: build with `-DMUSE_ENABLE_UNIT_TESTS=ON` (the build dir already has it), then run test binaries from the build dir (GoogleTest), e.g. `src/dorico/tests/dorico_tests`.
+- Formatting: uncrustify via `./hooks/install.sh` (not installed yet).
+- A dev build is `org.musescore.MuseScoreStudio5Development`, so its settings are separate from an installed MuseScore 4. No rename is needed to run side by side.
+- Logs: `~/.local/share/MuseScore/MuseScoreStudio5Development/logs/`.
 
-## Driving the UI (Dorico 6 + our build): ClaudeUIControl (macOS)
-Claude can see and control **Dorico 6** and **our MuseScore build** through `~/Applications/ClaudeUIControl.app` (user-built, holds the Accessibility permission). Use it when the user asks, and **offer it** whenever a change needs checking in the real UI or a Dorico behaviour must be compared side by side (ask before driving the apps). Docs: `src/dorico/tools/uicontrol/README.md`.
-- Drive: `src/dorico/tools/uicontrol/uictl.sh <cmd> [";" <cmd> ...]`. Commands: `trusted`, `front|bounds <dorico|mscore>`, `key <app> <combo>` (e.g. `cmd+1`), `type <text>`, `click <x> <y> [right|double|cmd|shift|alt|ctrl]`, `drag x1 y1 x2 y2`, `move x y`, `wait <ms>`. Screen points, top-left origin.
-- See: `src/dorico/tools/uicontrol/shot.sh <dorico|mscore|screen> out.png [x,y,w,h] [max]` (run `uictl.sh front <app>` first if another window covers it). Image tokens = w*h/750, whatever the file size, so take a whole window only to get your bearings (shrunk to a long edge of 1200 by default, about 800-1600 tokens) and crop the part you are checking (`x,y,w,h` relative to the window, native size, legible). It prints `screen = ox+ix*s, oy+iy*s` to turn image pixels into click points.
-- It only acts on those two apps (bundle-ID allowlist). **Never rebuild it** (`build.sh`): a rebuild drops the permission and only the user can re-grant it.
-- Our build may hold the user's open scores: test on temp copies of `demos/` scores, quit with Cmd-Q, and never answer a save dialog (click Cancel and ask).
+## Driving the UI (our build, headless)
+- `src/dorico/tools/uicontrol/uictl.sh start <score>` runs our build alone in a headless Xvfb (`UICTL_VISIBLE=1` shows it in a Xephyr window instead); `stop` kills it (no save dialog). Commands: `key mscore <combo>` (`cmd` is sent as Ctrl), `type <text>`, `click <x> <y> [right|double|cmd|shift|alt|ctrl]`, `drag`, `move`, `wait <ms>`. See: `src/dorico/tools/uicontrol/shot.sh mscore out.png [x,y,w,h]`. Image tokens = w*h/750, so crop to what you check. Docs: `src/dorico/tools/uicontrol/README.md`.
+- The test instance uses its own profile, `~/.cache/uictl-profile`. Test on temp copies of `demos/` scores.
+- No Dorico on Linux, so compare against the manual.
 - **Delegate UI test runs to the `ui-tester` agent** (`.claude/agents/ui-tester.md`; pass it the test list, score and build path; spawn it **without** a `model` override, its frontmatter pins Sonnet). UI testing in the main session was 60-77% of a spec session's tokens. Drive directly only for a one-off check, with the action and the shot in one Bash call.
 
 ## Architecture (paths relative to `src/`)

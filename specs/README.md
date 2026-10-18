@@ -66,7 +66,36 @@ Rule: a key whose meaning depends on note-input state (Return, Space, Esc, A-G, 
 Each spec has a **Dorico behaviour** section copied from the reference files, with manual URLs. Anything MuseScore cannot do yet goes under **Deferred / unsupported**. Nothing is silently dropped. When Dorico documents nothing (for example popover error state), the spec says "our choice" and picks the simplest behaviour.
 
 ### 6. Parsers are pure functions
-Every popover is `parse(QString) -> Result` (no UI, no score) plus `apply(Result, INotationInteraction&)`. The parser is unit-tested with GoogleTest. Same for the Jump bar and `SearchCommandsParser` extensions.
+Every popover is a pure parser (no UI, no score) plus a handler that applies the result. The parser is unit-tested with GoogleTest. Same for the Jump bar and `SearchCommandsParser` extensions.
+
+### 6a. Popover cheat sheet (read this instead of the framework code)
+Everything is under `src/dorico/`. The framework is spec 20, and 21-32 are worked examples.
+- **Parser** `popover/parsers/<x>parser.h/.cpp`: `XParse parseX(const std::string&)` returns `{ ParseStatus status; ...entry }`. `ParseStatus` is one of:
+  - `Ok`
+  - `Incomplete`: a valid prefix, neutral border, Return does nothing. Empty text is `Incomplete`.
+  - `Unsupported`: valid Dorico we don't implement, red border plus "Not supported yet".
+  - `Invalid`: red border.
+
+  Put helpers in a **named** namespace, not an anonymous one: the unity build compiles files together.
+- **Handler** `popover/handlers/<x>handler.h/.cpp`: `PopoverDef xPopover()`. Register it in `popover/popoverregistry.cpp` (`makePopoverRegistry()`), replacing its `placeholder(...)` line. The command (`DORICO_POPOVER_COMMANDS` in `doricocommands.h`, id = the URI tail: `lyrics`, `fingering`, `notetools`, `figuredbass`) and the Shift-key (`shortcuts_dorico.json`) already exist.
+- **`PopoverDef`** (`popover/popovertypes.h`):
+  - `validate(text)`.
+  - `apply(text, ApplyScope, notation)`: acts on the selection or the note-input caret; returns true if applied.
+  - `prefill(item)`: the entry text when editing an existing item.
+  - `itemTypes`: Return on a selected item of these types reopens this popover. With `editsAttached`, opening on a note that already has one edits it.
+  - Optional: `supportsLocal` (Opt-Return), `selectionPrefill`, `noteInputEnded`, `suggest` (suggestion menu).
+  - `applyAt(text, PopoverPosition, notation)` makes a **navigating** popover. It sits at a tick and staff instead of the selection, and opening it stops note input. Space / Shift-Space / Tab / Shift-Tab / Cmd-arrows enter the text and move on (`popover/popovernavigation.h`: `movePosition`, `itemAt`, `positionRect`). Beats only for now. Lyrics and fingering move by note, so add a `PopoverMove` for that.
+- **Apply pattern** (see `handlers/chordsymbolshandler.cpp`, the smallest, or `tempohandler.cpp` for selection, caret and range):
+  1. Get the score with `Score* score = notation->elements()->msScore()`.
+  2. Open a transaction with `notation->undoStack()->prepareChanges(muse::TranslatableString("undoableAction", "Add ..."))`.
+  3. Make the edits with `score->undoAddElement` / `undoRemoveElement` / `item->undoChangeProperty`.
+  4. `commitChanges()`, or `rollbackChanges()` on failure.
+  5. Select the new item, so Return reopens it.
+
+  The controller merges several transactions into one undo step per entry. Items entered at the caret that need a note first: `handlers/pendingatcaret.h`.
+- **Controller / UI**: `internal/popovercontroller.cpp` (open, accept, move, cancel). Its `existingItem()` only looks at segment annotations, so lyrics (on the ChordRest) and fingering (on the Note) must extend it. Key handling lives in `qml/MuseScore/Dorico/Popover.qml` and `popovermodel.*`.
+- **Tests**: `tests/<x>parser_tests.cpp`, listed in `tests/CMakeLists.txt`. Build with `cmake -P build.cmake -DMUSE_ENABLE_UNIT_TESTS=ON build`, then run `<build dir>/src/dorico/tests/dorico_tests --gtest_filter='Dorico<X>*'`.
+- **MuseScore internals already looked up**: `reference/musescore-internals.md` section 3 (APIs per item type, chord symbols). Add what you find there before ending the spec.
 
 ### 7. UI shell (specs 50-59)
 - One `DockPage` per mode in `src/dorico/qml/MuseScore/Dorico/`. `WritePage` keeps `uri: "musescore://notation"` (so the Score tab and project opening need no change); the other four use `musescore://dorico/<mode>`. Switching mode = loading a page; the dock framework saves each page's layout separately.
@@ -185,7 +214,7 @@ Land **10 and 11 back to back**: spec 10 unbinds MuseScore's Shift+letter "add n
 
 ## How to run a spec in a new session
 
-1. Start in `/Users/winsvu/Projects/MuseScore` on branch `main` (or a feature branch if you prefer; the fork is personal).
+1. Start in the repo root on branch `main` (or a feature branch if you prefer; the fork is personal).
 2. Tell Claude: *"Implement `specs/NN-name.md`."* Claude must first read, in this order: `CLAUDE.md`, this `README.md`, the reference files the spec links, then the spec.
 3. Check the spec's **Depends on** list. Every dependency must have `Status: done`. If not, stop and say so.
 4. Set the spec's `Status:` line to `in-progress`.
@@ -194,3 +223,4 @@ Land **10 and 11 back to back**: spec 10 unbinds MuseScore's Shift+letter "add n
 7. Tick every box under **Acceptance criteria**. If one cannot be met, do not tick it; write the reason under **Deferred / unsupported** instead and tell the user.
 8. Set `Status: done` in the spec **and** in the status table above. If every acceptance box is ticked, `git mv` the spec into `specs/done/` and fix links to it (table row, other specs' **Depends on**, its own `reference/` links become `../reference/`). Commit (docs and code separately if large). Commit messages end with the Co-Authored-By line given by the session.
 9. If anything in a spec turned out wrong (a command id that does not exist, a Dorico behaviour that differs), fix the spec in the same commit.
+10. Add any MuseScore internals you had to dig out (exact functions, what does not work and why) to `reference/musescore-internals.md` in a few lines, so the next spec does not read the same code again.
