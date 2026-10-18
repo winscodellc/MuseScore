@@ -6,7 +6,7 @@
 #   src/dorico/tools/uicontrol/uictl.sh start /tmp/x/score.mscx ";" key mscore shift+n ";" type cde
 #   src/dorico/tools/uicontrol/uictl.sh stop
 # Commands match main.swift (cmd maps to ctrl), plus `start [score]` and `stop`. Dorico does not run on Linux.
-# Needs: xorg-server-xvfb, xdotool. Env: UICTL_DISPLAY (default :99), MSCORE (default: newest builds/*/install/bin/mscore),
+# Needs: xorg-server-xvfb, xdotool. Env: UICTL_VISIBLE=1 (Xephyr window instead of Xvfb), UICTL_DISPLAY (default :99), MSCORE (default: newest builds/*/install/bin/mscore),
 # UICTL_PROFILE (default ~/.cache/uictl-profile; app log in $UICTL_PROFILE/data/MuseScore/MuseScoreStudio5Development/logs).
 D=${UICTL_DISPLAY:-:99}
 S=${XDG_RUNTIME_DIR:-/tmp}/uictl$D
@@ -40,7 +40,11 @@ mod() { case $1 in cmd) echo ctrl ;; shift|alt|ctrl) echo "$1" ;; esac; }
 
 start() {
     if [ ! -S "/tmp/.X11-unix/X${D#:}" ]; then
-        Xvfb "$D" -screen 0 1600x1000x24 -nolisten tcp >"$S/xvfb.log" 2>&1 &
+        if [ -n "$UICTL_VISIBLE" ]; then  # a window on the user's desktop to watch the run (xorg-server-xephyr)
+            env DISPLAY=:0 Xephyr "$D" -screen 1150x800 -title "uictl $D" -nolisten tcp >"$S/xvfb.log" 2>&1 &
+        else
+            Xvfb "$D" -screen 0 1600x1000x24 -nolisten tcp >"$S/xvfb.log" 2>&1 &
+        fi
         echo $! >"$S/xvfb.pid"
         i=0; while [ ! -S "/tmp/.X11-unix/X${D#:}" ] && [ $i -lt 50 ]; do sleep 0.1; i=$((i + 1)); done
     fi
