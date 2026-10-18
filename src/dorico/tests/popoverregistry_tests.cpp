@@ -66,6 +66,14 @@ TEST(DoricoPopoverRegistry, PlaceholderIsUnsupported)
     EXPECT_EQ(def->validate("G"), ParseStatus::Unsupported);
 }
 
+TEST(DoricoPopoverRegistry, LyricsOpenInline)
+{
+    const PopoverDef* def = makePopoverRegistry().find("lyrics");
+    ASSERT_NE(def, nullptr);
+    EXPECT_TRUE(def->openInline); // the score's lyric editor is the entry field, no box
+    EXPECT_TRUE(def->itemTypes.empty()); // Return on a lyric stays MuseScore's edit-text
+}
+
 TEST(DoricoPopoverRegistry, DynamicsValidate)
 {
     const PopoverRegistry registry = makePopoverRegistry();

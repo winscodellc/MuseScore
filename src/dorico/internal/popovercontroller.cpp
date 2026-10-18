@@ -26,6 +26,7 @@
 
 #include "engraving/dom/chordrest.h"
 #include "engraving/dom/input.h"
+#include "engraving/dom/lyrics.h"
 #include "engraving/dom/measure.h"
 #include "engraving/dom/mscore.h"
 #include "engraving/dom/note.h"
@@ -87,8 +88,50 @@ void PopoverController::init()
     for (const muse::rcommand::Command& command : DORICO_POPOVER_COMMANDS) {
         const PopoverDef* def = m_registry.find(command.pathSegments().back());
         dispatcher()->onRequest(this, command, [this, def]() {
-            if (canOpen()) {
+            if (!canOpen()) {
+                return muse::make_ok();
+            }
+            if (def->openInline) {
+                cancel();
+                def->openInline(globalContext()->currentNotation());
+            } else {
                 open(def, existingItem(def));
+            }
+            return muse::make_ok();
+        });
+    }
+
+    // Lyrics (spec 33): Return closes the lyric editor; Shift-Up / Shift-Down put the lyric, and the ones typed after
+    // it (MuseScore copies the placement on), above or below the staff.
+    dispatcher()->onRequest(this, DORICO_LYRICS_CLOSE_COMMAND, [this]() {
+        globalContext()->currentNotation()->interaction()->endEditElement();
+        return muse::make_ok();
+    });
+    // Down: MuseScore's next-verse only visits existing lines and its add-verse always adds one; Dorico's goes to the
+    // next line, adding it when there is none.
+    dispatcher()->onRequest(this, DORICO_LYRICS_NEXT_LINE_COMMAND, [this]() {
+        INotationInteractionPtr interaction = globalContext()->currentNotation()->interaction();
+        const EngravingItem* e = interaction->selection()->element();
+        if (e && e->isLyrics()) {
+            const Lyrics* lyric = toLyrics(e);
+            if (lyric->verse() < lyric->chordRest()->lastVerse(lyric->placement())) {
+                interaction->navigateToLyricsVerse(MoveDirection::Down);
+            } else {
+                interaction->addLyricsVerse();
+            }
+        }
+        return muse::make_ok();
+    });
+    for (const auto& [command, placement] : { std::pair { DORICO_LYRICS_ABOVE_COMMAND, PlacementV::ABOVE },
+                                              std::pair { DORICO_LYRICS_BELOW_COMMAND, PlacementV::BELOW } }) {
+        dispatcher()->onRequest(this, command, [this, placement]() {
+            INotationPtr notation = globalContext()->currentNotation();
+            EngravingItem* lyric = notation->interaction()->selection()->element();
+            if (lyric && lyric->isLyrics() && lyric->placement() != placement) {
+                notation->undoStack()->prepareChanges(muse::TranslatableString("undoableAction", "Change lyrics placement"));
+                // Unstyled, or the next lyric (which copies the flag) snaps back to the style's placement
+                lyric->undoChangeProperty(Pid::PLACEMENT, placement, PropertyFlags::UNSTYLED);
+                notation->undoStack()->commitChanges();
             }
             return muse::make_ok();
         });

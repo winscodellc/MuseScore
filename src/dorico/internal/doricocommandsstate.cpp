@@ -117,7 +117,11 @@ CommandState DoricoCommandsState::commandState(const Command& command) const
 {
     const bool editingText = notationController()->isTextEditing() || notationController()->isLyricsEditing();
     // The Hub opens without a project too (it is where projects are opened)
-    const bool enabled = (globalContext()->currentProject() != nullptr || command == DORICO_OPEN_HUB_COMMAND) && !editingText;
+    const bool lyricsCommand = command == DORICO_LYRICS_CLOSE_COMMAND || command == DORICO_LYRICS_NEXT_LINE_COMMAND
+                               || command == DORICO_LYRICS_ABOVE_COMMAND
+                               || command == DORICO_LYRICS_BELOW_COMMAND;
+    const bool enabled = lyricsCommand ? notationController()->isLyricsEditing()
+                         : (globalContext()->currentProject() != nullptr || command == DORICO_OPEN_HUB_COMMAND) && !editingText;
 
     bool checked = false;
     for (size_t i = 0; i < DORICO_MODE_COMMANDS.size(); ++i) {

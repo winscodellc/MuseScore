@@ -127,6 +127,10 @@ static std::vector<CommandInfo> makeCommandInfos()
         const std::string& title = popovers.find(command.pathSegments().back())->title;
         v.push_back(info(command, "Dorico: " + title + " popover", "Opens the " + title + " popover at the selection or caret"));
     }
+    v.push_back(info(DORICO_LYRICS_CLOSE_COMMAND, "Dorico: close lyrics", "Lyrics entry: stops editing lyrics"));
+    v.push_back(info(DORICO_LYRICS_NEXT_LINE_COMMAND, "Dorico: next lyric line", "Lyrics entry: goes to the next line, adding it if needed"));
+    v.push_back(info(DORICO_LYRICS_ABOVE_COMMAND, "Dorico: lyrics above", "Lyrics entry: puts the lyric above the staff"));
+    v.push_back(info(DORICO_LYRICS_BELOW_COMMAND, "Dorico: lyrics below", "Lyrics entry: puts the lyric below the staff"));
     return v;
 }
 

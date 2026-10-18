@@ -284,6 +284,12 @@ bool Lyrics::isEditAllowed(EditData& ed) const
         }
     }
 
+    // Dorico fork (spec 33): Opt-Left / Opt-Right go to the previous / next syllable, never a word inside the lyric
+    static const std::set<KeyboardModifiers> altModifiers { AltModifier, AltModifier | KeypadModifier };
+    if ((ed.key == Key_Left || ed.key == Key_Right) && altModifiers.find(ed.modifiers) != altModifiers.end()) {
+        return false;
+    }
+
     if (ed.key == Key_Left || ed.key == Key_Backspace) {
         return cursor()->column() != 0 || cursor()->hasSelection();
     }

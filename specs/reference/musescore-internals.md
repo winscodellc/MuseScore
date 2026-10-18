@@ -151,6 +151,14 @@ There is no dedicated fermata, barline or repeat API; those go through `applyPal
 - `NotationInteraction::navigateToNearHarmony`, `navigateToHarmonyInNearMeasure` and `navigateToHarmony` (`notationinteraction.cpp:7242-7420`) only act while a Harmony is being text-edited (`editedHarmony()`), so a popover cannot call them. Their beat rule (dotted quarter in compound time) is copied in `src/dorico/popover/popovernavigation.cpp`.
 - `Measure::tick2pos` starts with `tck -= ticks()` (the measure length, not its start tick) and returns an x relative to the system: do not use it for canvas positions. `positionRect` in `popovernavigation.cpp` interpolates between segment canvas positions instead.
 
+### Lyrics editing (found in spec 33)
+- `add-lyrics` → `NotationActionController::addText(LYRICS_ODD)` → `Score::addText` (`edit.cpp` ~L800) always adds a **new** verse (verse = number of lyrics on the chord). To edit line 1, `select` + `startEditText` the existing lyric.
+- Which keys reach shortcuts while editing: `NotationViewInputController::shortcutOverrideEvent` → `Lyrics::isEditAllowed` (`lyrics.cpp`). False = the key goes to the shortcut system. Plain/Shift `-`, `_`, Return, Up, Down always pass; Left/Right/Backspace pass only at the text edge; Space passes (`isTextNavigationKey`). Alt+arrows are kept by the text editor unless `Lyrics::isEditAllowed` releases them (fork edit).
+- `ShortcutResolver::selectOne`: when two enabled commands share a key, `NOTATION_TEXT_EDITING` (6) beats note input (5) and `NOTATION` (4).
+- Commands: `edittext-next-word` (Space: next note, word end), `editlyrics-next-syllable` (`-`), `editlyrics-add-melisma` (`_`), `editlyrics-next/prev-verse`, `edittext-next/prev-element` (move to next/prev lyric without changing syllabic), `editlyrics-add-verse`.
+- Paste while editing a lyric (`NotationInteraction::pasteSelection` → `extractSyllable`) already pastes one syllable, advances like Space / `-` / `_`, and puts the rest back on the clipboard.
+- New lyrics copy the placement of the one they came from (`navigateToLyrics`, ~L6834), so changing `Pid::PLACEMENT` on the edited lyric moves the following entries too.
+
 ## 4. Copy, paste and duplicate
 
 Handlers are registered in `src/notationscene/internal/notationactioncontroller.cpp:424-443`; implementations are in `notationinteraction.cpp`.

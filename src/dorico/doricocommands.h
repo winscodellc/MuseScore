@@ -129,6 +129,12 @@ inline static const muse::rcommand::Command DORICO_OPEN_PUBLISH_COMMAND("command
 // Players panel "…" menu (spec 55): the score's stave sharing, a switch in MuseScore's instrument tree
 inline static const muse::rcommand::Command DORICO_TOGGLE_STAVE_SHARING_COMMAND("command://dorico/toggle-stave-sharing");
 
+// Lyrics popover keys (spec 33): enabled only while a lyric is being edited, when every other dorico command is off.
+inline static const muse::rcommand::Command DORICO_LYRICS_CLOSE_COMMAND("command://dorico/lyrics-close");
+inline static const muse::rcommand::Command DORICO_LYRICS_NEXT_LINE_COMMAND("command://dorico/lyrics-next-line");
+inline static const muse::rcommand::Command DORICO_LYRICS_ABOVE_COMMAND("command://dorico/lyrics-above");
+inline static const muse::rcommand::Command DORICO_LYRICS_BELOW_COMMAND("command://dorico/lyrics-below");
+
 // Popovers (spec 20). The id is the URI tail; PopoverRegistry has the matching PopoverDef.
 inline static const std::array<muse::rcommand::Command, 16> DORICO_POPOVER_COMMANDS = {
     muse::rcommand::Command("command://dorico/popover/bars"),

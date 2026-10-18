@@ -1,12 +1,12 @@
 <!-- markdownlint-disable -->
 # 33 — Popover: lyrics (Shift-L)
 
-Status: todo · Depends on: [20-popover-framework](done/20-popover-framework.md) · Dorico refs:
+Status: done · Depends on: [20-popover-framework](20-popover-framework.md) · Dorico refs:
 - [P] `https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_lyrics_r.html`
 - [M] `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/write_mode/write_mode_notations_input/write_mode_lyrics_inputting_t.html`
 - [M] `.../notation_reference/notation_reference_lyrics/notation_reference_lyrics_copying_pasting_t.html`
 
-Reference: [popovers](reference/dorico-popovers.md) (B1, B2 "Lyrics") · [editing](reference/dorico-editing.md) (section 1.9) · [internals](reference/musescore-internals.md) (sections 1 and 3).
+Reference: [popovers](../reference/dorico-popovers.md) (B1, B2 "Lyrics") · [editing](../reference/dorico-editing.md) (section 1.9) · [internals](../reference/musescore-internals.md) (sections 1 and 3).
 
 Names such as `parse`, `Result` and `apply` follow the contract in spec 20; rename to match its final API.
 
@@ -71,14 +71,22 @@ This popover is a key map more than a syntax: the text typed is the syllable, an
 - Placement above/below per lyric line beyond what MuseScore's lyric property supports.
 
 ## Acceptance criteria
-- [ ] Select the first note of a voice, press Shift-L, type `Hel`, press `-`, type `lo`, press Space: "Hel-" is on note 1, "lo" on note 2, and editing continues on note 3.
-- [ ] Pressing Space twice with no text skips a note.
-- [ ] Opt-Right / Opt-Left move between existing syllables.
-- [ ] Up / Down change the verse number; Shift-Up puts the lyric above the staff.
-- [ ] Return or Esc ends the entry; the popover also closes after the last note of the voice.
-- [ ] Return on a selected lyric reopens editing at it.
-- [ ] Cmd-V with `one two-three` on the clipboard places three syllables (stretch).
-- [ ] One undo per word typed, or one for the whole entry session; choose one in spec 20 and apply it consistently.
+- [x] Select the first note of a voice, press Shift-L, type `Hel`, press `-`, type `lo`, press Space: "Hel-" is on note 1, "lo" on note 2, and editing continues on note 3.
+- [x] Pressing Space twice with no text skips a note.
+- [x] Opt-Right / Opt-Left move between existing syllables.
+- [x] Up / Down change the verse number; Shift-Up puts the lyric above the staff.
+- [x] Return or Esc ends the entry; the popover also closes after the last note of the voice.
+- [x] Return on a selected lyric reopens editing at it.
+- [ ] (not UI-tested: no X clipboard tool on the test machine) Cmd-V with `one two-three` on the clipboard places three syllables (stretch).
+- [x] One undo per word typed, or one for the whole entry session; choose one in spec 20 and apply it consistently.
+
+## As built (corrections to the design above)
+- No `lyricspopovermodel` or `lyricskeymap` C++ table. `PopoverDef::openInline` (new) makes Shift-L run `handlers/lyricshandler.cpp` instead of opening a box: it starts MuseScore's lyric editor on the selected note, editing its line 1 lyric if it has one (`add-lyrics` would add line 2). The key map is data in `shortcuts_dorico.json` (`NOTATION_TEXT_EDITING`, which wins over every other scope while the score has focus) and `check_keymap.py` covers it; `itemTypes` stays empty, so Return on a lyric is MuseScore's edit-text.
+- Keys while editing a lyric: Space `edittext-next-word`, `-` `editlyrics-next-syllable`, `_` `editlyrics-add-melisma` (MuseScore's extender, not Dorico's elision), Right/Left at the text edge and Opt-Right/Opt-Left `edittext-next/prev-element`, Up `editlyrics-prev-verse`. New `dorico/*` commands, enabled **only** while a lyric is edited (`DoricoCommandsState`): Return `lyrics-close`, Down `lyrics-next-line` (MuseScore's next-verse only visits existing lines and its add-verse always adds one; this goes to the next line, adding it when missing), Shift-Up/Down `lyrics-above/below` (set `Pid::PLACEMENT` **unstyled**, or the next lyric, which copies the flag, snaps back to the style). Return no longer adds a verse (`editlyrics-add-verse` unbound).
+- Upstream edit: `Lyrics::isEditAllowed` (`engraving/dom/lyrics.cpp`) releases Opt-Left/Right, otherwise the text editor moves by word and the shortcut never fires.
+- Undo: MuseScore's, one step per syllable/action (decided: kept, not merged per session).
+- Last note of the score: Space keeps editing the same lyric (MuseScore's behaviour); editing does not close by itself. Kept.
+- Paste: MuseScore's lyric paste already does one syllable per Cmd-V, advancing and leaving the rest on the clipboard (`NotationInteraction::pasteSelection` → `extractSyllable`). Not UI-tested (no `xclip` on the Linux test machine).
 
 ## Tests
 No pure parser exists for this popover. Test the key map as data:

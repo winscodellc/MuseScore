@@ -85,6 +85,7 @@ Everything is under `src/dorico/`. The framework is spec 20, and 21-32 are worke
   - `itemTypes`: Return on a selected item of these types reopens this popover. With `editsAttached`, opening on a note that already has one edits it.
   - Optional: `supportsLocal` (Opt-Return), `selectionPrefill`, `noteInputEnded`, `suggest` (suggestion menu).
   - `applyAt(text, PopoverPosition, notation)` makes a **navigating** popover. It sits at a tick and staff instead of the selection, and opening it stops note input. Space / Shift-Space / Tab / Shift-Tab / Cmd-arrows enter the text and move on (`popover/popovernavigation.h`: `movePosition`, `itemAt`, `positionRect`). Beats only for now. Lyrics and fingering move by note, so add a `PopoverMove` for that.
+  - `openInline(notation)` (spec 33, lyrics): the Shift-key runs it instead of opening a box, for popovers typed straight into the score with MuseScore's own text editor. Their keys are `NOTATION_TEXT_EDITING` rows in `shortcuts_dorico.json` (that scope wins over the others); a `dorico/*` command meant for the editor must be enabled while editing (`DoricoCommandsState`, see `DORICO_LYRICS_*`).
 - **Apply pattern** (see `handlers/chordsymbolshandler.cpp`, the smallest, or `tempohandler.cpp` for selection, caret and range):
   1. Get the score with `Score* score = notation->elements()->msScore()`.
   2. Open a transaction with `notation->undoStack()->prepareChanges(muse::TranslatableString("undoableAction", "Add ..."))`.
@@ -93,7 +94,7 @@ Everything is under `src/dorico/`. The framework is spec 20, and 21-32 are worke
   5. Select the new item, so Return reopens it.
 
   The controller merges several transactions into one undo step per entry. Items entered at the caret that need a note first: `handlers/pendingatcaret.h`.
-- **Controller / UI**: `internal/popovercontroller.cpp` (open, accept, move, cancel). Its `existingItem()` only looks at segment annotations, so lyrics (on the ChordRest) and fingering (on the Note) must extend it. Key handling lives in `qml/MuseScore/Dorico/Popover.qml` and `popovermodel.*`.
+- **Controller / UI**: `internal/popovercontroller.cpp` (open, accept, move, cancel). Its `existingItem()` only looks at segment annotations, so fingering (on the Note) must extend it (lyrics use `openInline` and don't need it). Key handling lives in `qml/MuseScore/Dorico/Popover.qml` and `popovermodel.*`.
 - **Tests**: `tests/<x>parser_tests.cpp`, listed in `tests/CMakeLists.txt`. Build with `cmake -P build.cmake -DMUSE_ENABLE_UNIT_TESTS=ON build`, then run `<build dir>/src/dorico/tests/dorico_tests --gtest_filter='Dorico<X>*'`.
 - **MuseScore internals already looked up**: `reference/musescore-internals.md` section 3 (APIs per item type, chord symbols). Add what you find there before ending the spec.
 
@@ -149,7 +150,7 @@ Status: todo | in-progress | pending review | done  -  Depends on: NN, NN  -  Do
 | 30 | [Popover: repeats and tremolos (Shift-R)](done/30-popover-repeats-tremolos.md) | done | 20 |
 | 31 | [Popover: tuplets (;)](done/31-popover-tuplets.md) | done | 20, 11 |
 | 32 | [Popover: chord symbols (Shift-Q)](done/32-popover-chord-symbols.md) | done | 20 |
-| 33 | [Popover: lyrics (Shift-L)](33-popover-lyrics.md) | todo | 20 |
+| 33 | [Popover: lyrics (Shift-L)](done/33-popover-lyrics.md) | done | 20 |
 | 34 | [Popover: fingering (Shift-F)](34-popover-fingering.md) | todo | 20 |
 | 35 | [Popover: note tools (Shift-I)](35-popover-note-tools.md) | todo | 20 |
 | 36 | [Popover: figured bass (Shift-G)](36-popover-figured-bass.md) | todo | 20 |

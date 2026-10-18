@@ -315,10 +315,16 @@
     {
         "scope": "NOTATION_TEXT_EDITING",
         "shortcuts": [
-        {"command": "command://notation/edittext-prev-element", "sequences": ["Left", "Backspace"]},
+        {"command": "command://notation/edittext-next-element", "sequences": ["Right", "Alt+Right"]},
+        {"command": "command://notation/edittext-prev-element", "sequences": ["Left", "Backspace", "Alt+Left"]},
         {"command": "command://notation/editlyrics-next-syllable", "sequences": ["-"]},
         {"command": "command://notation/editlyrics-next-verse", "sequences": []},
-        {"command": "command://notation/editlyrics-prev-verse", "sequences": []}
+        {"command": "command://dorico/lyrics-next-line", "sequences": ["Down"]},
+        {"command": "command://notation/editlyrics-prev-verse", "sequences": ["Up"]},
+        {"command": "command://notation/editlyrics-add-verse", "sequences": []},
+        {"command": "command://dorico/lyrics-close", "sequences": ["Return"]},
+        {"command": "command://dorico/lyrics-above", "sequences": ["Shift+Up"]},
+        {"command": "command://dorico/lyrics-below", "sequences": ["Shift+Down"]}
         ]
     },
     {

@@ -64,6 +64,8 @@ target_sources(dorico PRIVATE
     popover/handlers/holdshandler.h
     popover/handlers/keysighandler.cpp
     popover/handlers/keysighandler.h
+    popover/handlers/lyricshandler.cpp
+    popover/handlers/lyricshandler.h
     popover/handlers/ornamentshandler.cpp
     popover/handlers/ornamentshandler.h
     popover/handlers/pendingatcaret.cpp

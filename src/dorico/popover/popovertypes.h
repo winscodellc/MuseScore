@@ -86,5 +86,8 @@ struct PopoverDef {
     //! note input, Return enters the text there, and Space / Tab / Cmd-arrows enter it and move on. Set it instead of
     //! `apply`.
     std::function<bool(const std::string&, const PopoverPosition&, notation::INotationPtr)> applyAt;
+
+    //! Popovers typed straight into the score (lyrics, spec 33): the Shift-key runs this and no box opens.
+    std::function<void(notation::INotationPtr)> openInline;
 };
 }
