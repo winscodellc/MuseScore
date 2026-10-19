@@ -1,7 +1,7 @@
 <!-- markdownlint-disable -->
 # 47 — Paste Special: Explode and Reduce
 
-Status: todo (lowest priority) · Depends on: [40-copy-paste](40-copy-paste.md), [41-paste-special](41-paste-special.md), [46-jump-bar](46-jump-bar.md)
+Status: todo (lowest priority) · Depends on: [40-copy-paste](done/40-copy-paste.md), [41-paste-special](41-paste-special.md), [46-jump-bar](46-jump-bar.md)
 Dorico refs: `B = https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/` →
 `B write_mode/write_mode_arranging_tools/write_mode_arranging_exploding_t.html`,
 `B write_mode/write_mode_arranging_tools/write_mode_arranging_reducing_t.html`

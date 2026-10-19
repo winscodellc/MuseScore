@@ -189,6 +189,14 @@ Handlers are registered in `src/notationscene/internal/notationactioncontroller.
   - `pitch-up/down-diatonic` → `movePitchDiatonic`.
   - Going up/down inside a chord: `goto-upnote/downnote/topnote/bottomnote-in-chord` (Alt+Up / Ctrl+Alt+Up …).
 
+### Paste internals (found in spec 40)
+- `Paste::pasteStaff(tx, score, xml, dstSegment, dstStaff)` (`read500.cpp:356`) takes the destination as a ChordRest **segment + staff**, not from the selection, and can be called repeatedly in one transaction. It overwrites only the voices present in the clipboard (`preparePasteDurationElement` → `makeGapVoice`), never merges into chords, never inserts time, and sets the selection to the last pasted range itself.
+- `StaffList` payload root attributes: `tick`, `len` (Fraction string), `staff`, `staves`. A copied symbol (dynamic, hairpin) is a `symbol` payload, not a stafflist.
+- There is no single-staff "push music right" in MuseScore (`insertChordByInsertingTime` lengthens the bar on every staff). The fork's way (spec 40): copy the tail with `rw::RWRegister::writer()->writeStaffSelection`, `Score::deleteRange`, `appendMeasures` while short, then `pasteStaff` the tail at the new tick.
+- `writeStaffSelection` needs a **non-null end segment** (`writeScoreSpanners` calls `endSegment->tick()`): for a range reaching the score end pass `lastMeasure()->last()`. Its `SelectionFilter` reads the live selection, so call `selection().setRange(...)` first or `Selection::rangeContainsMultiNoteChords` asserts (not RANGE) once per note.
+- `Selection::staffMimeData` is private; `mimeData()` is public. After `deleteRange` call `score->deselectAll()` (the selection holds the rebuilt segments).
+- Intercepting a command (`command://notation/paste`/`cut`) with `ICommandDispatcher::preDispatch()` and setting `*allowDispatch = false` also covers the menus; leaving it true falls through to the upstream handler.
+
 ## 5. Selection
 
 - **SelectionTarget** (`src/notation/notationtypes.h:113`) is handled in `NotationSelection::select` (`src/notation/internal/notationselection.cpp:190-290`) and `addToSelection` (:292). Targets include Similar, SimilarInStaff, SimilarInRange, NotesInChord, All, Section, Top/BottomNoteInChord, TopStaff and others.
