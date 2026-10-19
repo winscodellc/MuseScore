@@ -1,17 +1,17 @@
 <!-- markdownlint-disable -->
 # 36 — Popover: figured bass (Shift-G)
 
-Status: todo · Depends on: [20-popover-framework](done/20-popover-framework.md) · Dorico refs:
+Status: done · Depends on: [20-popover-framework](20-popover-framework.md) · Dorico refs:
 - [P] `https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_figured_bass_figures_r.html`
 - [P] `.../dorico_popovers_figured_bass_alterations_r.html`
 - [P] `.../dorico_popovers_navigation_r.html`
 
-Reference: [popovers](reference/dorico-popovers.md) (B1, B2 "Figured bass") · [internals](reference/musescore-internals.md) (section 3).
+Reference: [popovers](../reference/dorico-popovers.md) (B1, B2 "Figured bass") · [internals](../reference/musescore-internals.md) (section 3).
 
 Names such as `parse`, `Result` and `apply` follow the contract in spec 20; rename to match its final API.
 
 ## Goal
-Shift-G opens a popover. Typing `6`, `#6`, `6#42` or `4-3` and pressing Return puts figured bass under the selected bass note. Space moves to the next beat.
+Shift-G opens a popover. Typing `6`, `#6`, `6#42` or `6,4,2` and pressing Return puts figured bass under the selected bass note. Space moves to the next beat.
 
 ## Dorico behaviour
 
@@ -60,21 +60,15 @@ Shift-G opens a popover. Typing `6`, `#6`, `6#42` or `4-3` and pressing Return p
 - No local/global distinction, no suspension durations, no hidden figures.
 
 ## Design
-- **New files** in `src/dorico/internal/popovers/figuredbass/`:
-  - `figuredbassparser.h/.cpp`: pure `parse(const std::string&) -> FbResult`.
-- **Result:** `Figures{ std::vector<Figure> }` where `Figure{ prefix (accidental or none), number (0 if none), bracketed }`, or `Invalid` / `Unsupported{reason}`.
-- **Parser steps:**
-  1. Strip a leading mode flag (`R r V v ? O o !`) and ignore it.
-  2. If the text contains a comma, split on commas; each piece is one figure.
-  3. Otherwise scan left to right: an accidental run (`#`, `b`, `n`, `x`, `s`, `f` and the doubled forms) followed by digits forms one figure. A number greater than 9 is read as one figure only if it is 10–19 and no comma was used.
-  4. Parentheses around one or more figures or accidentals set `bracketed`.
-  5. A lone accidental with no digit is a figure with `number = 0` (raised third).
-  6. `+` / `-` suffixes become a suffix on the figure.
-- **Order:** emit figures from the largest number at the top to the smallest at the bottom, the usual engraving order. The Dorico table says "auto-sorted ascending"; check Dorico's rendered order before finalising and flip the sort if it is the other way around.
-- **Render:** build MuseScore figured-bass text, one figure per line (`\n` between lines), prefix accidental as `#`, `b` or `n` before the digit, double sharp/flat as the two-character forms MuseScore accepts (confirm). Put that text into the figured bass element within a single edit transaction.
-- **Space:** apply, then move to the next chord-rest of the bass voice and reopen. Reuse the re-anchoring helper from spec 32.
-- **Opt-Return, Opt-L, Opt-G:** accepted and ignored (no local/global).
-- **Upstream edits:** none.
+Built (as the chord symbols popover, spec 32): a navigating popover (`applyAt`) on a `FiguredBass` segment annotation.
+- **Parser** `popover/parsers/figuredbassparser.h/.cpp`: pure `parseFiguredBass(text) -> { status, figures, text }`. `figures` are in typed order (`Figure{ accidental, number, alteration, bracketed, accidentalBracketed }`); `text` is the same figures as MuseScore lines, largest number on top (Dorico "ascending" read bottom-up), `\n`-joined: `n` -> `h`, `+` stays a suffix, `d` (diminished) -> `/` suffix.
+  - A leading mode flag (`R r V v ? O o !`) is stripped and ignored.
+  - With a comma, each piece is one figure (1-19); without, each digit is a figure, except `1` + digit = 10-19.
+  - `(` `)` bracket the parts inside; `(#)6` brackets only the accidental.
+  - A lone accidental is a figure with no number (raised third).
+  - Empty text, a trailing comma or an unclosed bracket is `Incomplete`.
+- **Handler** `popover/handlers/figuredbasshandler.h/.cpp`: `figuredBassPopover()`, registered in `popoverregistry.cpp` (replaced the placeholder). `applyAt` removes the staff's figured bass at the position, creates one with `FiguredBass::addFiguredBassToSegment`, builds its lines like the MusicXML import (see `reference/musescore-internals.md`) and selects it, so Return reopens it. `prefill` turns `plainText()` back into popover syntax.
+- **Upstream edits:** none. One fork edit: `PopoverController`'s `singleSelectedItem` maps a clicked figured bass line (`FiguredBassItem`, what a click selects) to its `FiguredBass`.
 
 ## Deferred / unsupported
 - Suspensions with resolution (`4->3`, `4_3`, `4~3`) and their duration (`r=`, `d=`).
@@ -86,21 +80,21 @@ Shift-G opens a popover. Typing `6`, `#6`, `6#42` or `4-3` and pressing Return p
 - Figure-line stacking beyond what MuseScore draws.
 - Triple sharp/flat and `u` (unaltered) unless MuseScore's text format accepts them.
 - Figures beyond 9 if MuseScore's editor cannot display two-digit figures.
-- Anything unsupported returns `Unsupported{reason}` through the spec 20 error state.
+- Anything unsupported is `Unsupported` (red border, "Not supported yet"), also: lowered figures (`-`), unaltered (`u`), and an accidental together with `+` / `d` on one figure (MuseScore allows a prefix or a suffix per line, not both).
 
 ## Acceptance criteria
-- [ ] Select a bass note, Shift-G, `6`, Return: a "6" figured bass appears under the note.
-- [ ] `#6` shows a sharp before the 6.
-- [ ] `6,4,2` stacks three figures.
-- [ ] `6#42` is read as 6, #4, 2.
-- [ ] `(#643)` produces bracketed figures, or shows the unsupported message if MuseScore cannot bracket.
-- [ ] Space applies and moves to the next bass note; Tab moves to the next bar.
-- [ ] Return on an existing figured bass reopens it pre-filled; changing it replaces the old one.
-- [ ] `4->3` shows an "unsupported" message and changes nothing.
-- [ ] One undo per entry.
+- [x] Select a bass note, Shift-G, `6`, Return: a "6" figured bass appears under the note.
+- [x] `#6` shows a sharp before the 6.
+- [x] `6,4,2` stacks three figures.
+- [x] `6#42` is read as 6, #4, 2.
+- [x] `(#643)` produces bracketed figures, or shows the unsupported message if MuseScore cannot bracket.
+- [x] Space applies and moves to the next bass note; Tab moves to the next bar.
+- [x] Return on an existing figured bass reopens it pre-filled; changing it replaces the old one.
+- [x] `4->3` shows the "Not supported yet" state and changes nothing.
+- [x] One undo per entry.
 
 ## Tests
-GoogleTest, `src/dorico/tests/figuredbassparser_tests.cpp`. A figure is written `[prefix]number`, and lists are shown in the order the parser returns them before the final sort:
+GoogleTest, `src/dorico/tests/figuredbassparser_tests.cpp` (also covers the MuseScore text, spellings, brackets and flags). A figure is written `[prefix]number`, and lists are shown in the order the parser returns them before the final sort:
 
 | Input | Expected result |
 |---|---|
@@ -121,6 +115,6 @@ GoogleTest, `src/dorico/tests/figuredbassparser_tests.cpp`. A figure is written 
 | `<3>` | `Unsupported` |
 | `ts` | `Unsupported` |
 | `Em7` | `Unsupported` |
-| `""` | `Invalid` |
+| `""` | `Incomplete` (framework convention: empty is a valid prefix) |
 | `6,,4` | `Invalid` |
 | `20` | `Invalid` |

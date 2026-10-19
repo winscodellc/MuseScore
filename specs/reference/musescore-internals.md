@@ -143,6 +143,11 @@ Plain NOTATION-scope bindings: A–G (and H) for `enter-note-*` (`shortcuts.json
 
 There is no dedicated fermata, barline or repeat API; those go through `applyPaletteElement` with an element created by `Factory::create*`.
 
+### Figured bass (found in spec 36)
+- Build one without the text editor, as the MusicXML import does: `FiguredBass::addFiguredBassToSegment(segment, track, Fraction(0, 1), &isNew)` (reuses a figured bass already on the segment/staff, so `undoRemoveElement` the old one first; sets ticks up to the next chord and `onNote`), then per line `fb->createItem(i)`, `item->parse(String&)` (false = line not conformant), `setTrack`, `setOwnershipParent(fb)`, `fb->appendItem(item)`; `fb->setXmlText(lines joined with '\n' from item->normalizedText())`; `score->undoAddElement(fb)`. Not `FiguredBass::regenerateText()`: it calls `score()->startCmd` itself.
+- The line grammar (`FiguredBassItem::parse`): `[(] prefix [)] [(] digits [)] suffix [)] [-|_ continuation]`. Prefix/suffix: `#`, `##`, `b`, `bb`, `h` (natural, not `n`), `+` (cross); suffix only: `\\` and `/` (a slash needs a digit). A prefix and a suffix cannot be on the same line. A bracket around a lone digit moves to the digit slot, so `(4)` works.
+- A figured bass is on the first track of the staff, anchored to a segment annotation like a chord symbol; `itemAt`/`movePosition` in `popovernavigation.cpp` find it by `ElementType::FIGURED_BASS`.
+
 ### Chord symbols (found in spec 32)
 - Create one in code: `Factory::createHarmony(segment)`, `setTrack`, `setHarmonyType(HarmonyType::STANDARD)`, `setHarmony(text)`, `setXmlText(harmonyName())`, then `score->undoAddElement`. That is what `FretDiagram::setHarmony` and `Harmony::endEdit` do. `harmonyName()` gives the text back for prefilling.
 - A beat with no note of its own: `measure->undoGetSegment(SegmentType::ChordRest, tick)` makes an empty ChordRest segment to hang the chord on (inside a transaction).

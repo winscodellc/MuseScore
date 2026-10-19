@@ -153,7 +153,7 @@ Status: todo | in-progress | pending review | done  -  Depends on: NN, NN  -  Do
 | 33 | [Popover: lyrics (Shift-L)](done/33-popover-lyrics.md) | done | 20 |
 | 34 | [Popover: fingering (Shift-F)](done/34-popover-fingering.md) | done | 20 |
 | 35 | [Popover: note tools (Shift-I)](done/35-popover-note-tools.md) | done | 20 |
-| 36 | [Popover: figured bass (Shift-G)](36-popover-figured-bass.md) | todo | 20 |
+| 36 | [Popover: figured bass (Shift-G)](done/36-popover-figured-bass.md) | done | 20 |
 | 40 | [Copy / paste](40-copy-paste.md) | todo | 00, 10, 11 |
 | 41 | [Paste Special](41-paste-special.md) | todo | 40 |
 | 42 | [Repeat (R) and Opt-click](42-repeat-and-alt-click.md) | todo | 40 |
