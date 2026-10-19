@@ -68,6 +68,8 @@ target_sources(dorico PRIVATE
     popover/handlers/keysighandler.h
     popover/handlers/lyricshandler.cpp
     popover/handlers/lyricshandler.h
+    popover/handlers/notetoolshandler.cpp
+    popover/handlers/notetoolshandler.h
     popover/handlers/ornamentshandler.cpp
     popover/handlers/ornamentshandler.h
     popover/handlers/pendingatcaret.cpp
@@ -96,6 +98,8 @@ target_sources(dorico PRIVATE
     popover/parsers/holdsparser.h
     popover/parsers/keysigparser.cpp
     popover/parsers/keysigparser.h
+    popover/parsers/notetoolsparser.cpp
+    popover/parsers/notetoolsparser.h
     popover/parsers/ornamentsparser.cpp
     popover/parsers/ornamentsparser.h
     popover/parsers/repeatsparser.cpp

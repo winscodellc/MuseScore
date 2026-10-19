@@ -32,6 +32,7 @@ set(MODULE_TEST_SRC
     ${CMAKE_CURRENT_LIST_DIR}/holdsparser_tests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/keysigparser_tests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/noteinput_tests.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/notetoolsparser_tests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/notationspanels_tests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/ornamentsparser_tests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/popoverregistry_tests.cpp

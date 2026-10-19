@@ -213,6 +213,12 @@ A new `src/dorico/` module can therefore register its own `command://dorico/...`
 - Fretted instrument: `staff->part()->instrument(tick)->stringData()->frettedStrings() > 0` (as `measure.cpp` ~L3511).
 - A popover that steps by note sets `PopoverDef::stepsByChord`; the position keeps the voice (`trackZeroVoice` is skipped).
 
+### Note tools: intervals and transposing (found in spec 35)
+- `Note::transpose(Interval, dbl)` and `Note::transposeDiatonic(steps, keepAlterations, dbl)` (`note.cpp` ~L4191-4254) move one note, set tpc1/tpc2 for transposing instruments, record the undo step (`EditNote::undoChangePitch`, which follows linked staves but **not ties**), and return false if the pitch is out of range. `transposeDiatonic` steps in the written key; `keepAlterations` keeps the accidental (octaves).
+- `Interval(diatonic, chromatic)` stores both in `int8_t`. `Interval::allIntervals` stops at one octave, which is why the spec does not go through `Transpose::transpose` (it takes an index into that table). That function also handles key signatures and chord names; the note tools do not need them.
+- `Selection::noteList()` gives the notes of a list or range selection (the range version honours the selection filter). `Note::firstTiedNote()` / `tiedNotes()` give a tie chain; copy the tie code from `Score::addInterval` (`cmd.cpp` ~L602) to tie a new chain.
+- `Score::addInterval(val, notes)` (`cmd.cpp:495`) and `NotationInteraction::addIntervalToSelectedNotes` only do the key-diatonic `2..9` / `-2..-9` intervals, one per command, and select the new notes.
+
 ### Hooks available without upstream edits
 - `ICommandShortcutsRegister::setAdditionalShortcuts(context, list)` (`muse/framework/shortcuts_v2/icommandshortcutsregister.h:47`, impl :525) lets a module inject bindings at runtime. They are merged like user shortcuts, so same-scope defaults are removed.
 - `ICommandDispatcher::preDispatch()` (`muse/framework/rcommand/icommanddispatcher.h`; sent at `commanddispatcher.cpp:66,81`) passes `bool* allowDispatch`. A module can veto `command://notation/copy`, `paste`, etc. and run its own Dorico behaviour. Nothing in `src/` uses it today.

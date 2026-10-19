@@ -33,6 +33,7 @@
 #include "handlers/holdshandler.h"
 #include "handlers/keysighandler.h"
 #include "handlers/lyricshandler.h"
+#include "handlers/notetoolshandler.h"
 #include "handlers/ornamentshandler.h"
 #include "handlers/repeatshandler.h"
 #include "handlers/techniqueshandler.h"
@@ -89,7 +90,7 @@ PopoverRegistry mu::dorico::makePopoverRegistry()
     r.add(fingeringPopover());                                                             // spec 34
     r.add(placeholder("figuredbass", "Figured Bass", IconCode::MUSIC_NOTES));              // spec 36
     r.add(holdsPopover());                                                                 // spec 27
-    r.add(placeholder("notetools", "Note Tools", IconCode::NOTE_HEAD));                    // spec 35
+    r.add(noteToolsPopover());                                                             // spec 35
     r.add(keySigPopover());                                                                // spec 23
     r.add(lyricsPopover());                                                                // spec 33
     r.add(timeSigPopover());                                                               // spec 22

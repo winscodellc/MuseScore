@@ -1,13 +1,13 @@
 <!-- markdownlint-disable -->
 # 35 — Popover: note tools (Shift-I)
 
-Status: todo · Depends on: [20-popover-framework](done/20-popover-framework.md) · Dorico refs:
+Status: done · Depends on: [20-popover-framework](20-popover-framework.md) · Dorico refs:
 - [P] `https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_note_tools_*_r.html`
 - [M] `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/write_mode/write_mode_transformations/write_mode_note_tools_popover_r.html`
 - [M] `.../write_mode/write_mode_note_input/write_mode_notes_adding_above_below_t.html`
 - [M] `.../write_mode/write_mode_transposing_tools/write_mode_notes_transposing_existing_popover_t.html`
 
-Reference: [popovers](reference/dorico-popovers.md) (B2 "Note tools") · [editing](reference/dorico-editing.md) (sections 2.5, 8.2, 8.4, 8.5) · [internals](reference/musescore-internals.md) (sections 2 and 3).
+Reference: [popovers](../reference/dorico-popovers.md) (B2 "Note tools") · [editing](../reference/dorico-editing.md) (sections 2.5, 8.2, 8.4, 8.5) · [internals](../reference/musescore-internals.md) (sections 2 and 3).
 
 Names such as `parse`, `Result` and `apply` follow the contract in spec 20; rename to match its final API.
 
@@ -68,33 +68,26 @@ Without a quality, the interval is diatonic in the current key: `3` above D in C
 - No 24-EDO support, so quarter-tone intervals cannot be represented.
 
 ## Design
-- **New files** in `src/dorico/internal/popovers/notetools/`:
-  - `notetoolsparser.h/.cpp`: pure `parse(const std::string&) -> NoteToolsResult`.
-  - `intervalmath.h/.cpp`: pure `toSteps(Interval spec) -> {diatonicSteps, semitones}`.
-- **Result variants:**
-  - `AddNotes{ std::vector<IntervalSpec>, Scope }`
-  - `Transpose{ IntervalSpec, Scope }`
-  - `Invalid`
-  - `Unsupported{ reason }`
-- `IntervalSpec{ degree (signed), quality (optional), unit (none | semitones | divisions | quartertones), units (optional count) }`.
-- `Scope` is `All`, `Top` or `Bottom`.
+One engine for both tools: pick the target notes, then move each one. `Note::transpose(Interval)` and `Note::transposeDiatonic(steps, keepAlterations)` (`note.cpp`) already do the move, set tpc1/tpc2 for transposing instruments, record an undo step, and return false when the pitch leaves the range. The `add-interval-*` and `pitch-up-diatonic` commands are not used: they act on the whole selection, so they cannot do `top` / `bottom`, compound intervals, or one undo step for `3,6`. `Transpose::transpose` is not used either: `Interval::allIntervals` stops at one octave.
+
+- **New files** (all in the module, no upstream edits):
+  - `popover/parsers/notetoolsparser.h/.cpp`: pure `parseNoteTools(text) -> NoteToolsParse { status, transpose, scope (All/Top/Bottom), intervals }` and `toSteps(IntervalSpec) -> {diatonic, semitones}`.
+  - `popover/handlers/notetoolshandler.h/.cpp`: `noteToolsPopover()`, registered in `popoverregistry.cpp` in place of the placeholder.
+  - `tests/notetoolsparser_tests.cpp`: the parser and the interval math (they share one file).
+- `IntervalSpec{ degree (signed), quality (None/Major/Minor/Perfect/Diminished/Augmented), semitones (optional count of the unit form) }`. `followsKey()` is true with no quality and no unit.
 - **Parser:**
-  1. A leading `t` followed by a digit, `-` or space means transpose; otherwise add notes.
-  2. Split the interval list on commas.
-  3. For each: optional `-`, optional quality word, degree 1–15, optional ordinal suffix (`rd`, `th`, `nd`, `st`), optional count and unit word.
-  4. A trailing `top` or `bottom` word sets `Scope`.
-  5. Qualities are case-sensitive only for `M` and `m`; all words are otherwise case-insensitive.
-- **Degree and quality → semitones:** the standard table. Perfect: unison 0, 4th 5, 5th 7, 8ve 12. Major/minor: 2nd 2/1, 3rd 4/3, 6th 9/8, 7th 11/10. Compound degrees (9–15) add 12 per octave. Diminished is one semitone below the minor or perfect size, augmented one above the major or perfect size.
-- **Apply, add notes:**
-  - No quality and no unit: dispatch the existing add-interval command for that degree.
-  - With a quality or `st` unit: for each selected note (filtered by `Scope`) compute the target pitch (`pitch ± semitones`) and spelling (`tpc` from the diatonic steps) using `Interval`, and add the note to the chord through the engraving add-note path used by `add-interval`.
-  - `div` is treated as `st`; `qt` is unsupported.
-- **Apply, transpose:**
-  - No quality and no unit: repeat the diatonic step command `degree - 1` times (or the octave command for 8).
-  - With a quality: call the engraving transposition by interval, with key signatures untouched.
-  - `top` / `bottom` scope: restrict the selection to the highest/lowest note of each chord before applying.
-- **One undo step** for the whole entry.
-- **Upstream edits:** none.
+  1. A leading `t` followed by a digit, `-` or a space means transpose.
+  2. `top` / `bottom` may stand anywhere; the start of one waits (Incomplete).
+  3. Items are split on commas: `[-][quality]degree[ordinal][ count unit]`. Only `M` / `m` are case-sensitive. A quality that does not fit the degree (`p3`, `M5`) is Invalid.
+  4. Invert / reverse / rotate / repeat, `=` (pitch mapping), `to` / `snap` / `spell` (scale mapping) and `qt` are Unsupported. The start of an unsupported keyword is Incomplete.
+  5. `div` is `st` (12-EDO). A transpose takes one interval. A plain unison (`1`, `-1`) on add is Incomplete: it adds nothing and may become `12`.
+- **Degree and quality to semitones:** major / perfect size from `{0,2,4,5,7,9,11}` plus 12 per octave; minor and diminished (perfect intervals) one less; diminished (major / minor intervals) two less; augmented one more. A unit entry uses its own count, spelled by the degree.
+- **Apply:**
+  1. Targets are `selection().noteList()` (list and range; during note input the just-entered note is selected). Skip drum staves; with `top` / `bottom` keep each chord's `upNote()` / `downNote()`; one note per tie chain (`firstTiedNote()`).
+  2. Moving a note: with a quality or unit, `transpose(Interval(diatonic, semitones))`. Without one, `transposeDiatonic(degree -+ 1, keepAlterations = steps % 7 == 0)`: a third follows the key, an octave keeps the accidental (as `Score::addInterval` does).
+  3. Transpose moves every note of each tie chain. Add creates a unison copy in every chord of the chain (`Factory::createNote`, `setNval(source->noteVal())`, `undoAddElement`), moves the copies, then ties them as `Score::addInterval` does. Each interval is measured from the selected note, so `3,6` is a third and a sixth. If the chord already has the pitch, nothing is added.
+  4. One transaction for the entry. If any note leaves the pitch range, the transaction is rolled back (our choice: Dorico documents nothing) and nothing changes.
+  5. The selection is left as it is (our choice).
 
 ## Deferred / unsupported
 - Invert (`inv`, `invert`, `mirror`, central-pitch forms).
@@ -108,19 +101,19 @@ Without a quality, the interval is diatonic in the current key: `3` above D in C
 - Each of the deferred forms returns `Unsupported{reason}`, shown through the spec 20 error state, so the user sees why nothing happened.
 
 ## Acceptance criteria
-- [ ] Select D in C major, Shift-I, `3`, Return: F♮ is added above D (a chord D-F).
-- [ ] `-4` adds a note a fourth below.
-- [ ] `M3` and `m3` produce a major and minor third respectively, regardless of key.
-- [ ] `3,6` adds two notes in one undo step.
-- [ ] `5 8 st` on C adds G♯ (spelled as a fifth, 8 semitones above).
-- [ ] `t3` moves the selection up a diatonic third; `t-min6` moves it down a minor sixth.
-- [ ] `t top -8` moves only the top note of each chord down an octave.
-- [ ] `inv` shows an "unsupported" message and changes nothing.
-- [ ] `qt` shows an "unsupported" message.
-- [ ] During note input with a note selected, the popover works the same way.
+- [x] Select D in C major, Shift-I, `3`, Return: F♮ is added above D (a chord D-F).
+- [x] `-4` adds a note a fourth below.
+- [x] `M3` and `m3` produce a major and minor third respectively, regardless of key.
+- [x] `3,6` adds two notes in one undo step.
+- [x] `5 8 st` on C adds G♯ (spelled as a fifth, 8 semitones above).
+- [x] `t3` moves the selection up a diatonic third; `t-min6` moves it down a minor sixth.
+- [x] `t top -8` moves only the top note of each chord down an octave.
+- [x] `inv` shows an "unsupported" message and changes nothing.
+- [x] `qt` shows an "unsupported" message.
+- [x] During note input with a note selected, the popover works the same way.
 
 ## Tests
-GoogleTest, `src/dorico/tests/notetoolsparser_tests.cpp` (parser) and `intervalmath_tests.cpp` (math):
+GoogleTest, `src/dorico/tests/notetoolsparser_tests.cpp` (parser and interval math). The apply path was checked by hand in the UI (all acceptance items, in C major). The parser table:
 
 | Input | Expected result |
 |---|---|
