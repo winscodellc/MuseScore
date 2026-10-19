@@ -51,7 +51,7 @@ std::string lower(std::string s)
     return s;
 }
 
-std::string trim(const std::string& s)
+std::string trimNoteTools(const std::string& s)
 {
     const size_t a = s.find_first_not_of(" \t");
     return a == std::string::npos ? std::string() : s.substr(a, s.find_last_not_of(" \t") - a + 1);
@@ -308,7 +308,7 @@ NoteToolsParse mu::dorico::parseNoteTools(const std::string& raw)
 {
     using namespace notetoolsparse;
     NoteToolsParse out;
-    const std::string text = trim(raw);
+    const std::string text = trimNoteTools(raw);
     if (text.empty()) {
         out.status = ParseStatus::Incomplete;
         return out;
@@ -322,7 +322,7 @@ NoteToolsParse mu::dorico::parseNoteTools(const std::string& raw)
     std::string rest = text;
     if (text[0] == 't' && (text.size() == 1 || isNoteToolsDigit(text[1]) || text[1] == '-' || text[1] == ' ')) {
         out.transpose = true;
-        rest = trim(text.substr(1));
+        rest = trimNoteTools(text.substr(1));
     }
 
     // `top` / `bottom` may stand anywhere between the intervals; the start of one waits.
@@ -352,9 +352,9 @@ NoteToolsParse mu::dorico::parseNoteTools(const std::string& raw)
     std::vector<std::string> items;
     size_t from = 0;
     for (size_t comma; (comma = body.find(',', from)) != std::string::npos; from = comma + 1) {
-        items.push_back(trim(body.substr(from, comma - from)));
+        items.push_back(trimNoteTools(body.substr(from, comma - from)));
     }
-    items.push_back(trim(body.substr(from)));
+    items.push_back(trimNoteTools(body.substr(from)));
 
     ParseStatus status = scopePending ? ParseStatus::Incomplete : ParseStatus::Ok;
     for (size_t i = 0; i < items.size(); ++i) {
