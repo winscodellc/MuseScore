@@ -30,6 +30,7 @@
 #include "popovertypes.h"
 
 namespace mu::engraving {
+class Chord;
 class Score;
 }
 
@@ -49,6 +50,12 @@ std::optional<PopoverPosition> movePosition(const engraving::Score* score, const
 //! The item of `itemTypes` at the position on its staff (the chord symbol to edit there), or nullptr.
 engraving::EngravingItem* itemAt(const engraving::Score* score, const PopoverPosition& pos,
                                  const std::vector<engraving::ElementType>& itemTypes);
+
+//! The next / previous chord (not rest) in the voice of `from`, or nullopt past either end.
+std::optional<PopoverPosition> moveChord(const engraving::Score* score, const PopoverPosition& from, bool next);
+
+//! The chord at the position in its voice, or nullptr.
+engraving::Chord* chordAt(const engraving::Score* score, const PopoverPosition& pos);
 
 //! The position on the canvas, a staff high, for anchoring the popover where nothing is there yet.
 muse::RectF positionRect(const engraving::Score* score, const PopoverPosition& pos);

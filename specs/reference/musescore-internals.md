@@ -207,6 +207,12 @@ Handlers are registered in `src/notationscene/internal/notationactioncontroller.
 
 A new `src/dorico/` module can therefore register its own `command://dorico/...` commands, their state, and handlers with no upstream edits. Shortcuts in a JSON file automatically pick up any command registered with `Availability::Shortcut`.
 
+### Fingering (found in spec 34)
+- A `Fingering` is a `TextBase` in `Note::el()`, parent = the note. Make it with `Factory::createFingering(note, TextStyleType)`, `setTrack(note->track())`, `setPlainText`, `Score::undoAddElement`; no text-edit session is needed. Styles: `FINGERING` (plain), `LH_GUITAR_FINGERING`, `RH_GUITAR_FINGERING`, `STRING_NUMBER`.
+- `Chord::notes()` is ordered low to high. On a TAB staff `Note::drop` skips fingering unless `staffTypeForElement(note)->showTabFingering()`; the handler copies that rule.
+- Fretted instrument: `staff->part()->instrument(tick)->stringData()->frettedStrings() > 0` (as `measure.cpp` ~L3511).
+- A popover that steps by note sets `PopoverDef::stepsByChord`; the position keeps the voice (`trackZeroVoice` is skipped).
+
 ### Hooks available without upstream edits
 - `ICommandShortcutsRegister::setAdditionalShortcuts(context, list)` (`muse/framework/shortcuts_v2/icommandshortcutsregister.h:47`, impl :525) lets a module inject bindings at runtime. They are merged like user shortcuts, so same-scope defaults are removed.
 - `ICommandDispatcher::preDispatch()` (`muse/framework/rcommand/icommanddispatcher.h`; sent at `commanddispatcher.cpp:66,81`) passes `bool* allowDispatch`. A module can veto `command://notation/copy`, `paste`, etc. and run its own Dorico behaviour. Nothing in `src/` uses it today.

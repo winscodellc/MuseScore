@@ -29,6 +29,7 @@
 #include "handlers/chordsymbolshandler.h"
 #include "handlers/clefhandler.h"
 #include "handlers/dynamicshandler.h"
+#include "handlers/fingeringhandler.h"
 #include "handlers/holdshandler.h"
 #include "handlers/keysighandler.h"
 #include "handlers/lyricshandler.h"
@@ -85,7 +86,7 @@ PopoverRegistry mu::dorico::makePopoverRegistry()
     r.add(barsPopover());                                                                  // spec 25
     r.add(clefPopover());                                                                  // spec 24
     r.add(dynamicsPopover());                                                              // spec 21
-    r.add(placeholder("fingering", "Fingering", IconCode::FRETBOARD_DIAGRAM));             // spec 34
+    r.add(fingeringPopover());                                                             // spec 34
     r.add(placeholder("figuredbass", "Figured Bass", IconCode::MUSIC_NOTES));              // spec 36
     r.add(holdsPopover());                                                                 // spec 27
     r.add(placeholder("notetools", "Note Tools", IconCode::NOTE_HEAD));                    // spec 35

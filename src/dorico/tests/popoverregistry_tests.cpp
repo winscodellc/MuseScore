@@ -60,10 +60,21 @@ TEST(DoricoPopoverRegistry, FindByItemType)
 
 TEST(DoricoPopoverRegistry, PlaceholderIsUnsupported)
 {
-    const PopoverDef* def = makePopoverRegistry().find("fingering");
+    const PopoverDef* def = makePopoverRegistry().find("figuredbass");
     ASSERT_NE(def, nullptr);
     EXPECT_EQ(def->validate(""), ParseStatus::Incomplete);
     EXPECT_EQ(def->validate("G"), ParseStatus::Unsupported);
+}
+
+TEST(DoricoPopoverRegistry, FingeringStepsByChord)
+{
+    const PopoverDef* def = makePopoverRegistry().find("fingering");
+    ASSERT_NE(def, nullptr);
+    EXPECT_TRUE(def->stepsByChord);
+    EXPECT_TRUE(def->applyAt);
+    EXPECT_EQ(def->validate("1,3,5"), ParseStatus::Ok);
+    EXPECT_EQ(def->validate("zzz"), ParseStatus::Invalid);
+    EXPECT_EQ(makePopoverRegistry().findByType(ElementType::FINGERING)->id, "fingering");
 }
 
 TEST(DoricoPopoverRegistry, LyricsOpenInline)

@@ -257,6 +257,13 @@ EngravingItem* PopoverController::existingItem(const PopoverDef* def) const
     return nullptr;
 }
 
+// The item a navigating popover edits at the position: its chord for popovers that step by chord (fingering), else the
+// item of its types.
+static EngravingItem* itemOrChordAt(const Score* score, const PopoverPosition& pos, const PopoverDef& def)
+{
+    return def.stepsByChord ? static_cast<EngravingItem*>(chordAt(score, pos)) : itemAt(score, pos, def.itemTypes);
+}
+
 void PopoverController::open(const PopoverDef* def, EngravingItem* editing)
 {
     m_current = def; // replaces any open popover: Dorico shows one at a time
@@ -269,7 +276,7 @@ void PopoverController::open(const PopoverDef* def, EngravingItem* editing)
             notation->interaction()->noteInput()->endNoteInput();
         }
         if (!m_editing) {
-            m_editing = itemAt(notation->elements()->msScore(), *m_position, def->itemTypes);
+            m_editing = itemOrChordAt(notation->elements()->msScore(), *m_position, *def);
         }
     }
     m_initialText = def && m_editing ? def->prefill(m_editing) : std::string();
@@ -290,13 +297,13 @@ std::optional<PopoverPosition> PopoverController::startPosition(EngravingItem* e
         if (!is.segment() || is.beyondScore()) {
             return std::nullopt;
         }
-        return PopoverPosition { is.tick(), trackZeroVoice(is.track()) };
+        return PopoverPosition { is.tick(), m_current->stepsByChord ? is.track() : trackZeroVoice(is.track()) };
     }
     const EngravingItem* e = editing ? editing : earliestSelected(notation->interaction()->selection());
     if (!e) {
         return std::nullopt;
     }
-    return PopoverPosition { e->tick(), trackZeroVoice(e->track()) };
+    return PopoverPosition { e->tick(), m_current->stepsByChord ? e->track() : trackZeroVoice(e->track()) };
 }
 
 // The caret, or the earliest selected item, with the top raised to its staff's top line so the box sits above the staff.
@@ -352,16 +359,22 @@ bool PopoverController::move(const std::string& text, PopoverMove move)
     if (!m_current || !m_position || !notation) {
         return false;
     }
+    const bool byChord = m_current->stepsByChord;
+    if (byChord && move != PopoverMove::NextBeat && move != PopoverMove::PrevBeat) {
+        return false;
+    }
     const bool unchanged = text.empty() || (m_editing && text == m_initialText);
     if (!unchanged && !applyEntry(text, ApplyScope::Default)) {
         return false;
     }
 
     const Score* score = notation->elements()->msScore();
-    if (std::optional<PopoverPosition> next = movePosition(score, *m_position, move, m_current->itemTypes)) {
+    const std::optional<PopoverPosition> next = byChord ? moveChord(score, *m_position, move == PopoverMove::NextBeat)
+                                                        : movePosition(score, *m_position, move, m_current->itemTypes);
+    if (next) {
         m_position = next;
     }
-    m_editing = itemAt(score, *m_position, m_current->itemTypes); // at the end of the score: the entry just made
+    m_editing = itemOrChordAt(score, *m_position, *m_current); // at the end of the score: the entry just made
     m_initialText = m_editing ? m_current->prefill(m_editing) : std::string();
     m_anchor = computeAnchor();
     m_stateChanged.notify();

@@ -1,12 +1,12 @@
 <!-- markdownlint-disable -->
 # 34 — Popover: fingering (Shift-F)
 
-Status: todo · Depends on: [20-popover-framework](done/20-popover-framework.md) · Dorico refs:
+Status: done · Depends on: [20-popover-framework](20-popover-framework.md) · Dorico refs:
 - [P] `https://www.steinberg.help/r/dorico/doricopopovers/6.2/en/_shared/topics/dorico/dorico_popovers/dorico_popovers_fingering_non_fretted_r.html`
 - [P] `.../dorico_popovers_fingering_fretted_r.html`
 - [P] `.../dorico_popovers_navigation_r.html`
 
-Reference: [popovers](reference/dorico-popovers.md) (B1, B2 "Fingerings") · [internals](reference/musescore-internals.md) (section 3, `addTextToItem`).
+Reference: [popovers](../reference/dorico-popovers.md) (B1, B2 "Fingerings") · [internals](../reference/musescore-internals.md) (section 3, `addTextToItem`).
 
 Names such as `parse`, `Result` and `apply` follow the contract in spec 20; rename to match its final API.
 
@@ -58,35 +58,29 @@ Shift-F opens a popover. Typing `1`, `1,3,5` or `L2` and pressing Return puts fi
 - MuseScore stores fingering as plain text on a note. It has no model of hand, finger substitution or alternatives; those are just characters in the text.
 - Staff type tells fretted (TAB / guitar) from non-fretted (`Staff::isTabStaff`, or the instrument family; confirm).
 
-## Design
-- **New files** in `src/dorico/internal/popovers/fingering/`:
-  - `fingeringparser.h/.cpp`: pure `parse(const std::string&, bool fretted) -> FingeringResult`.
-- **Result:** `Fingering{ std::vector<Item> }`, one `Item{ text, style }` per chord note, ordered bottom to top.
-- **Parser:**
-  - Non-fretted: split on commas into one item per note. Each item keeps its text as typed (so `2(3)`, `[4]`, `1-3`, `2343`, `2/` survive as text). A leading `L/G/S/I/H` + digit becomes `LH_GUITAR_FINGERING` with only the digit; `R/D/M` + digit becomes `RH_GUITAR_FINGERING`; `T` stays `T` on the plain fingering style.
-  - Fretted: digits `0`–`5` and `t` are left-hand (`LH_GUITAR_FINGERING`); letters `p i m a e x c o` are right-hand (`RH_GUITAR_FINGERING`). Up/Down toggle which style a bare digit means.
-  - Reject any other character.
-- **Apply:** for a chord, give the i-th item to the i-th note counted from the lowest. If there are more items than notes, report an error; if fewer, leave the upper notes alone. Create each fingering with `addTextToItem`, set the text, then `endEditText`; all inside one `startEdit()` / `apply()`.
-- **Replace** an existing fingering on the same note rather than adding a second.
-- **Space / Shift-Space:** apply, then re-anchor to the next/previous chord-rest in the same voice (reuse the spec 32 re-anchoring helper if present; otherwise the cursor primitives in `INotationInteraction`).
-- **Keyboard staff hands:** the automatic right-hand-upper / left-hand-lower rule is deferred, and all digits use the plain `FINGERING` style.
+## Design (as built)
+- **Parser** `popover/parsers/fingeringparser.{h,cpp}`: `parseFingering(text, fretted) -> FingeringParse{status, items}`, one `FingeringItem{text, style}` per chord note, lowest first. Split on commas; each item keeps its text as typed (`2(3)`, `[4]`, `1-3`, `2343`, `2/`). `L G S I H` + digits gives `LH_GUITAR_FINGERING`, `R D M` + digits gives `RH_GUITAR_FINGERING` (the letter is dropped from the text), `T` is plain, a lone `p i m a e x c o` is right hand and `t` is left hand. `fretted` only decides a bare digit (left hand on a fretted staff). The status never depends on `fretted`, so `validate` (which only gets the text) is exact. Empty text, `1,` and an open `(`/`[` are `Incomplete`; any other character or an empty item (`1,,3`) is `Invalid`.
+- **Navigating popover** (`applyAt`, like chord symbols) with the new `PopoverDef::stepsByChord`: the position keeps the note's voice (not voice 1), Space / Shift-Space go to the next / previous chord of that voice (rests skipped; `moveChord`, `chordAt` in `popovernavigation.cpp`), Tab and Cmd-arrows do nothing, and the item at a position is its chord, whose `prefill` joins the notes' fingerings (a hand digit keeps its letter, `L2`).
+- **Apply** (`handlers/fingeringhandler.cpp`): item *i* goes to the *i*-th note counted from the lowest; more items than notes fails, fewer leaves the upper notes alone. Each target note's existing fingerings are removed first (replace), then `Factory::createFingering(note, style)` + `setPlainText` + `undoAddElement`. A TAB staff whose staff type has no `showTabFingering` gets nothing, as in `Note::drop`. One transaction per entry.
+- **Undo**: each Space entry and the final Return are separate undo steps (as for chord symbols); one Return is one step.
 - **Upstream edits:** none.
 
 ## Deferred / unsupported
 - Semantic rendering: finger substitution `1-3`, alternatives `2(3)`, editorial `[4]`, string-shift `2/` and sequences `2343` are stored as literal text. MuseScore draws them as typed.
 - Automatic hand assignment on keyboard staves.
 - Fretted-instrument switching with Up/Down (v1 infers left/right hand from the character).
+- On a TAB staff without `showTabFingering` the popover accepts the entry and adds nothing (MuseScore hides fingering there), which looks like a no-op.
 - Fingering several voices at once.
 - Fingering a position that has more than one note in different voices.
 
 ## Acceptance criteria
-- [ ] Shift-F on a note, `3`, Return: a fingering "3" appears above the note.
-- [ ] On a three-note chord, `1,3,5`: 1 on the lowest note, 3 on the middle, 5 on the top.
-- [ ] Space applies the fingering and moves to the next chord, so `1 2 3 4` fingers four notes in order.
-- [ ] On a guitar staff, `p` and `i` create right-hand fingerings; `0`–`4` create left-hand fingerings.
-- [ ] Return on a selected fingering reopens the popover pre-filled; editing replaces the old text.
-- [ ] `zzz` shows the error state and changes nothing.
-- [ ] One undo per Return.
+- [x] Shift-F on a note, `3`, Return: a fingering "3" appears above the note.
+- [x] On a three-note chord, `1,3,5`: 1 on the lowest note, 3 on the middle, 5 on the top.
+- [x] Space applies the fingering and moves to the next chord, so `1 2 3 4` fingers four notes in order.
+- [x] On a guitar staff, `p` and `i` create right-hand fingerings; `0`–`4` create left-hand fingerings.
+- [x] Return on a selected fingering reopens the popover pre-filled; editing replaces the old text.
+- [x] `zzz` shows the error state and changes nothing.
+- [x] One undo per Return.
 
 ## Tests
 GoogleTest, `src/dorico/tests/fingeringparser_tests.cpp`:
@@ -108,5 +102,5 @@ GoogleTest, `src/dorico/tests/fingeringparser_tests.cpp`:
 | `3` | yes | `[{"3", LH_GUITAR_FINGERING}]` |
 | `t` | yes | `[{"t", LH_GUITAR_FINGERING}]` |
 | `zzz` | no | `Invalid` |
-| `""` | no | `Invalid` |
+| `""` | no | `Incomplete` (the framework treats empty text so) |
 | `1,,3` | no | `Invalid` |

@@ -24,6 +24,7 @@
 
 #include <algorithm>
 
+#include "engraving/dom/chord.h"
 #include "engraving/dom/measure.h"
 #include "engraving/dom/score.h"
 #include "engraving/dom/segment.h"
@@ -121,6 +122,26 @@ EngravingItem* mu::dorico::itemAt(const Score* score, const PopoverPosition& pos
         }
     }
     return nullptr;
+}
+
+Chord* mu::dorico::chordAt(const Score* score, const PopoverPosition& pos)
+{
+    const Segment* s = score->tick2segment(pos.tick, true, SegmentType::ChordRest);
+    EngravingItem* e = s && s->tick() == pos.tick ? s->element(pos.track) : nullptr;
+    return e && e->isChord() ? toChord(e) : nullptr;
+}
+
+std::optional<PopoverPosition> mu::dorico::moveChord(const Score* score, const PopoverPosition& from, bool next)
+{
+    const Segment* start = score->tick2segment(from.tick, true, SegmentType::ChordRest);
+    for (const Segment* s = start ? (next ? start->next1(SegmentType::ChordRest) : start->prev1(SegmentType::ChordRest)) : nullptr; s;
+         s = next ? s->next1(SegmentType::ChordRest) : s->prev1(SegmentType::ChordRest)) {
+        const EngravingItem* e = s->element(from.track);
+        if (e && e->isChord()) {
+            return PopoverPosition { s->tick(), from.track };
+        }
+    }
+    return std::nullopt;
 }
 
 muse::RectF mu::dorico::positionRect(const Score* score, const PopoverPosition& pos)

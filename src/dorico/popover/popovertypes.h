@@ -87,6 +87,10 @@ struct PopoverDef {
     //! `apply`.
     std::function<bool(const std::string&, const PopoverPosition&, notation::INotationPtr)> applyAt;
 
+    //! Fingering (spec 34): the position is a note's voice, Space / Shift-Space step to the next / previous chord of that
+    //! voice, and the item edited at a position is that chord's. Tab and Cmd-arrows do nothing.
+    bool stepsByChord = false;
+
     //! Popovers typed straight into the score (lyrics, spec 33): the Shift-key runs this and no box opens.
     std::function<void(notation::INotationPtr)> openInline;
 };

@@ -60,6 +60,8 @@ target_sources(dorico PRIVATE
     popover/handlers/clefhandler.h
     popover/handlers/dynamicshandler.cpp
     popover/handlers/dynamicshandler.h
+    popover/handlers/fingeringhandler.cpp
+    popover/handlers/fingeringhandler.h
     popover/handlers/holdshandler.cpp
     popover/handlers/holdshandler.h
     popover/handlers/keysighandler.cpp
@@ -88,6 +90,8 @@ target_sources(dorico PRIVATE
     popover/parsers/clefparser.h
     popover/parsers/dynamicsparser.cpp
     popover/parsers/dynamicsparser.h
+    popover/parsers/fingeringparser.cpp
+    popover/parsers/fingeringparser.h
     popover/parsers/holdsparser.cpp
     popover/parsers/holdsparser.h
     popover/parsers/keysigparser.cpp
