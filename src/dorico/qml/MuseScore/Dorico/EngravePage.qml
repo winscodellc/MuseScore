@@ -54,6 +54,8 @@ DoricoPage {
             // A non-floatable toolbar keeps the orientation it is given (DockToolBarView::canChangeOrientation).
             location: Location.Left
             orientation: Qt.Vertical
+            // Restore default layout forces every toolbar horizontal (DockToolBarView::resetToDefault)
+            onOrientationChanged: function(o) { if (o !== Qt.Vertical) orientation = Qt.Vertical }
             floatable: false
             closable: false
             resizable: false

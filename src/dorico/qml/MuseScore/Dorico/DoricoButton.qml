@@ -68,6 +68,8 @@ FlatButton {
     }
 
     opacity: root.available ? 1.0 : ui.theme.itemOpacityDisabled
+    // FlatButton shows no tooltip without a title, so text buttons use their text
+    toolTipTitle: root.available ? "" : (root.text || root.label)
     toolTipDescription: root.available ? "" : qsTrc("dorico", "Not available yet")
 
     onClicked: {
@@ -132,7 +134,7 @@ FlatButton {
                 StyledTextLabel {
                     id: denominator
                     anchors.horizontalCenter: parent.horizontalCenter
-                    text: root.doricoIcon.slice(5)
+                    text: String(root.doricoIcon).slice(5)
                     font.pixelSize: 11
                     color: root.iconColor
                     renderType: Text.CurveRendering // grayscale, see the glyph below
@@ -147,7 +149,7 @@ FlatButton {
         Item {
             id: box
 
-            readonly property bool isSvg: root.doricoIcon.startsWith("svg:")
+            readonly property bool isSvg: String(root.doricoIcon).startsWith("svg:")
             readonly property color tint: root.iconColor
 
             implicitWidth: root.iconBoxSize

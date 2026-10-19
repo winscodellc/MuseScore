@@ -91,7 +91,7 @@ Cues, Video, Proofreading panels; Comments if no mapping; Tonality System manage
 | Playing Techniques                  | Common                                                         | Text: playing technique annotations (pizz., arco, mute, ...)                              |
 |                                     | Brass                                                          | Articulations: muted (closed), open, half-open                                            |
 |                                     | Keyboard                                                       | Keyboard palette (pedals, chord brackets)                                                 |
-|                                     | Strings                                                        | Articulations: up/down bow, harmonic, snap pizzicato, thumb position                      |
+|                                     | Strings                                                        | Articulations: up/down bow, harmonic, snap pizzicato (thumb position is in Guitar)                  |
 |                                     | Guitar                                                         | Guitar palette                                                                            |
 |                                     | Harp Pedals                                                    | Harp palette (pedal diagrams)                                                             |
 |                                     | Wind, Unpitched/Pitched Percussion, Choral                     | omitted (no cells)                                                                        |
@@ -107,7 +107,8 @@ Cues, Video, Proofreading panels; Comments if no mapping; Tonality System manage
 
 ## Verification status
 
-Built and unit-tested (`dorico_tests` 32/32: name patterns, rest resolution, panel list), QML linted. Manual check in the app pending; check the log for "Dorico panel ... no palette cell for" warnings, which name table entries that need correcting.
+UI-tested in the app on 2026-10-18 (headless Xvfb, `ui-tester`). All acceptance checks pass except the toolbox-arrow item, which waits for the user's screenshot.
+Fixed during that test: the Popovers strip (19 buttons, ~850 px) did not fit a short window and set the window's minimum height; the buttons below the Panels/Popovers switch now scroll (`NotationsToolbox.qml`, `availableHeight` from `WritePage.qml`). Cmd-9 before any strip click shows Clefs instead of the stub. Strings no longer asks for "Thumb position" (MuseScore keeps it in the Guitar palette, which the Guitar section shows). `DoricoButton` no longer logs `slice` / `startsWith` errors.
 
 ## Acceptance criteria
 

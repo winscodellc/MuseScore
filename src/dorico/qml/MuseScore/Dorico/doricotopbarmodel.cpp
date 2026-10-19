@@ -31,6 +31,7 @@
 
 #include "notation/imasternotation.h"
 #include "notation/iexcerptnotation.h"
+#include "notation/inotationparts.h"
 #include "notation/inotationstyle.h"
 #include "notation/inotationundostack.h"
 #include "engraving/dom/masterscore.h"
@@ -259,6 +260,10 @@ void DoricoTopBarModel::updateLayouts()
 
         // Parts are added, removed and renamed from the Setup Layouts panel and the Parts dialog.
         master->excerptsChanged().onNotify(this, [this]() {
+            updateLayouts();
+        }, Asyncable::Mode::SetReplace);
+        // Adding or removing a player adds or removes a potential part, which changes no excerpt
+        master->parts()->partsChanged().onNotify(this, [this]() {
             updateLayouts();
         }, Asyncable::Mode::SetReplace);
         for (const IExcerptNotationPtr& excerpt : excerpts) {

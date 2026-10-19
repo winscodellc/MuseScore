@@ -67,7 +67,8 @@ Not built: paper size / orientation / scale in the panel (Page Setup... opens Mu
 
 ## Verification status
 
-Built and unit-tested (`dorico_tests` 28/28: Print zones, `exportUnitType`), QML linted. Manual check in the app pending.
+UI-tested in the app on 2026-10-18 (headless Xvfb, `ui-tester`). All acceptance checks pass except the zone-layout item, which waits for the user's screenshot. Export to PDF works; the system print dialog opened in the first run but not in later headless runs (no print backend under Xvfb).
+Fixed during that test: unavailable buttons (Pages, Flows, Two-sided, Crop marks, Border) showed no tooltip, because FlatButton shows none without a title; `DoricoButton` now uses its text as the title when unavailable.
 
 ## Acceptance criteria
 

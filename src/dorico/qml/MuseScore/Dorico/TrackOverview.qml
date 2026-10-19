@@ -150,6 +150,7 @@ Rectangle {
                     required property int index
 
                     readonly property bool selected: header.modelData.partId === root.selectedPartId
+                    readonly property var soloMute: overview.soloMute[header.modelData.partId] ?? { "muted": false, "solo": false }
 
                     width: root.headerWidth
                     height: root.trackHeight
@@ -192,8 +193,8 @@ Rectangle {
                             height: 24
                             text: "m"
                             toolTipTitle: qsTrc("dorico", "Mute")
-                            accentButton: header.modelData.muted
-                            onClicked: overview.setMuted(header.modelData.partId, !header.modelData.muted)
+                            accentButton: header.soloMute.muted
+                            onClicked: overview.setMuted(header.modelData.partId, !header.soloMute.muted)
                         }
 
                         FlatButton {
@@ -201,8 +202,8 @@ Rectangle {
                             height: 24
                             text: "s"
                             toolTipTitle: qsTrc("dorico", "Solo")
-                            accentButton: header.modelData.solo
-                            onClicked: overview.setSolo(header.modelData.partId, !header.modelData.solo)
+                            accentButton: header.soloMute.solo
+                            onClicked: overview.setSolo(header.modelData.partId, !header.soloMute.solo)
                         }
                     }
 

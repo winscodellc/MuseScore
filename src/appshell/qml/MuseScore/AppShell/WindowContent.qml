@@ -46,7 +46,11 @@ DockWindow {
         console.log("WindowContent::onPageLoaded")
         interactiveProvider.onPageOpened()
 
-        // Dorico fork: the Dorico pages carry their own top bar, so the Home/Score/Publish bar is hidden there
+        root.updateMainToolBar()
+    }
+
+    // Dorico fork: the Dorico pages carry their own top bar, so the Home/Score/Publish bar is hidden there
+    function updateMainToolBar() {
         var isDoricoPage = root.currentPageUri === "musescore://notation" || root.currentPageUri.startsWith("musescore://dorico/")
         if (isDoricoPage && mainToolBar.isOpen()) {
             mainToolBar.close()
@@ -81,6 +85,9 @@ DockWindow {
             closable: false
 
             navigationSection: topToolbarKeyNavSec
+
+            // Dorico fork: Restore default layout reopens this bar and reloads the page without pageLoaded
+            onVisibleChanged: if (visible) Qt.callLater(root.updateMainToolBar)
 
             MainToolBar {
                 id: toolBar

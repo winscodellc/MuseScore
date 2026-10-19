@@ -2,7 +2,7 @@
 
 # 55 - Setup mode
 
-Status: pending review - Depends on: 50 - Dorico refs: `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/setup_mode/setup_mode_project_window_r.html`, `.../setup_mode_players_panel_r.html`, `.../setup_mode_layouts_panel_r.html`, `.../setup_mode_flows_panel_r.html`
+Status: done - Depends on: 50 - Dorico refs: `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/setup_mode/setup_mode_project_window_r.html`, `.../setup_mode_players_panel_r.html`, `.../setup_mode_layouts_panel_r.html`, `.../setup_mode_flows_panel_r.html`
 
 Implementer: Sonnet is fine.
 
@@ -50,7 +50,8 @@ Section players, ensembles, groups, sort orders, custom/full-score layouts beyon
 
 ## Verification status
 
-Built and unit-tested (`dorico_tests` 26/26: Setup zone table, `layoutPageInfo`), QML linted with `qmllint`. Manual check in the app pending.
+UI-tested in the app on 2026-10-18 (headless Xvfb, `ui-tester`). All acceptance checks pass.
+Fixed during that test: the Layouts list did not refresh when a player was added or removed (a new player only adds a potential part, which changes no excerpt); `DoricoTopBarModel` now also listens to `partsChanged`. Seen but upstream: adding an instrument renumbers same-type instruments ("Soprano 1", "Alto 1", ...).
 
 ## Acceptance criteria
 

@@ -39,8 +39,11 @@ class TrackOverviewModel : public QObject, public muse::Contextable, public muse
 {
     Q_OBJECT
 
-    //! [{ partId, title, muted, solo, blocks: [{ start, end }] }]
+    //! [{ partId, title, blocks: [{ start, end }] }]
     Q_PROPERTY(QVariantList tracks READ tracks NOTIFY contentChanged)
+    //! { partId: { muted, solo } }. Apart from tracks, so a mute / solo click does not recreate the header delegates
+    //! (recreating them inside the click handler lost the next click).
+    Q_PROPERTY(QVariantMap soloMute READ soloMute NOTIFY soloMuteChanged)
     //! [{ start, number }]
     Q_PROPERTY(QVariantList bars READ bars NOTIFY contentChanged)
     Q_PROPERTY(double length READ length NOTIFY contentChanged)
@@ -55,6 +58,7 @@ public:
     explicit TrackOverviewModel(QObject* parent = nullptr);
 
     QVariantList tracks() const { return m_tracks; }
+    QVariantMap soloMute() const { return m_soloMute; }
     QVariantList bars() const { return m_bars; }
     double length() const { return m_length; }
     double playheadPosition() const { return m_playheadPosition; }
@@ -66,6 +70,7 @@ public:
 
 signals:
     void contentChanged();
+    void soloMuteChanged();
     void playheadPositionChanged();
 
 private:
@@ -73,11 +78,13 @@ private:
     void rebuild(const engraving::Score* score);
     void updatePlayhead(muse::audio::secs_t secs);
     void listenToSoloMute();
+    void updateSoloMute();
     void changeSoloMute(const QString& partId, bool mute, bool value);
 
     notation::IMasterNotationPtr m_master;
     notation::INotationPtr m_notation; // solo / mute live on the current notation (score or part), like the mixer
     QVariantList m_tracks;
+    QVariantMap m_soloMute;
     QVariantList m_bars;
     double m_length = 0;
     double m_playheadPosition = 0;

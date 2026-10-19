@@ -79,7 +79,7 @@ const std::vector<NotationsSection>& mu::dorico::notationsSections()
         { "playingTechniques", "Brass", SP::Articulations, { ET::ARTICULATION }, { "Muted (closed)", "Open", "Half-open 2 (Weinberg)" } },
         { "playingTechniques", "Keyboard", SP::Keyboard, {}, {} },
         { "playingTechniques", "Strings", SP::Articulations, { ET::ARTICULATION },
-          { "Up bow", "Down bow", "Harmonic", "Snap pizzicato above", "Thumb position" } },
+          { "Up bow", "Down bow", "Harmonic", "Snap pizzicato above" } },
         { "playingTechniques", "Guitar", SP::Guitar, {}, {} },
         { "playingTechniques", "Harp Pedals", SP::Harp, {}, {} },
 

@@ -47,6 +47,10 @@ DoricoPage {
 
     onInited: {
         Qt.callLater(pageModel.init)
+        // Cmd-9 before any toolbox click shows the first panel (the setter builds it)
+        if (root.notationsModel.panelId === "") {
+            root.notationsModel.panelId = "clefs"
+        }
     }
 
     readonly property string rightPanelsGroup: "RIGHT_PANELS"
@@ -75,6 +79,8 @@ DoricoPage {
             // A non-floatable toolbar keeps the orientation it is given (DockToolBarView::canChangeOrientation).
             location: Location.Left
             orientation: Qt.Vertical
+            // Restore default layout forces every toolbar horizontal (DockToolBarView::resetToDefault)
+            onOrientationChanged: function(o) { if (o !== Qt.Vertical) orientation = Qt.Vertical }
             floatable: false
             closable: false
             resizable: false
@@ -96,6 +102,8 @@ DoricoPage {
 
             location: Location.Right
             orientation: Qt.Vertical
+            // Restore default layout forces every toolbar horizontal (DockToolBarView::resetToDefault)
+            onOrientationChanged: function(o) { if (o !== Qt.Vertical) orientation = Qt.Vertical }
             floatable: false
             closable: false
             resizable: false
@@ -104,6 +112,8 @@ DoricoPage {
             navigationSection: root.noteInputKeyNavSec
 
             NotationsToolbox {
+                // parent is the DockToolBar's content Loader, below its grip button
+                availableHeight: notationsToolbox.height - (parent ? parent.y : 0)
                 navigationPanel.section: notationsToolbox.navigationSection
                 navigationPanel.order: 2
 

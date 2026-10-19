@@ -166,7 +166,7 @@ Rectangle {
                 text: "m"
                 textFont.pixelSize: 15
                 textFont.bold: true
-                normalColor: "#3A4048"
+                normalColor: accentButton ? accentColor : "#3A4048" // a fixed colour would hide the lit state
                 toolTipTitle: qsTrc("dorico", "Mute")
                 accentButton: root.channelItem ? root.channelItem.muted : false
                 onClicked: root.channelItem.muted = !root.channelItem.muted
@@ -178,7 +178,7 @@ Rectangle {
                 text: "s"
                 textFont.pixelSize: 15
                 textFont.bold: true
-                normalColor: "#3A4048"
+                normalColor: accentButton ? accentColor : "#3A4048" // a fixed colour would hide the lit state
                 toolTipTitle: qsTrc("dorico", "Solo")
                 // As MuseScore's mixer: no solo on the output and the click, and FX channels cannot be soloed
                 visible: !root.isOutput && !(root.channelItem && root.channelItem.type === MixerChannelItem.Metronome)

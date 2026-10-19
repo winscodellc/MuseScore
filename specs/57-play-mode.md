@@ -72,8 +72,9 @@ Not built (need a new model or are larger): Tempo and Chords tracks, the overvie
 
 ## Verification status
 
-Built and unit-tested (`dorico_tests` 41/41), QML linted. Manual check in the app pending.
-Mixer sync: `MixerPanelModel` (upstream, `setupConnections`) now also applies `controlParamsChanged` / `masterControlParamsChanged` and refreshes every track's mute/solo state, so the inspector and the lower-zone mixer (two models over the same tracks) agree on volume, pan, mute and solo, not only on FX.
+UI-tested in the app on 2026-10-18 (headless Xvfb, `ui-tester`). All acceptance checks pass except the zone-layout item, which waits for the user's screenshot. Changing the sound or adding an effect could not be checked headless (the submenus do not render under Xvfb).
+Mixer sync: `MixerPanelModel` (upstream, `setupConnections`) also applies `controlParamsChanged` / `masterControlParamsChanged` and refreshes every track's mute/solo state, so the inspector and the lower-zone mixer agree on volume, pan, mute and solo.
+Fixed during that test: the mixer m/s buttons never looked lit (`DoricoChannelStrip` set a fixed `normalColor`, which hides FlatButton's accent). Track-header m/s clicks were sometimes lost: every mute/solo change rebuilt `tracks`, recreating the header delegates inside the click handler; mute/solo now live in a separate `soloMute` map. A mixer click sent headless without a prior pointer move can still be lost; with a move first it always works (probably a harness artifact).
 
 ## Acceptance criteria
 

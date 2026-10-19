@@ -2,7 +2,7 @@
 
 # 52 - Write mode: Notes toolbox and Notes panel
 
-Status: pending review - Depends on: 50, 11 - Dorico refs: `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/write_mode/write_mode_notes_toolbox_r.html`, `.../write_mode_panels/write_mode_notes_panel_r.html`
+Status: done - Depends on: 50, 11 - Dorico refs: `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/write_mode/write_mode_notes_toolbox_r.html`, `.../write_mode_panels/write_mode_notes_panel_r.html`
 
 Implementer: Sonnet is fine.
 
@@ -80,7 +80,8 @@ Select tool (mouse-input off), Insert scope other than Voice, Slash voices, Lock
 
 ## Verification status
 
-Built and unit-tested (`dorico_tests` 29/29), QML linted. Manual check in the app pending (the vertical toolbar orientation after View > Reset layout is worth a look: `DockToolBarView::resetToDefault` forces horizontal).
+UI-tested in the app on 2026-10-18 (headless Xvfb, `ui-tester`). All acceptance checks pass.
+Fixed during that test: Window > Restore default layout used to bring back the Home/Score/Publish bar and drop the right Notations strip, because `DockToolBarView::resetToDefault` forces every toolbar horizontal and `DockWindow::reloadCurrentPage` emits no `pageLoaded`. The Dorico vertical toolbars now switch back to vertical (`onOrientationChanged` in `WritePage.qml` / `EngravePage.qml`), and `WindowContent.qml` re-hides the bar when it becomes visible again.
 
 ## Acceptance criteria
 

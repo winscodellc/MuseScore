@@ -31,8 +31,13 @@ import Muse.UiComponents
 //! Write mode's Notations toolbox (spec 53): the vertical strip at the far right. Two buttons at the top choose
 //! Panels (each button shows that panel in the right zone, NotationsPanel.qml) or Popovers (each button opens a
 //! popover, spec 20; Cues and MIDI Trigger Region have no command and stay unavailable).
-Column {
+//! The buttons below the mode switch scroll when the dock is shorter than them (19 popovers need ~850 px).
+Item {
     id: root
+
+    // The dock's height. implicitHeight covers only the mode switch: the dock's minimum height follows it, so the
+    // full strip would stop the window from shrinking below ~900 px.
+    property real availableHeight: 0
 
     property NavigationPanel navigationPanel: NavigationPanel {
         name: "DoricoNotationsToolbox"
@@ -88,61 +93,45 @@ Column {
         { "code": "command://dorico/popover/midi-trigger", "title": qsTrc("dorico", "MIDI Trigger Region"), "icon": "svg:keyboard-music" }
     ]
 
-    spacing: 2
-    padding: 4
+    implicitWidth: header.width
+    implicitHeight: header.height
 
     // Dorico's two mode buttons: Panels (palette) and Popovers (keyboard); the current mode is highlighted.
-    Repeater {
-        model: [
-            { "popovers": false, "icon": "svg:palette", "title": qsTrc("dorico", "Panels") },
-            { "popovers": true, "icon": "svg:keyboard", "title": qsTrc("dorico", "Popovers") }
-        ]
+    Column {
+        id: header
 
-        DoricoButton {
-            required property var modelData
-            required property int index
+        spacing: 2
+        padding: 4
 
-            readonly property bool isActive: root.popoversMode === modelData.popovers
+        Repeater {
+            model: [
+                { "popovers": false, "icon": "svg:palette", "title": qsTrc("dorico", "Panels") },
+                { "popovers": true, "icon": "svg:keyboard", "title": qsTrc("dorico", "Popovers") }
+            ]
 
-            doricoIcon: modelData.icon
-            iconBoxSize: 28
-            accentButton: isActive
-            transparent: !isActive
-            toolTipTitle: modelData.title
-            navigation.panel: root.navigationPanel
-            navigation.order: index
-            onTriggered: root.popoversMode = modelData.popovers
+            DoricoButton {
+                required property var modelData
+                required property int index
+
+                readonly property bool isActive: root.popoversMode === modelData.popovers
+
+                doricoIcon: modelData.icon
+                iconBoxSize: 28
+                accentButton: isActive
+                transparent: !isActive
+                toolTipTitle: modelData.title
+                navigation.panel: root.navigationPanel
+                navigation.order: index
+                onTriggered: root.popoversMode = modelData.popovers
+            }
         }
-    }
 
-    // Not SeparatorLine: it anchors to the parent's edges, which fights this padded Column's positioning (endless
-    // polish loop, laggy UI).
-    Rectangle {
-        width: 38
-        height: 1
-        color: ui.theme.strokeColor
-    }
-
-    Repeater {
-        model: root.popoversMode ? [] : root.panels
-
-        DoricoButton {
-            required property var modelData
-            required property int index
-
-            readonly property bool isActive: root.currentPanelId === modelData.id
-
-            doricoIcon: modelData.icon
-            iconBoxSize: 28
-            accentButton: isActive
-            transparent: !isActive
-            toolTipTitle: modelData.title
-
-            navigation.panel: root.navigationPanel
-            navigation.order: 2 + index
-            navigation.accessible.name: modelData.title
-
-            onTriggered: root.panelClicked(modelData.id)
+        // Not SeparatorLine: it anchors to the parent's edges, which fights this padded Column's positioning (endless
+        // polish loop, laggy UI).
+        Rectangle {
+            width: 38
+            height: 1
+            color: ui.theme.strokeColor
         }
     }
 
@@ -152,28 +141,67 @@ Column {
         Component.onCompleted: popoverTools.load()
     }
 
-    Repeater {
-        model: root.popoversMode ? popoverTools.items : []
+    StyledFlickable {
+        anchors.top: header.bottom
+        width: header.width
+        height: Math.max(0, root.availableHeight - header.height)
+        contentHeight: buttons.height
 
-        DoricoButton {
-            required property var modelData
-            required property int index
+        Column {
+            id: buttons
 
-            readonly property var spec: root.popovers[index]
+            spacing: 2
+            leftPadding: 4
+            rightPadding: 4
+            bottomPadding: 4
 
-            doricoIcon: spec.icon
-            iconBoxSize: 28
-            available: modelData.enabled
-            transparent: true
-            toolTipTitle: spec.title
-            toolTipDescription: modelData.description
-            toolTipShortcut: modelData.shortcuts
+            Repeater {
+                model: root.popoversMode ? [] : root.panels
 
-            navigation.panel: root.navigationPanel
-            navigation.order: 2 + index
-            navigation.accessible.name: spec.title
+                DoricoButton {
+                    required property var modelData
+                    required property int index
 
-            onTriggered: popoverTools.handleMenuItem(modelData.id)
+                    readonly property bool isActive: root.currentPanelId === modelData.id
+
+                    doricoIcon: modelData.icon
+                    iconBoxSize: 28
+                    accentButton: isActive
+                    transparent: !isActive
+                    toolTipTitle: modelData.title
+
+                    navigation.panel: root.navigationPanel
+                    navigation.order: 2 + index
+                    navigation.accessible.name: modelData.title
+
+                    onTriggered: root.panelClicked(modelData.id)
+                }
+            }
+
+            Repeater {
+                model: root.popoversMode ? popoverTools.items : []
+
+                DoricoButton {
+                    required property var modelData
+                    required property int index
+
+                    readonly property var spec: root.popovers[index]
+
+                    doricoIcon: spec.icon
+                    iconBoxSize: 28
+                    available: modelData.enabled
+                    transparent: true
+                    toolTipTitle: spec.title
+                    toolTipDescription: modelData.description
+                    toolTipShortcut: modelData.shortcuts
+
+                    navigation.panel: root.navigationPanel
+                    navigation.order: 2 + index
+                    navigation.accessible.name: spec.title
+
+                    onTriggered: popoverTools.handleMenuItem(modelData.id)
+                }
+            }
         }
     }
 }

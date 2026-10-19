@@ -82,10 +82,26 @@ void TrackOverviewModel::listenToSoloMute()
     m_notation = globalContext()->currentNotation();
     if (m_notation) {
         m_notation->soloMuteState()->trackSoloMuteStateChanged().onReceive(this, [this](const InstrumentTrackId&, const auto&) {
-            rebuild(m_master ? m_master->masterScore() : nullptr);
+            updateSoloMute();
         });
     }
-    rebuild(m_master ? m_master->masterScore() : nullptr);
+    updateSoloMute();
+}
+
+void TrackOverviewModel::updateSoloMute()
+{
+    m_soloMute.clear();
+    if (m_master && m_notation) {
+        for (const Part* part : m_master->masterScore()->parts()) {
+            if (part->instruments().empty()) {
+                continue;
+            }
+            // The part's first instrument stands for the part (MixerPanelModel shows one channel per instrument).
+            const auto& state = playbackController()->trackSoloMuteState({ part->id(), part->instruments().begin()->second->id() });
+            m_soloMute.insert(part->id().toQString(), QVariantMap { { "muted", state.mute }, { "solo", state.solo } });
+        }
+    }
+    emit soloMuteChanged();
 }
 
 void TrackOverviewModel::setMuted(const QString& partId, bool muted)
@@ -156,23 +172,16 @@ void TrackOverviewModel::rebuild(const Score* score)
                 blocks << QVariantMap { { "start", block.start }, { "end", block.end } };
             }
 
-            // The part's first instrument stands for the part (MixerPanelModel shows one channel per instrument).
-            notation::INotationSoloMuteState::SoloMuteState soloMute;
-            if (m_notation && !part->instruments().empty()) {
-                soloMute = playbackController()->trackSoloMuteState({ part->id(), part->instruments().begin()->second->id() });
-            }
-
             m_tracks << QVariantMap {
                 { "partId", part->id().toQString() },
                 { "title", part->partName().toQString() },
-                { "muted", soloMute.mute },
-                { "solo", soloMute.solo },
                 { "blocks", blocks },
             };
         }
     }
 
     emit contentChanged();
+    updateSoloMute(); // parts may have been added or removed
 }
 
 void TrackOverviewModel::updatePlayhead(muse::audio::secs_t secs)
