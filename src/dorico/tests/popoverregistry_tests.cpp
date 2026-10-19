@@ -58,12 +58,15 @@ TEST(DoricoPopoverRegistry, FindByItemType)
     EXPECT_EQ(registry.findByType(ElementType::NOTE), nullptr);
 }
 
-TEST(DoricoPopoverRegistry, PlaceholderIsUnsupported)
+TEST(DoricoPopoverRegistry, FiguredBassIsNavigating)
 {
     const PopoverDef* def = makePopoverRegistry().find("figuredbass");
     ASSERT_NE(def, nullptr);
+    EXPECT_TRUE(def->applyAt);
     EXPECT_EQ(def->validate(""), ParseStatus::Incomplete);
-    EXPECT_EQ(def->validate("G"), ParseStatus::Unsupported);
+    EXPECT_EQ(def->validate("6"), ParseStatus::Ok);
+    EXPECT_EQ(def->validate("4->3"), ParseStatus::Unsupported);
+    ASSERT_NE(makePopoverRegistry().findByType(ElementType::FIGURED_BASS), nullptr);
 }
 
 TEST(DoricoPopoverRegistry, FingeringStepsByChord)

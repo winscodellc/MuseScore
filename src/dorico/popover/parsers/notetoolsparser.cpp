@@ -35,7 +35,7 @@ struct ItemParse {
     IntervalSpec spec;
 };
 
-bool isDigit(char c)
+bool isNoteToolsDigit(char c)
 {
     return c >= '0' && c <= '9';
 }
@@ -160,7 +160,7 @@ ItemParse parseItem(const std::string& item, bool transpose)
     }
 
     const size_t d0 = i;
-    while (i < n && isDigit(item[i])) {
+    while (i < n && isNoteToolsDigit(item[i])) {
         ++i;
     }
     if (i == d0) {
@@ -195,7 +195,7 @@ ItemParse parseItem(const std::string& item, bool transpose)
     }
     if (i < n) {
         const size_t c0 = i;
-        while (i < n && isDigit(item[i])) {
+        while (i < n && isNoteToolsDigit(item[i])) {
             ++i;
         }
         if (i == c0 || i - c0 > 3) {
@@ -320,7 +320,7 @@ NoteToolsParse mu::dorico::parseNoteTools(const std::string& raw)
 
     // `t3`, `t -6`, `t top -8`; `top` is not a transposition.
     std::string rest = text;
-    if (text[0] == 't' && (text.size() == 1 || isDigit(text[1]) || text[1] == '-' || text[1] == ' ')) {
+    if (text[0] == 't' && (text.size() == 1 || isNoteToolsDigit(text[1]) || text[1] == '-' || text[1] == ' ')) {
         out.transpose = true;
         rest = trim(text.substr(1));
     }

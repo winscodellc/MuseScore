@@ -25,6 +25,7 @@
 #include <algorithm>
 
 #include "engraving/dom/chordrest.h"
+#include "engraving/dom/figuredbass.h"
 #include "engraving/dom/input.h"
 #include "engraving/dom/lyrics.h"
 #include "engraving/dom/measure.h"
@@ -56,7 +57,8 @@ namespace {
 EngravingItem* singleSelectedItem(const INotationSelectionPtr& selection)
 {
     if (EngravingItem* e = selection->element()) {
-        return e;
+        // Clicking a figured bass selects one of its lines; the popover edits the whole figured bass.
+        return e->isFiguredBassItem() ? const_cast<FiguredBass*>(toFiguredBassItem(e)->figuredBass()) : e;
     }
     EngravingItem* first = nullptr;
     for (EngravingItem* e : selection->elements()) {

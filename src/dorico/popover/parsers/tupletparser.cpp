@@ -27,7 +27,7 @@
 using namespace mu::dorico;
 
 namespace {
-bool isDigit(char c)
+bool isTupletDigit(char c)
 {
     return std::isdigit(static_cast<unsigned char>(c));
 }
@@ -36,7 +36,7 @@ bool isDigit(char c)
 int readCount(const std::string& s, size_t& pos)
 {
     const size_t start = pos;
-    while (pos < s.size() && isDigit(s[pos])) {
+    while (pos < s.size() && isTupletDigit(s[pos])) {
         ++pos;
     }
     return pos == start || pos - start > 3 ? -1 : std::stoi(s.substr(start, pos - start));
@@ -81,7 +81,7 @@ TupletParse mu::dorico::parseTuplet(const std::string& text)
             return { ParseStatus::Incomplete, {} };
         }
         result.entry.normal = readCount(s, pos);
-    } else if (pos + 1 < s.size() && s[pos] == ' ' && isDigit(s[pos + 1])) {
+    } else if (pos + 1 < s.size() && s[pos] == ' ' && isTupletDigit(s[pos + 1])) {
         ++pos;
         result.entry.normal = readCount(s, pos);
     } else {

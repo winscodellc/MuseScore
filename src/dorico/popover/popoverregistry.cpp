@@ -29,6 +29,7 @@
 #include "handlers/chordsymbolshandler.h"
 #include "handlers/clefhandler.h"
 #include "handlers/dynamicshandler.h"
+#include "handlers/figuredbasshandler.h"
 #include "handlers/fingeringhandler.h"
 #include "handlers/holdshandler.h"
 #include "handlers/keysighandler.h"
@@ -43,7 +44,6 @@
 
 using namespace mu::dorico;
 using namespace mu::engraving;
-using IconCode = muse::ui::IconCode::Code;
 
 bool PopoverRegistry::add(PopoverDef def)
 {
@@ -68,19 +68,6 @@ const PopoverDef* PopoverRegistry::findByType(ElementType type) const
     return it == m_defs.end() ? nullptr : &*it;
 }
 
-//! A popover whose handler spec is not implemented yet: it opens, but every entry is "not supported yet".
-static PopoverDef placeholder(const std::string& id, const std::string& title, IconCode icon)
-{
-    PopoverDef def;
-    def.id = id;
-    def.title = title;
-    def.icon = icon;
-    def.validate = [](const std::string& text) { return text.empty() ? ParseStatus::Incomplete : ParseStatus::Unsupported; };
-    def.apply = [](const std::string&, ApplyScope, mu::notation::INotationPtr) { return false; };
-    def.prefill = [](const EngravingItem*) { return std::string(); };
-    return def;
-}
-
 PopoverRegistry mu::dorico::makePopoverRegistry()
 {
     PopoverRegistry r;
@@ -88,7 +75,7 @@ PopoverRegistry mu::dorico::makePopoverRegistry()
     r.add(clefPopover());                                                                  // spec 24
     r.add(dynamicsPopover());                                                              // spec 21
     r.add(fingeringPopover());                                                             // spec 34
-    r.add(placeholder("figuredbass", "Figured Bass", IconCode::MUSIC_NOTES));              // spec 36
+    r.add(figuredBassPopover());                                                           // spec 36
     r.add(holdsPopover());                                                                 // spec 27
     r.add(noteToolsPopover());                                                             // spec 35
     r.add(keySigPopover());                                                                // spec 23
