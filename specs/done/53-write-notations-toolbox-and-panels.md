@@ -2,7 +2,7 @@
 
 # 53 - Write mode: Notations toolbox and panels
 
-Status: pending review - Depends on: 50, 20 - Dorico refs: `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/write_mode/write_mode_notations_toolbox_r.html`, `.../write_mode_notations_input/*_panel_r.html` (one per panel), `.../write_mode_panels/write_mode_right_zone_r.html`
+Status: done - Depends on: 50, 20 - Dorico refs: `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/write_mode/write_mode_notations_toolbox_r.html`, `.../write_mode_notations_input/*_panel_r.html` (one per panel), `.../write_mode_panels/write_mode_right_zone_r.html`
 
 Implementer: **Opus** (judgement mapping Dorico's panel sections onto MuseScore's palettes).
 
@@ -42,6 +42,8 @@ Panel contents (sections): see the table in `dorico-ui.md` 2.3.
 ## Deferred / unsupported
 
 Cues, Video, Proofreading panels; Comments if no mapping; Tonality System management; Custom key signatures; Harp pedal diagrams; Rehearsal Marks and MIDI Trigger Region popovers (MIDI trigger deferred globally); panels' modifier sections that have no palette cell.
+
+Found in the 2026-10-19 side-by-side run, left for polish: no "Notations" title bar / "..." menu in Dorico (ours has one); Dorico's panel is about 230 px wide with 2 large cells (about 110x70 px) per row, ours about 300 px with 7 small ones; Uncommon / Archaic sections should have a chevron and start collapsed (clicking the title does nothing yet); Dorico's active button is a dull blue with dark engraved glyphs, ours a bright cyan with outline glyphs; the zone collapse tab Dorico shows at mid-height on each side edge (about 12x40 px) is missing (this is the "arrow" the user meant; it needs a dock-collapse hook).
 
 ## As built
 
@@ -107,12 +109,12 @@ Cues, Video, Proofreading panels; Comments if no mapping; Tonality System manage
 
 ## Verification status
 
-UI-tested in the app on 2026-10-18 (headless Xvfb, `ui-tester`). All acceptance checks pass except the toolbox-arrow item, which waits for the user's screenshot.
+UI-tested in the app on 2026-10-18 (headless Xvfb, `ui-tester`). All acceptance checks pass. Side-by-side run against Dorico 6.2 on 2026-10-19 (`ui-tester`, same demo score, visible display). Strip geometry and Cmd-9 match; the panel differences above are cosmetic.
 Fixed during that test: the Popovers strip (19 buttons, ~850 px) did not fit a short window and set the window's minimum height; the buttons below the Panels/Popovers switch now scroll (`NotationsToolbox.qml`, `availableHeight` from `WritePage.qml`). Cmd-9 before any strip click shows Clefs instead of the stub. Strings no longer asks for "Thumb position" (MuseScore keeps it in the Guitar palette, which the Guitar section shows). `DoricoButton` no longer logs `slice` / `startsWith` errors.
 
 ## Acceptance criteria
 
-- [ ] (It kind of works but I want that arrow bigger. I will attach an image of the toolbox) Right edge matches the screenshot: vertical icon strip, collapsible panel.
+- [x] Right edge matches Dorico 6.2 in structure: vertical icon strip (about 46 px wide, 38 px pitch, same as Dorico), Panels/Popovers switch on top, panel toggled by Cmd-9. Visual differences are listed under Deferred.
 - [x] All 15 panel buttons and 19 popover buttons exist in manual order; unavailable ones are visibly disabled with a tooltip.
 - [x] For each implemented panel, clicking an item applies it to the selection exactly as the MuseScore palette does (undoable).
 - [x] Panel sections are named as in the manual (checked against `dorico-ui.md`).

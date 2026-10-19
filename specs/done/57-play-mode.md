@@ -2,7 +2,7 @@
 
 # 57 - Play mode
 
-Status: pending review - Depends on: 50 - Dorico refs: `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/play_mode/play_mode_project_window_r.html`, `.../play_mode_track_inspector_r.html`, `.../play_mode_vst_midi_panel_r.html`, `.../play_mode_track_overview_r.html`, `.../mixer/mixer_panel_r.html`
+Status: done - Depends on: 50 - Dorico refs: `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/play_mode/play_mode_project_window_r.html`, `.../play_mode_track_inspector_r.html`, `.../play_mode_vst_midi_panel_r.html`, `.../play_mode_track_overview_r.html`, `.../mixer/mixer_panel_r.html`
 
 Implementer: Sonnet is fine.
 
@@ -32,6 +32,8 @@ See `reference/dorico-ui.md` 4. Left-zone selector switches Track Inspector / VS
 ## Deferred / unsupported
 
 VST/MIDI instance management, endpoint setup, Independent Voice Playback, playback templates, Key Editor, expression maps, track heights and visibility buttons (tempo, markers, chords tracks). After the screenshot review also: Tempo and Chords track rows, the overview toolbar (select / draw / erase tools, chord-track toggle), the mixer filter bar (Show: Instruments / MIDI / Video / FX / Unused, Deactivate all).
+
+Found in the 2026-10-19 side-by-side run, left for polish: track headers are 48 px tall with 24 px M/S (Dorico 64 px, 36 px); mixer strips stretch to the lower zone (about 390 px, Dorico 190 px); mixer toolbar is left-aligned text, Dorico has centred 30 px icon buttons; status bar lacks "Follow playhead" and its Concert / Transposed buttons are wider; the flow selector is a disabled "Flow 1" (Dorico's is a live dropdown); Routing shows MuseScore's nested sound menu (each submenu level needs a click) and no Port / Ch. values; Dorico lists a DoricoBeep strip first and ours lists the Metronome last; note blocks are solid, not a mini piano roll.
 
 ## As built
 
@@ -72,13 +74,13 @@ Not built (need a new model or are larger): Tempo and Chords tracks, the overvie
 
 ## Verification status
 
-UI-tested in the app on 2026-10-18 (headless Xvfb, `ui-tester`). All acceptance checks pass except the zone-layout item, which waits for the user's screenshot. A visible run (Xephyr, same day) checked what headless could not: changing a track's sound from the inspector, adding an effect, and per-track state all work, and a mixer click with no prior pointer move is not lost.
+UI-tested in the app on 2026-10-18 (headless Xvfb, `ui-tester`). All acceptance checks pass. Side-by-side run against Dorico 6.2 on 2026-10-19 (`ui-tester`, same demo score, visible display). Track select, sound change, insert effect, mute / solo (header and mixer in sync), transport playback and the pinned Output strip all work. Fixed in that run: Insert Effects and Channel now start closed in the Track Inspector, as specified (`InspectorSection` defaults to open). A visible run (Xephyr, same day) checked what headless could not: changing a track's sound from the inspector, adding an effect, and per-track state all work, and a mixer click with no prior pointer move is not lost.
 Mixer sync: `MixerPanelModel` (upstream, `setupConnections`) also applies `controlParamsChanged` / `masterControlParamsChanged` and refreshes every track's mute/solo state, so the inspector and the lower-zone mixer agree on volume, pan, mute and solo.
 Fixed during that test: the mixer m/s buttons never looked lit (`DoricoChannelStrip` set a fixed `normalColor`, which hides FlatButton's accent). Track-header m/s clicks were sometimes lost: every mute/solo change rebuilt `tracks`, recreating the header delegates inside the click handler; mute/solo now live in a separate `soloMute` map.
 
 ## Acceptance criteria
 
-- [ ] (similar but not the same, ask me to provide a screenshot to evaluate possible improvements) Play page matches `dorico-ui.md` 4 in zones.
+- [x] Play page matches `dorico-ui.md` 4 in zones (Track Inspector / VST and MIDI left, track overview centre, Mixer lower). Visual differences are listed under Deferred.
 - [x] Track inspector follows the selected instrument and changes its sound / effects.
 - [x] Mixer works and playback plays from the transport.
 - [x] Stubs show "Not available yet".

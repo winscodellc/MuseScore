@@ -272,6 +272,7 @@ DoricoPage {
                         InspectorSection {
                             width: inspectorColumn.width
                             title: qsTrc("dorico", "Insert Effects")
+                            expanded: false
 
                             Repeater {
                                 model: 4
@@ -319,6 +320,7 @@ DoricoPage {
                         InspectorSection {
                             width: inspectorColumn.width
                             title: qsTrc("dorico", "Channel")
+                            expanded: false
 
                             DoricoChannelStrip {
                                 anchors.horizontalCenter: parent.horizontalCenter

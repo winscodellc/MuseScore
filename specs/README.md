@@ -165,12 +165,12 @@ Status: todo | in-progress | pending review | done  -  Depends on: NN, NN  -  Do
 | 50 | [UI shell and modes](done/50-ui-shell-and-modes.md) | done | 00, 10 |
 | 51 | [Status bar](done/51-status-bar.md) | done | 50 |
 | 52 | [Write: Notes toolbox and panel](done/52-write-notes-toolbox-and-panel.md) | done | 50, 11 |
-| 53 | [Write: Notations toolbox and panels](53-write-notations-toolbox-and-panels.md) | pending review | 50, 20 |
+| 53 | [Write: Notations toolbox and panels](done/53-write-notations-toolbox-and-panels.md) | done | 50, 20 |
 | 54 | [Write: lower zone](done/54-write-lower-zone.md) | done | 50 |
 | 55 | [Setup mode](done/55-setup-mode.md) | done | 50 |
 | 56 | [Engrave mode](done/56-engrave-mode.md) | done | 50 |
-| 57 | [Play mode](57-play-mode.md) | pending review | 50 |
-| 58 | [Print mode](58-print-mode.md) | pending review | 50, 55 |
+| 57 | [Play mode](done/57-play-mode.md) | done | 50 |
+| 58 | [Print mode](done/58-print-mode.md) | done | 50, 55 |
 | 59 | [Menus](done/59-menus.md) | done | 50 |
 | 60 | [Appearance: colors, score canvas, icons](done/60-appearance.md) | done | 50 |
 

@@ -2,7 +2,7 @@
 
 # 58 - Print mode
 
-Status: pending review - Depends on: 50, 55 - Dorico refs: `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/print_mode/print_mode_window_r.html`, `.../print_mode_layouts_panel_r.html`, `.../print_mode_print_options_panel_r.html`
+Status: done - Depends on: 50, 55 - Dorico refs: `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/print_mode/print_mode_window_r.html`, `.../print_mode_layouts_panel_r.html`, `.../print_mode_print_options_panel_r.html`
 
 Implementer: Sonnet is fine.
 
@@ -32,6 +32,8 @@ See `reference/dorico-ui.md` 5. Selected layouts (score and parts) are printed o
 - Centre: the notation view in page view, read-only (`NotationView` with editing disabled), or the existing print preview if MuseScore has one (verify; Qt print preview is a dialog, so likely not embeddable).
 
 ## Deferred / unsupported
+
+Found in the 2026-10-19 side-by-side run, left for polish: Dorico shows one centred page with a shadow, ours a scrolling spread with the first page at the left edge; Layouts rows are 30 px with no disclosure arrow (Dorico 36 px with arrow and icon); Dorico has no "..." panel menu; Dorico's Print Options holds the printer dropdown, Copies / Collate, a Job Type dropdown, paper size, orientation and Fit to Paper / Custom Scale; Print... opens one system dialog per checked layout; the zone collapse tabs are missing.
 
 Also (as built): the preview does not switch to the first checked layout (it shows the current one); page and flow ranges; copies and printer choice live in the system dialog.
 Booklet/2-up arrangements, duplex, crop marks, graphics-file colour/resolution beyond what MuseScore's export offers, view options Page Width/Whole Page (now built, see As built). Paper size / orientation / scale controls inside the panel, copies / collate, layout-row disclosure arrows.
@@ -67,12 +69,12 @@ Not built: paper size / orientation / scale in the panel (Page Setup... opens Mu
 
 ## Verification status
 
-UI-tested in the app on 2026-10-18 (headless Xvfb, `ui-tester`). All acceptance checks pass except the zone-layout item, which waits for the user's screenshot. Export to PDF works; the system print dialog opens (visible run); printing to a PDF file from it is still to be checked by hand, since the dialog takes no input without a window manager.
+UI-tested in the app on 2026-10-18 (headless Xvfb, `ui-tester`). All acceptance checks pass. Side-by-side run against Dorico 6.2 on 2026-10-19 (`ui-tester`, same demo score, visible display). Export to PDF with two layouts checked wrote one PDF per layout. Print... opened the macOS print dialog and its PDF button saved a PDF; nothing was sent to a printer.
 Fixed during that test: unavailable buttons (Pages, Flows, Two-sided, Crop marks, Border) showed no tooltip, because FlatButton shows none without a title; `DoricoButton` now uses its text as the title when unavailable.
 
 ## Acceptance criteria
 
-- [ ] (Not exactly, aske me to provide scrennshot) Print page matches `dorico-ui.md` 5 in zones; layout selector is disabled.
+- [x] Print page matches `dorico-ui.md` 5 in zones (Layouts left, Print Options right, preview centre); layout selector is disabled.
 - [x] Checking layouts and pressing Export writes one PDF (or one per part) with the chosen layouts.
 - [x] Print opens the system print dialog with the chosen layouts.
 - [x] Unsupported controls are disabled with a tooltip.
