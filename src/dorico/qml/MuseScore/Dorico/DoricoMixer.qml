@@ -32,10 +32,14 @@ import MuseScore.Playback
 
 import "trackcolor.js" as TrackColor
 
-//! Dorico's Mixer (spec 57): a row of compact channel strips (DoricoChannelStrip) over MuseScore's mixer model, so
-//! volume, pan, mute and solo are MuseScore's. `headerComponent` is the Mixer toolbar, which the lower zone puts in
-//! its tab row: channel type buttons (Instruments and FX work; MIDI, Video and Unused have no MuseScore channels),
-//! Deactivate all mute / solo, and unavailable Add / Remove Effects Channel, Live Stage and Live Space.
+//! Dorico's Mixer (specs 57, 63) over MuseScore's mixer model, so volume, pan, mute, solo, inserts and sends are
+//! MuseScore's. Each column is a channel strip (DoricoChannelStripSections: Inserts, EQ, Sends) above its channel
+//! (DoricoChannelStrip), split by a draggable line; the strips hide when the zone is too short for them. The click
+//! (metronome) channel comes first and Output is pinned right; the model order is left alone, because MuseScore's
+//! mixer inserts channels by position. The wheel and background drags scroll sideways.
+//! `headerComponent` is the Mixer toolbar, which the lower zone puts in its tab row: channel type buttons (Instruments
+//! and FX work; MIDI, Video and Unused have no MuseScore channels), Deactivate all mute / solo, Add / Remove Effects
+//! Channel (MuseScore's two aux channels), and unavailable Live Stage and Live Space.
 Item {
     id: root
 
@@ -45,38 +49,73 @@ Item {
     property bool showInstruments: true
     property bool showFx: true
 
-    // Colour slot of each row: the n-th instrument (secondary instruments share their part's slot)
-    property var colorSlots: []
+    // Strip sections open on every channel at once, as in Dorico
+    property bool insertsOpen: true
+    property bool sendsOpen: true
+
+    // Channel height below the split line; Dorico's channels are about 190 px
+    property real channelHeight: 190
+    readonly property real splitHeight: 4
+    readonly property real channelAreaHeight: Math.min(root.channelHeight, root.height - 8)
+    readonly property real stripAreaHeight: root.height - 8 - root.channelAreaHeight - root.splitHeight
+    // The strips show only when their three 22 px headers fit (DoricoChannelStripSections)
+    readonly property bool showStrips: root.stripAreaHeight >= 3 * 22 + 2 * 3 + 8
+    readonly property real channelShownHeight: root.showStrips ? root.channelAreaHeight : root.height - 8
+
+    // Shown columns in display order: { channel, slot } with slot = the instrument's colour slot (secondary
+    // instruments share their part's), -1 for other channels
+    property var rows: []
     property int instrumentCount: 0
+    property int fxCount: 0
     // The master channel: pinned at the right edge, as in Dorico, instead of scrolling with the others
     property MixerChannelItem masterChannel: null
 
-    function updateColorSlots() {
-        const slots = []
+    function rebuild() {
+        const rows = []
+        let metronome = null
         let primaries = 0
+        let fx = 0
         let master = null
         for (let i = 0; i < mixerModel.rowCount(); ++i) {
-            const type = mixerModel.get(i).channelItem.type
+            const channel = mixerModel.get(i).channelItem
+            const type = channel.type
             if (type === MixerChannelItem.PrimaryInstrument) {
                 ++primaries
+            } else if (type === MixerChannelItem.Aux) {
+                ++fx
             } else if (type === MixerChannelItem.Master) {
-                master = mixerModel.get(i).channelItem
+                master = channel
+                continue
             }
-            slots.push(type === MixerChannelItem.PrimaryInstrument || type === MixerChannelItem.SecondaryInstrument
-                       ? Math.max(0, primaries - 1) : -1)
+            if (!root.shows(channel)) {
+                continue
+            }
+            const row = {
+                "channel": channel,
+                "slot": type === MixerChannelItem.PrimaryInstrument || type === MixerChannelItem.SecondaryInstrument
+                        ? Math.max(0, primaries - 1) : -1
+            }
+            if (type === MixerChannelItem.Metronome) {
+                metronome = row
+            } else {
+                rows.push(row)
+            }
+        }
+        if (metronome) {
+            rows.unshift(metronome) // Dorico lists the click first
         }
         root.instrumentCount = primaries
-        root.colorSlots = slots
+        root.fxCount = fx
         root.masterChannel = master
+        root.rows = rows
     }
 
     function shows(channel) {
-        switch (channel.type) {
-        case MixerChannelItem.Aux: return root.showFx
-        case MixerChannelItem.Master: return false // pinned, see masterStrip
-        default: return root.showInstruments
-        }
+        return channel.type === MixerChannelItem.Aux ? root.showFx : root.showInstruments
     }
+
+    onShowInstrumentsChanged: root.rebuild()
+    onShowFxChanged: root.rebuild()
 
     // Re-evaluated whenever a channel's mute / solo changes (the binding reads every channel's property)
     readonly property bool anyMuted: {
@@ -114,8 +153,13 @@ Item {
         navigationSection: root.navigationSection
         navigationOrderStart: root.contentNavigationPanelOrderStart + 1
 
-        onModelReset: Qt.callLater(root.updateColorSlots)
-        onRowCountChanged: Qt.callLater(root.updateColorSlots)
+        onModelReset: Qt.callLater(root.rebuild)
+        onRowCountChanged: Qt.callLater(root.rebuild)
+    }
+
+    DoricoMixerModel {
+        id: mixerData
+        Component.onCompleted: mixerData.load()
     }
 
     NavigationPanel {
@@ -126,108 +170,185 @@ Item {
         direction: NavigationPanel.Horizontal
     }
 
-    property Component headerComponent: Row {
-        spacing: 4
+    // Centred on the Mixer (not on the space right of the lower zone's tab buttons), as in Dorico
+    property Component headerComponent: Item {
+        id: header
 
-        StyledTextLabel {
+        Row {
+            id: toolbarRow
+
+            // mapToItem is not a binding dependency; header.width and root.width make it follow resizes
+            x: Math.max(0, Math.min(header.width - toolbarRow.width,
+                                    root.width / 2 - header.mapToItem(root, 0, 0).x - toolbarRow.width / 2))
             anchors.verticalCenter: parent.verticalCenter
-            text: qsTrc("dorico", "Show:")
-        }
+            spacing: 4
 
-        Repeater {
-            model: [
-                { "title": qsTrc("dorico", "Instruments"), "kind": "instruments" },
-                { "title": qsTrc("dorico", "MIDI"), "kind": "" },
-                { "title": qsTrc("dorico", "Video"), "kind": "" },
-                { "title": qsTrc("dorico", "FX"), "kind": "fx" },
-                { "title": qsTrc("dorico", "Unused"), "kind": "" }
-            ]
-
-            DoricoButton {
-                required property var modelData
-                required property int index
-
+            StyledTextLabel {
                 anchors.verticalCenter: parent.verticalCenter
-                height: 26
-                minWidth: 0
-                margins: 8
-                textFont.bold: true
-                text: modelData.title
-                available: modelData.kind !== ""
-                accentButton: modelData.kind === "instruments" ? root.showInstruments
-                                                               : modelData.kind === "fx" ? root.showFx : false
-                transparent: !accentButton
-                navigation.panel: toolbarNav
-                navigation.order: index
+                text: qsTrc("dorico", "Show:")
+            }
 
-                onTriggered: {
-                    if (modelData.kind === "instruments") {
-                        root.showInstruments = !root.showInstruments
-                    } else {
-                        root.showFx = !root.showFx
+            Repeater {
+                model: [
+                    { "title": qsTrc("dorico", "Instruments"), "kind": "instruments" },
+                    { "title": qsTrc("dorico", "MIDI"), "kind": "" },
+                    { "title": qsTrc("dorico", "Video"), "kind": "" },
+                    { "title": qsTrc("dorico", "FX"), "kind": "fx" },
+                    { "title": qsTrc("dorico", "Unused"), "kind": "" }
+                ]
+
+                DoricoButton {
+                    required property var modelData
+                    required property int index
+
+                    anchors.verticalCenter: parent.verticalCenter
+                    height: 26
+                    minWidth: 0
+                    margins: 8
+                    textFont.bold: true
+                    text: modelData.title
+                    available: modelData.kind !== ""
+                    accentButton: modelData.kind === "instruments" ? root.showInstruments
+                                                                   : modelData.kind === "fx" ? root.showFx : false
+                    transparent: !accentButton
+                    navigation.panel: toolbarNav
+                    navigation.order: index
+
+                    onTriggered: {
+                        if (modelData.kind === "instruments") {
+                            root.showInstruments = !root.showInstruments
+                        } else {
+                            root.showFx = !root.showFx
+                        }
                     }
                 }
             }
-        }
 
-        Item { width: 12; height: 1 }
+            Item { width: 12; height: 1 }
 
-        StyledTextLabel {
-            anchors.verticalCenter: parent.verticalCenter
-            text: qsTrc("dorico", "Deactivate all:")
-        }
-
-        FlatButton {
-            anchors.verticalCenter: parent.verticalCenter
-            width: 22
-            height: 22
-            text: "m"
-            toolTipTitle: qsTrc("dorico", "Deactivate all mute states")
-            accentButton: root.anyMuted
-            transparent: !root.anyMuted
-            navigation.panel: toolbarNav
-            navigation.order: 10
-            onClicked: root.deactivateAll(true)
-        }
-
-        FlatButton {
-            anchors.verticalCenter: parent.verticalCenter
-            width: 22
-            height: 22
-            text: "s"
-            toolTipTitle: qsTrc("dorico", "Deactivate all solo states")
-            accentButton: root.anySolo
-            transparent: !root.anySolo
-            navigation.panel: toolbarNav
-            navigation.order: 11
-            onClicked: root.deactivateAll(false)
-        }
-
-        Item { width: 12; height: 1 }
-
-        // MuseScore has a fixed set of FX (aux) channels and no Live Stage / Live Space
-        Repeater {
-            model: [
-                { "title": qsTrc("dorico", "Add Effects Channel"), "text": "FX+", "icon": "" },
-                { "title": qsTrc("dorico", "Remove Effects Channel"), "text": "FX−", "icon": "" },
-                { "title": qsTrc("dorico", "Live Stage"), "text": "", "icon": "svg:rainbow" },
-                { "title": qsTrc("dorico", "Live Space"), "text": "", "icon": "svg:waves" }
-            ]
-
-            DoricoButton {
-                required property var modelData
-                required property int index
-
+            StyledTextLabel {
                 anchors.verticalCenter: parent.verticalCenter
-                text: modelData.text
-                doricoIcon: modelData.icon !== "" ? modelData.icon : IconCode.NONE
-                iconBoxSize: 18
-                available: false
-                transparent: true
-                toolTipTitle: modelData.title
-                navigation.panel: toolbarNav
-                navigation.order: 20 + index
+                text: qsTrc("dorico", "Deactivate all:")
             }
+
+            // Lit in Dorico's mute yellow / solo red (DoricoChannelStrip)
+            FlatButton {
+                anchors.verticalCenter: parent.verticalCenter
+                width: 26
+                height: 26
+                text: "m"
+                textFont.bold: true
+                toolTipTitle: qsTrc("dorico", "Deactivate all mute states")
+                accentButton: root.anyMuted
+                accentColor: "#FFD608"
+                iconColor: accentButton ? "#000000" : ui.theme.fontPrimaryColor
+                transparent: !root.anyMuted
+                navigation.panel: toolbarNav
+                navigation.order: 10
+                onClicked: root.deactivateAll(true)
+            }
+
+            FlatButton {
+                anchors.verticalCenter: parent.verticalCenter
+                width: 26
+                height: 26
+                text: "s"
+                textFont.bold: true
+                toolTipTitle: qsTrc("dorico", "Deactivate all solo states")
+                accentButton: root.anySolo
+                accentColor: "#A32A0A"
+                iconColor: accentButton ? "#FFFFFF" : ui.theme.fontPrimaryColor
+                transparent: !root.anySolo
+                navigation.panel: toolbarNav
+                navigation.order: 11
+                onClicked: root.deactivateAll(false)
+            }
+
+            Item { width: 12; height: 1 }
+
+            // MuseScore has two FX (aux) channels: Add shows the next hidden one, Remove hides the rightmost
+            FlatButton {
+                anchors.verticalCenter: parent.verticalCenter
+                width: 30
+                height: 26
+                text: "FX+"
+                textFont.bold: true
+                transparent: true
+                enabled: root.fxCount < mixerData.fxChannelMax
+                toolTipTitle: qsTrc("dorico", "Add Effects Channel")
+                navigation.panel: toolbarNav
+                navigation.order: 20
+                onClicked: mixerData.addFxChannel()
+            }
+
+            FlatButton {
+                anchors.verticalCenter: parent.verticalCenter
+                width: 30
+                height: 26
+                text: "FX−"
+                textFont.bold: true
+                transparent: true
+                enabled: root.fxCount > 0
+                toolTipTitle: qsTrc("dorico", "Remove Effects Channel")
+                navigation.panel: toolbarNav
+                navigation.order: 21
+                onClicked: mixerData.removeFxChannel()
+            }
+
+            Item { width: 12; height: 1 }
+
+            // No Live Stage / Live Space in MuseScore (spec 64)
+            Repeater {
+                model: [
+                    { "title": qsTrc("dorico", "Live Stage"), "icon": "svg:rainbow" },
+                    { "title": qsTrc("dorico", "Live Space"), "icon": "svg:waves" }
+                ]
+
+                DoricoButton {
+                    required property var modelData
+                    required property int index
+
+                    anchors.verticalCenter: parent.verticalCenter
+                    doricoIcon: modelData.icon
+                    iconBoxSize: 18
+                    available: false
+                    transparent: true
+                    toolTipTitle: modelData.title
+                    navigation.panel: toolbarNav
+                    navigation.order: 30 + index
+                }
+            }
+        }
+    }
+
+    // One column: the channel strip above the channel
+    component ChannelColumn: Column {
+        id: column
+
+        property MixerChannelItem channelItem: null
+        property color labelColor: "#B8B8B8"
+
+        width: 80
+        spacing: root.splitHeight
+
+        DoricoChannelStripSections {
+            width: column.width
+            height: root.stripAreaHeight
+            visible: root.showStrips
+
+            channelItem: column.channelItem
+            insertsOpen: root.insertsOpen
+            sendsOpen: root.sendsOpen
+            onToggleInserts: root.insertsOpen = !root.insertsOpen
+            onToggleSends: root.sendsOpen = !root.sendsOpen
+        }
+
+        DoricoChannelStrip {
+            width: column.width
+            height: root.channelShownHeight
+
+            channelItem: column.channelItem
+            labelColor: column.labelColor
         }
     }
 
@@ -237,51 +358,91 @@ Item {
         anchors.top: parent.top
         anchors.bottom: parent.bottom
         anchors.left: parent.left
-        anchors.right: masterStrip.left
+        anchors.right: masterColumn.left
         anchors.margins: 4
 
         orientation: ListView.Horizontal
+        spacing: 8
         clip: true
         boundsBehavior: Flickable.StopAtBounds
-        model: mixerModel
+        model: root.rows
 
-        delegate: Item {
-            id: cell
+        delegate: ChannelColumn {
+            required property var modelData
 
-            required property MixerChannelItem channelItem
-            required property int index
+            channelItem: modelData.channel
+            labelColor: modelData.slot >= 0 ? TrackColor.trackColor(modelData.slot, root.instrumentCount) : "#B8B8B8"
+        }
 
-            readonly property bool shown: root.shows(cell.channelItem)
-
-            width: cell.shown ? 88 : 0
-            height: ListView.view.height
-            visible: cell.shown
-
-            DoricoChannelStrip {
-                anchors.fill: parent
-                anchors.rightMargin: 8
-
-                channelItem: cell.channelItem
-                labelColor: (root.colorSlots[cell.index] ?? -1) >= 0
-                            ? TrackColor.trackColor(root.colorSlots[cell.index], root.instrumentCount)
-                            : "#B8B8B8"
+        // Dorico scrolls the channels sideways with the vertical wheel or a swipe in either direction
+        WheelHandler {
+            acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+            onWheel: function(event) {
+                const pixels = event.pixelDelta.x !== 0 || event.pixelDelta.y !== 0
+                const dx = pixels ? event.pixelDelta.x : event.angleDelta.x / 2
+                const dy = pixels ? event.pixelDelta.y : event.angleDelta.y / 2
+                const delta = Math.abs(dx) > Math.abs(dy) ? dx : dy
+                const maxX = channels.originX + Math.max(0, channels.contentWidth - channels.width)
+                channels.contentX = Math.max(channels.originX, Math.min(maxX, channels.contentX - delta))
             }
         }
 
         ScrollBar.horizontal: StyledScrollBar {}
+
+        // Channels cut by the edges fade out, as in Dorico
+        Rectangle {
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            anchors.left: parent.left
+            width: 24
+            visible: !channels.atXBeginning
+            gradient: Gradient {
+                orientation: Gradient.Horizontal
+                GradientStop { position: 0.0; color: ui.theme.backgroundPrimaryColor }
+                GradientStop { position: 1.0; color: "transparent" }
+            }
+        }
+
+        Rectangle {
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            anchors.right: parent.right
+            width: 24
+            visible: !channels.atXEnd
+            gradient: Gradient {
+                orientation: Gradient.Horizontal
+                GradientStop { position: 0.0; color: "transparent" }
+                GradientStop { position: 1.0; color: ui.theme.backgroundPrimaryColor }
+            }
+        }
     }
 
-    DoricoChannelStrip {
-        id: masterStrip
+    ChannelColumn {
+        id: masterColumn
 
         anchors.top: parent.top
-        anchors.bottom: parent.bottom
         anchors.right: parent.right
         anchors.margins: 4
         width: root.masterChannel ? 80 : 0
         visible: root.masterChannel !== null
 
         channelItem: root.masterChannel
-        labelColor: "#B8B8B8"
+    }
+
+    // Split line between the strips and the channels: drag it up or down
+    MouseArea {
+        x: 0
+        y: root.showStrips ? 4 + root.stripAreaHeight : 0
+        width: root.width
+        height: root.splitHeight
+        cursorShape: Qt.SplitVCursor
+        preventStealing: true
+
+        onPositionChanged: function(mouse) {
+            if (pressed) {
+                const y = mapToItem(root, mouse.x, mouse.y).y
+                root.channelHeight = Math.max(140, Math.min(root.height - 8, root.height - 4 - y))
+            }
+        }
     }
 }

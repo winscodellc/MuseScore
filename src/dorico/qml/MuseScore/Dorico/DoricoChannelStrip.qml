@@ -29,15 +29,18 @@ import Muse.UiComponents
 
 import MuseScore.Playback
 
+import "mixervalues.js" as MixerValues
+
 //! One compact Dorico-style mixer channel (spec 57), used by DoricoMixer and the Track Inspector's Channel section:
 //! pan box, fader value, mute / solo on the left, fader, a stereo meter on the right, and the channel name on a
-//! label in the instrument's colour. FX channels are tinted green.
+//! label in the instrument's colour. FX channels are tinted green. Spec 63: double-click the name to rename it (kept in
+//! the score, see DoricoMixerModel); Opt-click the pan or fader value to type one, Cmd-click or double-click resets it.
 Rectangle {
     id: root
 
     property MixerChannelItem channelItem: null
     property color labelColor: ui.theme.strokeColor
-    property string label: root.channelItem ? root.channelItem.title : ""
+    property string label: !root.channelItem ? "" : (names.names[names.keyOf(root.channelItem)] ?? root.channelItem.title)
 
     readonly property bool isFx: root.channelItem && root.channelItem.type === MixerChannelItem.Aux
     readonly property bool isOutput: root.channelItem && root.channelItem.type === MixerChannelItem.Master
@@ -45,6 +48,9 @@ Rectangle {
     // Sizes and colours measured on Dorico 6's mixer (80 px strips, blue readouts in dark boxes)
     readonly property color readoutColor: "#5AAEEA"
     readonly property color boxColor: "#15191E"
+    // Lit mute / solo, measured on the manual's mixer_button_*_activated pictures (spec 63)
+    readonly property color muteLitColor: "#FFD608"
+    readonly property color soloLitColor: "#A32A0A"
 
     width: 80
     radius: 4
@@ -74,7 +80,44 @@ Rectangle {
         return balance === 0 ? "C" : (balance < 0 ? "L" + (-balance) : "R" + balance)
     }
 
-    // Pan: drag sideways, double-click centres
+    DoricoMixerModel {
+        id: names
+        Component.onCompleted: names.load()
+    }
+
+    // The inline field over the pan box, the fader value or the name: "pan", "volume" or "name" while typing
+    property string editTarget: ""
+
+    function startEdit(target) {
+        const item = target === "pan" ? panBox : (target === "volume" ? valueBox : nameLabel)
+        const pos = item.mapToItem(root, 0, 0)
+        editor.x = pos.x
+        editor.y = pos.y
+        editor.width = item.width
+        editor.height = item.height
+        editor.currentText = target === "pan" ? root.panText(root.channelItem.balance)
+                                              : (target === "volume" ? root.channelItem.volumeLevel.toFixed(2) : root.label)
+        root.editTarget = target
+        Qt.callLater(editor.ensureActiveFocus)
+    }
+
+    function commitEdit(text) {
+        if (root.editTarget === "pan") {
+            const value = MixerValues.parsePan(text, root.channelItem.balanceMin, root.channelItem.balanceMax)
+            if (value !== null) {
+                root.channelItem.balance = value
+            }
+        } else if (root.editTarget === "volume") {
+            const value = MixerValues.parseVolume(text, root.channelItem.volumeLevelMin, root.channelItem.volumeLevelMax)
+            if (value !== null) {
+                root.channelItem.volumeLevel = value
+            }
+        } else if (root.editTarget === "name") {
+            names.setName(names.keyOf(root.channelItem), text)
+        }
+    }
+
+    // Pan: click a position or drag sideways; Opt-click types a value, Cmd-click or double-click centres
     Rectangle {
         id: panBox
 
@@ -98,20 +141,36 @@ Rectangle {
         }
 
         MouseArea {
-            property real startX: 0
-            property int startBalance: 0
+            property bool dragging: false
 
             anchors.fill: parent
             cursorShape: Qt.SizeHorCursor
+            preventStealing: true // the mixer scrolls on background drags
             enabled: root.channelItem && !root.channelItem.hasBalanceAutomation
 
+            // The outer 6 px at each end give the full L100 / R100
+            function setFromX(x) {
+                const min = root.channelItem.balanceMin
+                const max = root.channelItem.balanceMax
+                const value = Math.round(min + (max - min) * (x - 6) / (panBox.width - 12))
+                root.channelItem.balance = Math.max(min, Math.min(max, value))
+            }
+
             onPressed: function(mouse) {
-                startX = mouse.x
-                startBalance = root.channelItem.balance
+                dragging = false
+                if (mouse.modifiers & Qt.AltModifier) {
+                    root.startEdit("pan")
+                } else if (mouse.modifiers & Qt.ControlModifier) { // Cmd on macOS
+                    root.channelItem.balance = 0
+                } else {
+                    dragging = true
+                    setFromX(mouse.x)
+                }
             }
             onPositionChanged: function(mouse) {
-                const value = Math.round(startBalance + (mouse.x - startX))
-                root.channelItem.balance = Math.max(root.channelItem.balanceMin, Math.min(root.channelItem.balanceMax, value))
+                if (dragging) {
+                    setFromX(mouse.x)
+                }
             }
             onDoubleClicked: root.channelItem.balance = 0
         }
@@ -140,6 +199,20 @@ Rectangle {
             font.pixelSize: 11
             color: root.readoutColor
         }
+
+        MouseArea {
+            anchors.fill: parent
+            enabled: root.channelItem && !root.channelItem.hasVolumeAutomation
+
+            onClicked: function(mouse) {
+                if (mouse.modifiers & Qt.AltModifier) {
+                    root.startEdit("volume")
+                } else if (mouse.modifiers & Qt.ControlModifier) { // Cmd on macOS
+                    root.channelItem.volumeLevel = 0
+                }
+            }
+            onDoubleClicked: root.channelItem.volumeLevel = 0
+        }
     }
 
     Item {
@@ -167,6 +240,8 @@ Rectangle {
                 textFont.pixelSize: 15
                 textFont.bold: true
                 normalColor: accentButton ? accentColor : "#3A4048" // a fixed colour would hide the lit state
+                accentColor: root.muteLitColor
+                iconColor: accentButton ? "#000000" : ui.theme.fontPrimaryColor
                 toolTipTitle: qsTrc("dorico", "Mute")
                 accentButton: root.channelItem ? root.channelItem.muted : false
                 onClicked: root.channelItem.muted = !root.channelItem.muted
@@ -179,6 +254,8 @@ Rectangle {
                 textFont.pixelSize: 15
                 textFont.bold: true
                 normalColor: accentButton ? accentColor : "#3A4048" // a fixed colour would hide the lit state
+                accentColor: root.soloLitColor
+                iconColor: accentButton ? "#FFFFFF" : ui.theme.fontPrimaryColor
                 toolTipTitle: qsTrc("dorico", "Solo")
                 // As MuseScore's mixer: no solo on the output and the click, and FX channels cannot be soloed
                 visible: !root.isOutput && !(root.channelItem && root.channelItem.type === MixerChannelItem.Metronome)
@@ -244,6 +321,7 @@ Rectangle {
 
             MouseArea {
                 anchors.fill: parent
+                preventStealing: true // the mixer scrolls on background drags
                 enabled: root.channelItem && !root.channelItem.hasVolumeAutomation
 
                 function setFromY(y) {
@@ -279,7 +357,7 @@ Rectangle {
                                                                           : root.channelItem.rightChannelPressure)
 
                     width: 4
-                    height: parent.height
+                    height: body.height
                     color: "#0E1114"
 
                     Rectangle {
@@ -317,6 +395,32 @@ Rectangle {
             font.pixelSize: 11
             font.bold: true
             color: "#0C0C0C"
+        }
+
+        MouseArea {
+            anchors.fill: parent
+            enabled: root.channelItem !== null && !root.isOutput
+            onDoubleClicked: root.startEdit("name")
+        }
+    }
+
+    TextInputField {
+        id: editor
+
+        visible: root.editTarget !== ""
+        textSidePadding: 4
+        textHorizontalAlignment: Qt.AlignHCenter
+
+        onAccepted: root.commitEdit(editor.inputField.text)
+
+        // Return and Esc both drop the focus; so does clicking elsewhere, which cancels
+        Connections {
+            target: editor.inputField
+            function onActiveFocusChanged() {
+                if (!editor.inputField.activeFocus) {
+                    root.editTarget = ""
+                }
+            }
         }
     }
 }

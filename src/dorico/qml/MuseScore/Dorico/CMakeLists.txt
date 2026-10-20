@@ -29,6 +29,8 @@ qt_add_qml_module(dorico_qml
     SOURCES
         doricopanelmodel.cpp
         doricopanelmodel.h
+        doricomixermodel.cpp
+        doricomixermodel.h
         doricoprinter.cpp
         doricoprinter.h
         doricotopbarmodel.cpp
@@ -75,6 +77,7 @@ qt_add_qml_module(dorico_qml
         TrackOverview.qml
         WritePage.qml
         DoricoChannelStrip.qml
+        DoricoChannelStripSections.qml
         DoricoMixer.qml
         InspectorSection.qml
         FilterNotesByPitchDialog.qml
@@ -82,6 +85,7 @@ qt_add_qml_module(dorico_qml
         RotateDialog.qml
         JumpBar.qml
         ResourceDropdown.qml
+        mixervalues.js
         trackcolor.js
     RESOURCES
         ${DORICO_ICONS}
