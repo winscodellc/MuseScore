@@ -512,8 +512,9 @@ bool DoricoPasteController::tryDelete()
         return false;
     }
     notation->interaction()->deleteSelection();
-    // Whole chords became one rest: the selection goes to the nearest note of the voice instead
-    if (sel.isSingle() && sel.element()->isRest()) {
+    // Whole chords became rests: the selection goes to the nearest note of the voice instead
+    const std::vector<EngravingItem*>& left = sel.elements();
+    if (!left.empty() && std::all_of(left.begin(), left.end(), [](EngravingItem* e) { return e->isRest(); })) {
         selectChord(notation, nearestChord(score, track, from, to));
     }
     return true;

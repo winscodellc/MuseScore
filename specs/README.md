@@ -158,7 +158,7 @@ Status: todo | in-progress | pending review | done  -  Depends on: NN, NN  -  Do
 | 40 | [Copy / paste](done/40-copy-paste.md) | done | 00, 10, 11 |
 | 41 | [Paste Special](done/41-paste-special.md) | done | 40 |
 | 42 | [Repeat (R) and Opt-click](done/42-repeat-and-alt-click.md) | done | 40 |
-| 43 | [Delete](43-delete.md) | todo | 11 |
+| 43 | [Delete](43-delete.md) | pending review | 11 |
 | 44 | [Selection](44-selection.md) | todo | 12 |
 | 45 | [Filters](45-filters.md) | todo | 44 |
 | 46 | [Jump bar and Go To Bar](46-jump-bar.md) | todo | 20 (overlay), 10 |

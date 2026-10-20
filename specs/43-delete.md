@@ -1,7 +1,7 @@
 <!-- markdownlint-disable -->
 # 43 — Delete, Remove Rests, Delete Bars
 
-Status: in-progress · Depends on: [00-module-skeleton](00-module-skeleton.md), [10-keymap-preset](10-keymap-preset.md), [11-note-input-modes](done/11-note-input-modes.md) (Insert mode flag)
+Status: pending review · Depends on: [00-module-skeleton](00-module-skeleton.md), [10-keymap-preset](10-keymap-preset.md), [11-note-input-modes](done/11-note-input-modes.md) (Insert mode flag)
 Dorico refs: `B = https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/` →
 `B write_mode/write_mode_arranging_tools/write_mode_deleting_items_t.html`,
 `B notation_reference/notation_reference_bars/notation_reference_bars_deleting_contents_t.html`,
@@ -68,14 +68,16 @@ Upstream edits: none.
 - Stop-position (Shift-Opt-I) pushing material past a stop point (spec 11 defers Insert scope except Voice).
 
 ## Acceptance criteria
-- [ ] Insert off: delete 2 quarter notes in a bar → 2 quarter rests; selection lands on the next note in the voice.
-- [ ] Insert on: same delete → following notes shift left, no rests, measure content shortened per `cmdTimeDelete` behaviour.
-- [ ] Deleting the last note in a voice selects the previous note in that voice.
-- [ ] Deleting selected bars' contents (bars selected, Insert off) leaves empty bars and barlines.
+- [x] Insert off: delete 2 quarter notes in a bar → 2 quarter rests; selection lands on the next note in the voice.
+- [x] Insert on: same delete → following notes shift left, no rests, measure content shortened per `cmdTimeDelete` behaviour.
+- [x] Deleting the last note in a voice selects the previous note in that voice.
+- [x] Deleting selected bars' contents (bars selected, Insert off) leaves empty bars and barlines.
 - [ ] `dorico/delete-bars` removes N selected measures; later music moves left; one undo restores.
 - [ ] `dorico/remove-rests` on voice-2 rests removes them; voice-1 rests become invisible; one undo restores both.
-- [ ] Time signature delete re-bars with the previous time signature; clef delete keeps pitches.
-- [ ] Note input active: Backspace behaviour unchanged from upstream.
+- [x] Time signature delete re-bars with the previous time signature; clef delete keeps pitches.
+- [x] Note input active: Backspace behaviour unchanged from upstream.
+
+Not ticked: the two Edit-menu boxes (`delete-bars`, `remove-rests`). The UI driver cannot click the native macOS menu bar, so they need a manual check (Edit > Delete Bars; Edit > Remove Rests on voice-2 and voice-1 rests).
 
 ## Tests
 - `dorico_tests` links only `dorico` and cannot load scores (every test there is pure), so no `ScoreRW` fixtures. The code is engine glue; it is checked in the UI (acceptance list above).
