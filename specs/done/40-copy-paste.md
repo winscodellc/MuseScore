@@ -55,7 +55,7 @@ Paste and cut are **intercepted**, not replaced: `DoricoPasteController` (`src/d
 - MIDI CC copying/pasting; Key Editor.
 - Chord symbol region copy → showing chord symbols on target players.
 - Pasting a different number of staves than selected beyond the simple rule above.
-- Dorico's behaviour for pasting into a **different voice's** existing material beyond "leave it" (covered by [41](../41-paste-special.md) Paste Into Voice).
+- Dorico's behaviour for pasting into a **different voice's** existing material beyond "leave it" (covered by [41](41-paste-special.md) Paste Into Voice).
 - A copied hairpin or other symbol is pasted once (symbol payload), never repeated across a range. Only staff-list copies fill a range.
 - Insert mode moves the whole staff tail (all voices), not only the selected voices; ties and slurs crossing the insert point break (the tail goes through a clipboard-style copy). Other staves do not move. The Insert scopes beyond Voice stay deferred (README).
 - Insert mode plus a range selection pastes once (no fill).

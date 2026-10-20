@@ -197,6 +197,13 @@ Handlers are registered in `src/notationscene/internal/notationactioncontroller.
 - `Selection::staffMimeData` is private; `mimeData()` is public. After `deleteRange` call `score->deselectAll()` (the selection holds the rebuilt segments).
 - Intercepting a command (`command://notation/paste`/`cut`) with `ICommandDispatcher::preDispatch()` and setting `*allowDispatch = false` also covers the menus; leaving it true falls through to the upstream handler.
 
+### Paste special internals (found in spec 41)
+- **`pasteStaff` keeps the source voice**: the destination only shifts the staff (`setTrackOffset((dstStaff - staffStart) * VOICES)`, `read500.cpp`). Selecting a chord-rest in voice N does *not* paste into voice N.
+- **Pasting into another voice** = `ExchangeVoices::exchangeVoicesInSelection(score, a, b)` (`editing/exchangevoices.h`, needs a range selection, swaps whole bars, does nothing in parts), then `pasteStaff`, then the same exchange again. Outside the pasted span the two swaps cancel; `pasteStaff` resets the selection range, so set it again before the second swap.
+- **Stafflist voices**: in clipboard mode the writer emits no `<voice>` tags. Voice 0 comes first; a change of voice is a `<location><voices>N</voices>...` step *directly under `<Staff>`*, relative to the previous voice (nested `<location>`s belong to spanner ends, ignore them). Spanners (slurs) are in a trailing `<SpannerMap>` with ticks, so reading slurs from the XML is awkward: paste, read the chords and `score->spannerMap().findContained`, roll back (`pasteSpecialArticulations`).
+- **Cut/copy a span without the clipboard**: `selection().setRange(...)`, then `RWRegister::writer()->writeStaffSelection(score, filter, staffStart, staffEnd, from, to, startSeg, endSeg)` with any `SelectionFilter` (voice filter: `setFiltered(VoicesSelectionFilterTypes::ALL, false)`, then `setFiltered(1u << voice, true)`). `Score::deleteRange(..., filter, true)` with the same filter deletes just those voices and leaves rests.
+- `Score::addSlur(first, second, nullptr)` is undo-aware (`undoAddElement`); `Chord::updateArticulations(ids)` adds articulations and ornaments (Insert mode).
+
 ## 5. Selection
 
 - **SelectionTarget** (`src/notation/notationtypes.h:113`) is handled in `NotationSelection::select` (`src/notation/internal/notationselection.cpp:190-290`) and `addToSelection` (:292). Targets include Similar, SimilarInStaff, SimilarInRange, NotesInChord, All, Section, Top/BottomNoteInChord, TopStaff and others.

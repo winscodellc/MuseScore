@@ -56,7 +56,7 @@ Dropped per the manual: barlines, beams, fingerings, articulations, tremolos hav
 | `command://dorico/filter-mode-select-only` / `-deselect-only` | Select Only / Deselect Only | none | sets mode; persisted in setting `dorico/filter/mode` ("select"\|"deselect", default select) |
 | `command://dorico/filter-notes-by-pitch` (arg: e.g. `c4,eb,f#5`) | Notes by Pitch | none | pitch tokens: letter + accidental + optional octave (no octave = all octaves); Written/Sounding toggle → `Note::epitch()` vs `ppitch()`+transpose; dialog UI is a second step (QML dialog in the `MuseScore.Dorico` module) |
 
-Each category is registered as its own `CommandInfo` titled `Filter: Dynamics > Gradual` etc. so the Jump bar can find it and the optional Edit > Filter submenu can be generated from the same table. Menu attach point is the optional appshell patch described in [41](41-paste-special.md); jump bar is the required path.
+Each category is registered as its own `CommandInfo` titled `Filter: Dynamics > Gradual` etc. so the Jump bar can find it and the optional Edit > Filter submenu can be generated from the same table. Menu attach point is the optional appshell patch described in [41](done/41-paste-special.md) (the Edit menu is built by the dorico module, spec 59); jump bar is the required path.
 
 Upstream edits: none (menu patch optional).
 

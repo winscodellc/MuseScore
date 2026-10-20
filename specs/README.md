@@ -155,7 +155,7 @@ Status: todo | in-progress | pending review | done  -  Depends on: NN, NN  -  Do
 | 35 | [Popover: note tools (Shift-I)](done/35-popover-note-tools.md) | done | 20 |
 | 36 | [Popover: figured bass (Shift-G)](done/36-popover-figured-bass.md) | done | 20 |
 | 40 | [Copy / paste](done/40-copy-paste.md) | done | 00, 10, 11 |
-| 41 | [Paste Special](41-paste-special.md) | todo | 40 |
+| 41 | [Paste Special](done/41-paste-special.md) | done | 40 |
 | 42 | [Repeat (R) and Opt-click](42-repeat-and-alt-click.md) | todo | 40 |
 | 43 | [Delete](43-delete.md) | todo | 11 |
 | 44 | [Selection](44-selection.md) | todo | 12 |
