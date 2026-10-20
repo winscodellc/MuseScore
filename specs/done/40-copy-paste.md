@@ -24,7 +24,7 @@ Reference digests: [reference/dorico-editing.md](../reference/dorico-editing.md)
 | Insert mode (I) on | Pasted material **pushes later music** along within the Insert scope. In the Voice scope outside note input the scope = all selected voices. |
 | Chord + Insert | Mutually exclusive (state owned by spec 11). |
 | During note input (caret active) | Paste at the caret (caret voice/staves). |
-| Cut (`Cmd-X`) | Copy + delete (delete rules in [43](../43-delete.md): Insert mode closes the gap, otherwise rests). |
+| Cut (`Cmd-X`) | Copy + delete (delete rules in [43](43-delete.md): Insert mode closes the gap, otherwise rests). |
 | Preference "Link dynamics and slurs to existing items when pasting" (default on) | Dynamics/slurs pasted onto other staves at the same rhythmic position are linked. |
 | MIDI CC pasted with notes | Not applicable (no Key Editor). |
 
