@@ -24,6 +24,9 @@
 
 #include <algorithm>
 
+#include <QClipboard>
+#include <QGuiApplication>
+
 #include "notation/inotation.h"
 #include "notation/inotationelements.h"
 #include "notation/inotationstyle.h"
@@ -89,6 +92,13 @@ void DoricoCommandsState::init()
         updateCommandStates();
     });
 
+    // Explode / Reduce are enabled by what is on the clipboard
+    if (QGuiApplication::clipboard()) {
+        m_clipboardConnection = QObject::connect(QGuiApplication::clipboard(), &QClipboard::dataChanged, QGuiApplication::clipboard(), [this]() {
+            updateCommandStates();
+        });
+    }
+
     // Edit > Filter > Select Only / Deselect Only show the current mode as checked
     muse::settings()->valueChanged(FILTER_MODE_KEY).onReceive(this, [this](const Val&) {
         updateCommandStates();
@@ -99,6 +109,7 @@ void DoricoCommandsState::init()
 
 void DoricoCommandsState::deinit()
 {
+    QObject::disconnect(m_clipboardConnection);
     muse::settings()->valueChanged(FILTER_MODE_KEY).disconnect(this);
     modes()->modeChanged().disconnect(this);
     modes()->modesChanged().disconnect(this);
@@ -143,6 +154,10 @@ CommandState DoricoCommandsState::commandState(const Command& command) const
         pasteSpecialEnabled = score && pasteSpecialCanMove(score, 1);
     } else if (command == DORICO_SWAP_STAVES_COMMAND) {
         pasteSpecialEnabled = score && pasteSpecialCanSwap(score);
+    } else if (command == DORICO_EXPLODE_COMMAND) {
+        pasteSpecialEnabled = score && pasteSpecialCanExplode(score);
+    } else if (command == DORICO_REDUCE_COMMAND) {
+        pasteSpecialEnabled = score && pasteSpecialCanReduce(score);
     } else if (command == DORICO_PASTE_INTO_NEW_VOICE_COMMAND || command == DORICO_PASTE_ARTICULATIONS_COMMAND
                || std::find(DORICO_PASTE_INTO_VOICE_COMMANDS.begin(), DORICO_PASTE_INTO_VOICE_COMMANDS.end(), command)
                != DORICO_PASTE_INTO_VOICE_COMMANDS.end()) {

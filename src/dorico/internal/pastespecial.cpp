@@ -30,8 +30,11 @@
 #include <QClipboard>
 #include <QGuiApplication>
 #include <QMimeData>
+#include <QXmlStreamReader>
+#include <QXmlStreamWriter>
 
 #include "engraving/dom/chord.h"
+#include "engraving/dom/clef.h"
 #include "engraving/dom/measure.h"
 #include "engraving/dom/mscore.h"
 #include "engraving/dom/note.h"
@@ -42,6 +45,7 @@
 #include "engraving/dom/spanner.h"
 #include "engraving/dom/tuplet.h"
 #include "engraving/editing/exchangevoices.h"
+#include "engraving/editing/implodeexplode.h"
 #include "engraving/editing/paste.h"
 #include "engraving/editing/transaction/transaction.h"
 #include "engraving/rw/iwriter.h"
@@ -123,6 +127,151 @@ std::set<int> mu::dorico::pasteClipVoices(const ByteArray& data)
         }
     }
     return voices;
+}
+
+std::vector<size_t> mu::dorico::reduceGroups(size_t nSources, size_t nDest)
+{
+    std::vector<size_t> sizes;
+    for (size_t i = 0; nDest > 0 && i < nDest; ++i) {
+        sizes.push_back(nSources / nDest + (i < nSources % nDest ? 1 : 0));
+    }
+    return sizes;
+}
+
+std::vector<std::vector<size_t> > mu::dorico::explodeNotes(size_t nNotes, size_t nStaves)
+{
+    std::vector<std::vector<size_t> > result(nStaves);
+    if (nNotes == 0 || nStaves == 0) {
+        return result;
+    }
+    if (nNotes >= nStaves) {
+        size_t next = 0;
+        for (size_t i = 0; i < nStaves; ++i) {
+            for (size_t n = reduceGroups(nNotes, nStaves)[i]; n > 0; --n) {
+                result[i].push_back(next++);
+            }
+        }
+    } else {
+        const size_t perNote = std::max<size_t>(nStaves / nNotes, 1);
+        for (size_t i = 0; i < nStaves; ++i) {
+            result[i].push_back(std::min(i / perNote, nNotes - 1));
+        }
+    }
+    return result;
+}
+
+namespace {
+//! Copies the element the reader is on (and what is inside it) to `out`. `track` receives the text of a direct <track> child.
+//! `firstTick`: the element is a <Staff> that has to start at that tick. A clip reads its staves one after the other, so a
+//! staff after the first begins with a <location> that rewinds from where the previous one ended (<fractions>-1/1</fractions>);
+//! on its own that lands at the wrong tick. The leading <location> is replaced by one that goes to `firstTick`, as the first
+//! staff of a clip has.
+void copyElementTo(QXmlStreamReader& in, QXmlStreamWriter& out, int* track = nullptr, const QString* firstTick = nullptr)
+{
+    int depth = 0;
+    bool startPlaced = !firstTick;
+    do {
+        switch (in.tokenType()) {
+        case QXmlStreamReader::StartElement:
+            if (!startPlaced && depth == 1) {
+                startPlaced = true;
+                const bool hadLocation = in.name() == QLatin1String("location");
+                out.writeStartElement("location");
+                out.writeTextElement("fractions", *firstTick);
+                while (hadLocation && in.readNextStartElement()) { // keep the other steps (a voice change) as they were
+                    const QString name = in.name().toString();
+                    const QString text = in.readElementText();
+                    if (name != QLatin1String("fractions")) {
+                        out.writeTextElement(name, text);
+                    }
+                }
+                out.writeEndElement();
+                if (hadLocation) {
+                    in.readNext(); // past the </location> the loop stopped on
+                    continue;
+                }
+            }
+            if (track && depth == 1 && in.name() == QLatin1String("track")) {
+                *track = in.readElementText().toInt();
+                out.writeTextElement("track", QString::number(*track));
+                in.readNext(); // readElementText() stopped on the end tag, which is already written
+                continue;
+            }
+            ++depth;
+            out.writeStartElement(in.name().toString());
+            out.writeAttributes(in.attributes());
+            break;
+        case QXmlStreamReader::EndElement:
+            out.writeEndElement();
+            if (--depth == 0) {
+                return; // stay on the end tag, like skipCurrentElement(), so the caller's next read is the next sibling
+            }
+            break;
+        case QXmlStreamReader::Characters:
+            out.writeCharacters(in.text().toString());
+            break;
+        default:
+            break;
+        }
+        in.readNext();
+    } while (!in.atEnd());
+}
+}
+
+ByteArray mu::dorico::staffClipOf(const ByteArray& data, size_t index)
+{
+    QXmlStreamReader in(data.toQByteArrayNoCopy());
+    if (!in.readNextStartElement() || in.name() != QLatin1String("StaffList")) {
+        return ByteArray();
+    }
+
+    const QXmlStreamAttributes rootAttrs = in.attributes();
+    std::vector<std::pair<int, QByteArray> > spanners; // track, xml
+    QByteArray staffXml;
+    int staffId = -1;
+    size_t seen = 0;
+    while (in.readNextStartElement()) {
+        if (in.name() == QLatin1String("Staff")) {
+            if (seen++ == index) {
+                staffId = in.attributes().value("id").toInt();
+                QXmlStreamWriter w(&staffXml);
+                const QString firstTick = rootAttrs.value("tick").toString();
+                copyElementTo(in, w, nullptr, &firstTick);
+            } else {
+                in.skipCurrentElement();
+            }
+        } else if (in.name() == QLatin1String("SpannerMap")) {
+            while (in.readNextStartElement()) {
+                int track = -1;
+                QByteArray xml;
+                QXmlStreamWriter w(&xml);
+                copyElementTo(in, w, &track);
+                spanners.push_back({ track, xml });
+            }
+        } else {
+            in.skipCurrentElement();
+        }
+    }
+    if (staffId < 0) {
+        return ByteArray();
+    }
+
+    QByteArray result = "<StaffList";
+    for (const QXmlStreamAttribute& a : rootAttrs) {
+        const QString name = a.name().toString();
+        const QString value = name == "staff" ? QString::number(staffId) : name == "staves" ? QString("1") : a.value().toString();
+        result += " " + name.toUtf8() + "=\"" + value.toHtmlEscaped().toUtf8() + "\"";
+    }
+    result += ">" + staffXml;
+    bool any = false;
+    for (const auto& [track, xml] : spanners) {
+        if (track / static_cast<int>(VOICES) == staffId) {
+            result += (any ? "" : "<SpannerMap>") + xml;
+            any = true;
+        }
+    }
+    result += any ? "</SpannerMap></StaffList>" : "</StaffList>";
+    return ByteArray::fromQByteArray(result);
 }
 
 namespace mu::dorico::pastespecial {
@@ -395,6 +544,135 @@ const ChordRest* firstSelectedChordRest(const Score* score)
     }
     return first;
 }
+
+//! The chords of the staff that start in [from, to), grace chords included
+std::vector<Chord*> chordsIn(const Score* score, staff_idx_t staff, const Fraction& from, const Fraction& to)
+{
+    std::vector<Chord*> chords;
+    for (Measure* m = score->tick2measure(from); m && m->tick() < to; m = m->nextMeasure()) {
+        for (Segment* s = m->first(SegmentType::ChordRest); s; s = s->next(SegmentType::ChordRest)) {
+            if (s->tick() < from || s->tick() >= to) {
+                continue;
+            }
+            for (voice_idx_t v = 0; v < VOICES; ++v) {
+                EngravingItem* e = s->element(staff2track(staff) + v);
+                if (e && e->isChord()) {
+                    chords.push_back(toChord(e));
+                    chords.insert(chords.end(), toChord(e)->graceNotes().begin(), toChord(e)->graceNotes().end());
+                }
+            }
+        }
+    }
+    return chords;
+}
+
+//! Where the chords of a voice start and how long they are: two voices with the same list can be merged chord by chord
+using Rhythm = std::vector<std::pair<Fraction, Fraction> >;
+
+Rhythm rhythmOf(const Score* score, track_idx_t track, const Fraction& from, const Fraction& to)
+{
+    Rhythm rhythm;
+    for (Measure* m = score->tick2measure(from); m && m->tick() < to; m = m->nextMeasure()) {
+        for (Segment* s = m->first(SegmentType::ChordRest); s; s = s->next(SegmentType::ChordRest)) {
+            const EngravingItem* e = s->tick() >= from && s->tick() < to ? s->element(track) : nullptr;
+            if (e && e->isChord()) {
+                rhythm.push_back({ s->tick(), toChord(e)->ticks() });
+            }
+        }
+    }
+    return rhythm;
+}
+
+//! Dorico's Reduce drops the clef changes and octave lines of the music it merges
+void removeClefsAndOttavas(Score* score, staff_idx_t staff, const Fraction& from, const Fraction& to)
+{
+    std::vector<EngravingItem*> doomed;
+    for (Measure* m = score->tick2measure(from); m && m->tick() < to; m = m->nextMeasure()) {
+        for (Segment* s = m->first(SegmentType::Clef); s; s = s->next(SegmentType::Clef)) {
+            EngravingItem* e = s->tick() >= from && s->tick() < to ? s->element(staff2track(staff)) : nullptr;
+            if (e && e->isClef()) {
+                doomed.push_back(e);
+            }
+        }
+    }
+    for (const auto& interval : score->spannerMap().findOverlapping(from.ticks(), to.ticks())) {
+        Spanner* sp = interval.value;
+        if (sp->isOttava() && sp->staffIdx() == staff && sp->tick() >= from && sp->tick() < to) {
+            doomed.push_back(sp);
+        }
+    }
+    for (EngravingItem* e : doomed) {
+        score->undoRemoveElement(e);
+    }
+}
+
+//! The clip goes to every staff, then each staff keeps only its share of every chord
+bool explodeInto(Score* score, Transaction& tx, const ByteArray& data, staff_idx_t top, size_t nStaves, const Fraction& from,
+                 const Fraction& len)
+{
+    for (size_t i = 0; i < nStaves; ++i) {
+        if (!pasteAt(score, tx, data, top + i, from)) {
+            return false;
+        }
+    }
+    for (size_t i = 0; i < nStaves; ++i) {
+        for (Chord* chord : chordsIn(score, top + i, from, from + len)) {
+            const std::vector<Note*> notes = chord->notes(); // bottom to top
+            const std::vector<size_t> keep = explodeNotes(notes.size(), nStaves)[i];
+            for (size_t j = 0; j < notes.size(); ++j) {
+                if (std::find(keep.begin(), keep.end(), notes.size() - 1 - j) == keep.end()) {
+                    score->undoRemoveElement(notes[j]);
+                }
+            }
+        }
+    }
+    return true;
+}
+
+//! Each destination staff takes its group of the copied staves, one per voice; groups whose voices all have the same rhythm
+//! are then merged into chords of the first voice (ImplodeExplode drops the unisons).
+bool reduceInto(Score* score, Transaction& tx, const PasteClip& clip, staff_idx_t top, size_t nStaves, const Fraction& from)
+{
+    const Fraction to = from + clip.len;
+    const std::vector<size_t> groups = reduceGroups(clip.staves, nStaves);
+    if (*std::max_element(groups.begin(), groups.end()) > VOICES) {
+        LOGW() << "Reduce: a staff would need more than four voices";
+        return false;
+    }
+
+    size_t source = 0;
+    for (size_t g = 0; g < nStaves; ++g) {
+        for (size_t j = 0; j < groups[g]; ++j, ++source) {
+            const ByteArray one = staffClipOf(clip.data, source);
+            const std::set<int> voices = pasteClipVoices(one);
+            if (voices.size() > 1) {
+                LOGW() << "Reduce: a copied staff holds more than one voice";
+                return false;
+            }
+            if (!voices.empty() && !pasteAtInVoice(score, tx, one, top + g, from, clip.len, *voices.begin(), static_cast<int>(j))) {
+                return false;
+            }
+        }
+    }
+
+    for (size_t g = 0; g < nStaves; ++g) {
+        const staff_idx_t staff = top + g;
+        const Rhythm first = rhythmOf(score, staff2track(staff), from, to);
+        bool same = true;
+        for (size_t j = 1; j < groups[g] && same; ++j) {
+            same = rhythmOf(score, staff2track(staff) + j, from, to) == first;
+        }
+        if (!same || groups[g] < 2) {
+            continue;
+        }
+        score->selection().setRange(score->tick2rightSegment(from), score->tick2rightSegment(to), staff, staff + 1);
+        if (!ImplodeExplode::implode(score)) {
+            return false;
+        }
+        removeClefsAndOttavas(score, staff, from, to);
+    }
+    return true;
+}
 }
 
 using namespace mu::dorico::pastespecial;
@@ -540,4 +818,64 @@ bool mu::dorico::pasteSpecialArticulations(const INotationPtr& notation)
         }
         return true;
     });
+}
+
+bool mu::dorico::pasteSpecialCanExplode(const Score* score)
+{
+    const Selection& sel = score->selection();
+    const std::optional<PasteClip> clip = pasteClipFromClipboard();
+    return clip && clip->staves == 1 && sel.isRange() && sel.staffEnd() - sel.staffStart() >= 2;
+}
+
+bool mu::dorico::pasteSpecialCanReduce(const Score* score)
+{
+    const Selection& sel = score->selection();
+    const std::optional<PasteClip> clip = pasteClipFromClipboard();
+    return clip && sel.isRange() && clip->staves > sel.staffEnd() - sel.staffStart();
+}
+
+bool mu::dorico::pasteSpecialExplode(const INotationPtr& notation)
+{
+    const Score* constScore = notation->elements()->msScore();
+    if (!pasteSpecialCanExplode(constScore)) {
+        return false;
+    }
+    const std::optional<PasteClip> clip = pasteClipFromClipboard();
+    const Selection& sel = constScore->selection();
+    const staff_idx_t top = sel.staffStart();
+    const size_t nStaves = sel.staffEnd() - top;
+    const Fraction from = sel.tickStart();
+
+    const bool ok = transact(notation, TranslatableString("undoableAction", "Explode"), [&](Score* score, Transaction& tx) {
+        return explodeInto(score, tx, clip->data, top, nStaves, from, clip->len);
+    });
+    if (ok) {
+        Score* score = notation->elements()->msScore();
+        score->selection().setRangeTicks(from, from + clip->len, top, top + nStaves);
+        score->update();
+    }
+    return ok;
+}
+
+bool mu::dorico::pasteSpecialReduce(const INotationPtr& notation)
+{
+    const Score* constScore = notation->elements()->msScore();
+    if (!pasteSpecialCanReduce(constScore)) {
+        return false;
+    }
+    const std::optional<PasteClip> clip = pasteClipFromClipboard();
+    const Selection& sel = constScore->selection();
+    const staff_idx_t top = sel.staffStart();
+    const size_t nStaves = sel.staffEnd() - top;
+    const Fraction from = sel.tickStart();
+
+    const bool ok = transact(notation, TranslatableString("undoableAction", "Reduce"), [&](Score* score, Transaction& tx) {
+        return reduceInto(score, tx, *clip, top, nStaves, from);
+    });
+    if (ok) {
+        Score* score = notation->elements()->msScore();
+        score->selection().setRangeTicks(from, from + clip->len, top, top + nStaves);
+        score->update();
+    }
+    return ok;
 }

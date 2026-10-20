@@ -24,6 +24,8 @@
 
 #include <map>
 
+#include <QMetaObject>
+
 #include "rcommand/imodulecommandsstate.h"
 #include "global/async/asyncable.h"
 
@@ -57,6 +59,7 @@ public:
 private:
     void updateCommandStates();
 
+    QMetaObject::Connection m_clipboardConnection;
     muse::rcommand::IModuleCommandsRegisterPtr m_moduleRegister;
     std::map<muse::rcommand::Command, muse::rcommand::CommandState> m_commandStates;
     muse::async::Channel<muse::rcommand::Command, muse::rcommand::CommandState> m_commandStateChanged;

@@ -329,6 +329,8 @@ void DoricoPasteController::init()
     }
     onNotation(DORICO_PASTE_INTO_NEW_VOICE_COMMAND, [](const INotationPtr& n) { return pasteSpecialIntoVoice(n, -1); });
     onNotation(DORICO_SWAP_STAVES_COMMAND, [](const INotationPtr& n) { return pasteSpecialSwap(n); });
+    onNotation(DORICO_EXPLODE_COMMAND, [](const INotationPtr& n) { return pasteSpecialExplode(n); });
+    onNotation(DORICO_REDUCE_COMMAND, [](const INotationPtr& n) { return pasteSpecialReduce(n); });
     onNotation(DORICO_PASTE_ARTICULATIONS_COMMAND, [](const INotationPtr& n) { return pasteSpecialArticulations(n); });
 
     onNotation(DORICO_REMOVE_RESTS_COMMAND, [](const INotationPtr& n) { return removeRests(n); });

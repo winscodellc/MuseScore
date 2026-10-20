@@ -122,6 +122,8 @@ inline static const std::array<muse::rcommand::Command, 4> DORICO_PASTE_INTO_VOI
 inline static const muse::rcommand::Command DORICO_PASTE_INTO_NEW_VOICE_COMMAND("command://dorico/paste-into-new-voice");
 inline static const muse::rcommand::Command DORICO_SWAP_STAVES_COMMAND("command://dorico/swap-staves");
 inline static const muse::rcommand::Command DORICO_PASTE_ARTICULATIONS_COMMAND("command://dorico/paste-articulations");
+inline static const muse::rcommand::Command DORICO_EXPLODE_COMMAND("command://dorico/explode");
+inline static const muse::rcommand::Command DORICO_REDUCE_COMMAND("command://dorico/reduce");
 
 // Delete family (spec 43); Delete itself is `notation/delete`, hooked in DoricoPasteController
 inline static const muse::rcommand::Command DORICO_REMOVE_RESTS_COMMAND("command://dorico/remove-rests");

@@ -120,6 +120,8 @@ const std::vector<MenuSpec>& mu::dorico::doricoMenus()
                 item("command://dorico/move-to-staff-above"),
                 item("command://dorico/move-to-staff-below"),
                 item("command://dorico/swap-staves"),
+                item("command://dorico/explode"),
+                item("command://dorico/reduce"),
                 item("command://dorico/paste-articulations"),
             }),
             item("command://notation/delete"),
