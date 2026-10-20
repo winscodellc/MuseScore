@@ -81,6 +81,9 @@ const std::vector<std::string> UNSUPPORTED_TECHNIQUES = { "1/4", "1/2", "3/4", "
 
 const std::vector<std::string> HARMONIC_STARTS = { "harm", "harmonic", "harmonics" };
 
+// Harmonic entries that need no `harm` before them ("ph" alone is a pinch harmonic).
+const std::vector<std::string> HARMONIC_STANDALONE = { "nh", "hh", "ah", "ph", "noharm" };
+
 const std::vector<std::string> HARMONIC_WORDS = {
     "nat", "natural", "art", "artificial", "nh", "hh", "ah", "ph", "circle", "circleabove", "diamond", "diamondnotehead",
     "sounding", "white", "whitediamondnotehead", "whitediamond", "touched", "normal", "pinch", "singlesounding",
@@ -152,13 +155,48 @@ ParseStatus parseItem(const std::string& part, TechniqueItem& item)
     return !bracketed && isTechniquePrefix(inner) ? ParseStatus::Incomplete : ParseStatus::Invalid; // "(piz)" is closed
 }
 
-// "harm nat n1 s1 p4 diamond": valid entries are Unsupported (no harmonics in v1), checked token by token.
-ParseStatus parseHarmonics(const std::vector<std::string>& tokens)
+// Harmonic words that change what we draw; the rest of HARMONIC_WORDS and HARMONIC_KEYS are valid but Unsupported.
+const std::vector<std::string> HARMONIC_KINDS_NATURAL = { "nat", "natural", "nh", "hh" };
+const std::vector<std::string> HARMONIC_KINDS_ARTIFICIAL = { "art", "artificial", "ah" };
+const std::vector<std::string> HARMONIC_KINDS_PINCH = { "ph", "pinch" };
+const std::vector<std::string> HARMONIC_LOOKS = { "circle", "circleabove", "diamond", "diamondnotehead" };
+
+bool isOneOf(const std::vector<std::string>& words, const std::string& w)
 {
-    for (size_t i = 1; i < tokens.size(); ++i) {
+    return std::find(words.begin(), words.end(), w) != words.end();
+}
+
+// "harm nat n1 s1 p4 diamond", checked token by token. Ok when every word is one we draw, Unsupported when one is a
+// valid Dorico word we do not (partial / node / string, open string, parentheses, touched notes).
+// `first` is 1 after a `harm` word, 0 for the entries that stand alone (nh, ah, ph, noharm).
+ParseStatus parseHarmonics(const std::vector<std::string>& tokens, size_t first, HarmonicEntry& entry)
+{
+    bool unsupported = false;
+    for (size_t i = first; i < tokens.size(); ++i) {
         const std::string& t = tokens[i];
         const bool last = i + 1 == tokens.size();
-        if (std::find(HARMONIC_WORDS.begin(), HARMONIC_WORDS.end(), t) != HARMONIC_WORDS.end()) {
+        if (isOneOf(HARMONIC_KINDS_NATURAL, t)) {
+            entry.kind = HarmonicEntry::Kind::Natural;
+            continue;
+        }
+        if (isOneOf(HARMONIC_KINDS_ARTIFICIAL, t)) {
+            entry.kind = HarmonicEntry::Kind::Artificial;
+            continue;
+        }
+        if (isOneOf(HARMONIC_KINDS_PINCH, t)) {
+            entry.kind = HarmonicEntry::Kind::Pinch;
+            continue;
+        }
+        if (t == "noharm") {
+            entry.kind = HarmonicEntry::Kind::Remove;
+            continue;
+        }
+        if (isOneOf(HARMONIC_LOOKS, t)) {
+            entry.circle = t[0] == 'c';
+            continue;
+        }
+        if (isOneOf(HARMONIC_WORDS, t)) {
+            unsupported = true;
             continue;
         }
         auto key = std::find_if(HARMONIC_KEYS.begin(), HARMONIC_KEYS.end(), [&](const std::string& k) { return techPrefix(t, k); });
@@ -168,6 +206,7 @@ ParseStatus parseHarmonics(const std::vector<std::string>& tokens)
             static const std::regex NUMBER("[0-9]+");
             static const std::regex PITCH("[a-g][#b]?[0-9]");
             if (std::regex_match(value, NUMBER) || (string && std::regex_match(value, PITCH))) {
+                unsupported = true;
                 continue;
             }
             if (last && (value.empty() || (string && std::regex_match(value, std::regex("[a-g][#b]?"))))) {
@@ -179,7 +218,7 @@ ParseStatus parseHarmonics(const std::vector<std::string>& tokens)
         }
         return ParseStatus::Incomplete;
     }
-    return ParseStatus::Unsupported;
+    return unsupported ? ParseStatus::Unsupported : ParseStatus::Ok;
 }
 
 // Harp pedaling: a diagram "--^|^---" (D C B | E F G A; - natural, ^ or b flat, v or # sharp) or note names
@@ -299,16 +338,33 @@ TechniquesParse mu::dorico::parseTechniques(const std::string& input)
     }
 
     const std::vector<std::string> words = splitWords(lower);
-    if (std::find(HARMONIC_STARTS.begin(), HARMONIC_STARTS.end(), words.front()) != HARMONIC_STARTS.end()) {
-        return { parseHarmonics(words), {} };
+    const bool harmStart = std::find(HARMONIC_STARTS.begin(), HARMONIC_STARTS.end(), words.front()) != HARMONIC_STARTS.end();
+    if (harmStart || std::find(HARMONIC_STANDALONE.begin(), HARMONIC_STANDALONE.end(), words.front()) != HARMONIC_STANDALONE.end()) {
+        TechniquesParse p;
+        p.entry.harmonic = HarmonicEntry();
+        p.status = parseHarmonics(words, harmStart ? 1 : 0, *p.entry.harmonic);
+        return p;
     }
-    // String indicators "string 1" ... "string 9": no MuseScore item outside the staff.
-    if (words.front() == "string" && !findTechnique(lower)) {
-        if (words.size() == 1) {
-            return { ParseStatus::Incomplete, {} };
+    // String indicators "string 1" ... "string 9" or "string1": a string number on the note. A duration ("string 1->")
+    // is Unsupported.
+    if (words.front().compare(0, 6, "string") == 0 && !findTechnique(lower)) {
+        std::string number = words.front().substr(6);
+        if (words.size() == 2) {
+            number += words[1];
         }
-        const bool number = words.size() == 2 && words[1].size() == 1 && words[1][0] >= '1' && words[1][0] <= '9';
-        return { number ? ParseStatus::Unsupported : ParseStatus::Invalid, {} };
+        if (number.empty()) {
+            return { words.size() == 1 ? ParseStatus::Incomplete : ParseStatus::Invalid, {} };
+        }
+        if (number.size() == 2 && number[1] == '-' && number[0] >= '1' && number[0] <= '9') {
+            return { ParseStatus::Incomplete, {} }; // on its way to "string 3->"
+        }
+        const bool duration = number.size() == 3 && number.compare(1, 2, "->") == 0;
+        const bool digit = (number.size() == 1 || duration) && number[0] >= '1' && number[0] <= '9' && words.size() <= 2;
+        TechniquesParse p { digit ? (duration ? ParseStatus::Unsupported : ParseStatus::Ok) : ParseStatus::Invalid, {} };
+        if (p.status == ParseStatus::Ok) {
+            p.entry.stringNumber = number[0] - '0';
+        }
+        return p;
     }
 
     TechniquesParse chain = parseChain(lower);
@@ -319,6 +375,7 @@ TechniquesParse mu::dorico::parseTechniques(const std::string& input)
     std::vector<std::string> otherWords = UNSUPPORTED_TECHNIQUES;
     otherWords.insert(otherWords.end(), HARMONIC_STARTS.begin(), HARMONIC_STARTS.end());
     otherWords.push_back("string");
+    otherWords.insert(otherWords.end(), HARMONIC_STANDALONE.begin(), HARMONIC_STANDALONE.end());
     for (const auto& [word, pedal] : PEDAL_WORDS) {
         otherWords.push_back(word);
     }

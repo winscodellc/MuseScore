@@ -69,6 +69,16 @@ OrnamentEntry glissandoEntry(std::optional<GlissandoType> type)
     return e;
 }
 
+OrnamentEntry guitarEntry(OrnamentEntry::GuitarTech tech)
+{
+    OrnamentEntry e;
+    e.kind = OKind::Guitar;
+    e.guitar = tech;
+    return e;
+}
+
+using GTech = OrnamentEntry::GuitarTech;
+
 const std::vector<OrnamentWords> ORNAMENT_WORDS = {
     { { OKind::Trill },                                         { "tr", "trill" } },
     { symbolEntry(OKind::Ornament, SymId::ornamentShortTrill),       { "shorttr" } },
@@ -93,13 +103,21 @@ const std::vector<OrnamentWords> ORNAMENT_WORDS = {
     { glissandoEntry(std::nullopt),                                 { "gliss" } },
     { glissandoEntry(GlissandoType::STRAIGHT),                      { "glissstraight" } },
     { glissandoEntry(GlissandoType::WAVY),                          { "glisswavy" } },
+    { guitarEntry(GTech::Bend),                                     { "bend" } },
+    { guitarEntry(GTech::Dive),                                     { "vibbend" } },
+    { guitarEntry(GTech::Scoop),                                    { "vibscoop" } },
+    { guitarEntry(GTech::Dip),                                      { "vibdip" } },
+    { guitarEntry(GTech::WhammyBar),                                { "wbar", "w/bar" } },
+    { guitarEntry(GTech::HammerPull),                               { "hopo", "hammer", "ho", "pull", "po", "hammerpull", "hp",
+                                                                      "ligado", "lig" } },
+    { guitarEntry(GTech::Tap),                                      { "tap" } },
+    { guitarEntry(GTech::LeftTap),                                  { "lhtap" } },
+    { guitarEntry(GTech::TapPull),                                  { "tappull" } },
+    { guitarEntry(GTech::LeftTapPull),                              { "lhtappull" } },
 };
 
-// Valid Dorico entries MuseScore has no item for (tablature techniques, the curved arpeggio).
-const std::vector<std::string> UNSUPPORTED_ORNAMENTS = {
-    "bend", "vibbend", "vibscoop", "vibdip", "wbar", "w/bar", "hammer", "ho", "pull", "po", "hammerpull", "hopo", "hp",
-    "ligado", "lig", "tap", "tappull", "lhtap", "lhtappull", "slurarp",
-};
+// Valid Dorico entries MuseScore has no item for (the curved arpeggio).
+const std::vector<std::string> UNSUPPORTED_ORNAMENTS = { "slurarp" };
 
 struct TrillQuality {
     IntervalType type;
@@ -258,4 +276,9 @@ std::string mu::dorico::jazzArticulationText(ChordLineType type, bool smooth)
     return firstOrnamentWord([&](const OrnamentEntry& e) {
         return e.kind == OKind::JazzArticulation && e.chordLine == type && e.smooth == smooth;
     });
+}
+
+std::string mu::dorico::guitarText(OrnamentEntry::GuitarTech tech)
+{
+    return firstOrnamentWord([&](const OrnamentEntry& e) { return e.kind == OKind::Guitar && e.guitar == tech; });
 }

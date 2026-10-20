@@ -33,11 +33,15 @@
 #include "engraving/dom/chordline.h"
 #include "engraving/dom/factory.h"
 #include "engraving/dom/glissando.h"
+#include "engraving/dom/guitarbend.h"
+#include "engraving/dom/hammeronpulloff.h"
 #include "engraving/dom/note.h"
 #include "engraving/dom/ornament.h"
 #include "engraving/dom/score.h"
 #include "engraving/dom/select.h"
+#include "engraving/dom/tapping.h"
 #include "engraving/dom/trill.h"
+#include "engraving/dom/whammybar.h"
 #include "engraving/editing/editchord.h"
 #include "engraving/editing/editdata.h"
 #include "engraving/editing/transaction/transaction.h"
@@ -53,6 +57,7 @@
 using namespace mu::dorico;
 using namespace mu::engraving;
 using OKind = OrnamentEntry::Kind;
+using GTech = OrnamentEntry::GuitarTech;
 
 namespace {
 const muse::TranslatableString ADD_ORNAMENT("undoableAction", "Add ornament");
@@ -70,7 +75,8 @@ bool isJazzOrnament(const EngravingItem* e)
 bool isOrnamentItem(const EngravingItem* e)
 {
     return e->isOrnament() || isJazzOrnament(e) || e->isArpeggio() || e->isChordLine() || e->isTrillSegment()
-           || e->isGlissandoSegment();
+           || e->isGlissandoSegment() || e->isGuitarBendSegment() || e->isHammerOnPullOffSegment() || e->isTapping()
+           || e->isWhammyBarSegment();
 }
 
 Fraction endIncludingTies(const ChordRest* cr)
@@ -95,6 +101,15 @@ Chord* ornamentChordOf(EngravingItem* e)
     } else if (e->isGlissandoSegment()) {
         EngravingItem* start = toGlissandoSegment(e)->glissando()->startElement();
         owner = start && start->isNote() ? toNote(start)->chord() : nullptr;
+    } else if (e->isTapping()) {
+        owner = toTapping(e)->chordRest();
+    } else if (e->isGuitarBendSegment()) {
+        const Note* start = toGuitarBendSegment(e)->guitarBend()->startNote();
+        owner = start ? start->chord() : nullptr;
+    } else if (e->isHammerOnPullOffSegment()) {
+        owner = toHammerOnPullOffSegment(e)->hammerOnPullOff()->startChord();
+    } else if (e->isWhammyBarSegment()) {
+        owner = toWhammyBarSegment(e)->whammyBar()->startChord();
     }
     return owner && owner->isChord() ? toChord(owner) : nullptr;
 }
@@ -210,6 +225,58 @@ EngravingItem* addGlissando(Score* score, Note* from, Note* to, const OrnamentEn
     return nullptr;
 }
 
+// --- Guitar (spec 61) ---
+
+// A vibrato bar line from the chord/rest to end.
+EngravingItem* addWhammyBar(Score* score, ChordRest* cr, const Fraction& end)
+{
+    if (end <= cr->tick()) {
+        return nullptr;
+    }
+    WhammyBar* w = Factory::createWhammyBar(score->dummy());
+    w->setTrack(cr->track());
+    w->setTrack2(cr->track());
+    w->setTick(cr->tick());
+    w->setTick2(end);
+    score->undoAddElement(w);
+    return w;
+}
+
+// Tapping on the chord; it replaces the one it has, and the same hand again removes it. Null when removed.
+EngravingItem* addTapping(Score* score, Chord* chord, TappingHand hand)
+{
+    Tapping* old = chord->tapping();
+    const bool same = old && old->hand() == hand;
+    if (old) {
+        score->undoRemoveElement(old);
+    }
+    if (same) {
+        return nullptr;
+    }
+    Tapping* t = Factory::createTapping(chord);
+    t->setHand(hand);
+    t->setTrack(chord->track());
+    t->setOwnershipParent(chord);
+    score->undoAddElement(t);
+    return t;
+}
+
+// A hammer-on / pull-off slur from the first to the last chord, or to the next chord of the voice when they are the
+// same. MuseScore writes H or P (or both, for a ligado) from the pitches. Null when the chord already starts one.
+EngravingItem* addHammerPull(Score* score, Chord* first, Chord* last)
+{
+    const auto range = score->spanner().equal_range(first->tick().ticks());
+    for (auto it = range.first; it != range.second; ++it) {
+        if (it->second->isHammerOnPullOff() && it->second->track() == first->track()) {
+            return nullptr;
+        }
+    }
+    HammerOnPullOff* tmpl = Factory::createHammerOnPullOff(score->dummy());
+    Slur* slur = score->addSlur(first, last == first ? nullptr : last, tmpl);
+    delete tmpl;
+    return slur;
+}
+
 // --- Selection ---
 
 // Where an ornament or a trill goes on one staff: its earliest selected note, and the end of its latest one.
@@ -217,6 +284,149 @@ struct StaffSpot {
     Chord* chord = nullptr;
     Fraction end;
 };
+
+// The notes a glissando or a bend joins: two notes are joined, and from more notes each one but the last joins the
+// next note in its voice (a single note too, `to` null). A selected glissando or bend keeps its two notes.
+std::vector<std::pair<Note*, Note*> > notePairs(const std::vector<EngravingItem*>& items)
+{
+    std::vector<std::pair<Note*, Note*> > pairs;
+    std::vector<Note*> notes;
+    for (EngravingItem* e : items) {
+        if (e->isNote()) {
+            notes.push_back(toNote(e));
+        } else if (e->isGlissandoSegment()) {
+            const Glissando* g = toGlissandoSegment(e)->glissando();
+            if (g->startElement() && g->startElement()->isNote() && g->endElement() && g->endElement()->isNote()) {
+                pairs.push_back({ toNote(g->startElement()), toNote(g->endElement()) });
+            }
+        } else if (e->isGuitarBendSegment()) {
+            const GuitarBend* b = toGuitarBendSegment(e)->guitarBend();
+            if (b->startNote() && b->endNote() && b->endNote() != b->startNote()) {
+                pairs.push_back({ b->startNote(), b->endNote() });
+            }
+        }
+    }
+    std::sort(notes.begin(), notes.end(), [](const Note* a, const Note* b) { return a->tick() < b->tick(); });
+    if (notes.size() == 2 && notes[0]->tick() != notes[1]->tick()) {
+        pairs.push_back({ notes[0], notes[1] });
+    } else {
+        for (Note* n : notes) {
+            if (notes.size() == 1 || n->tick() != notes.back()->tick()) {
+                pairs.push_back({ n, nullptr });
+            }
+        }
+    }
+    return pairs;
+}
+
+struct ChordSpan {
+    Chord* first = nullptr;
+    Chord* last = nullptr;
+};
+
+// The first and last selected chord of each voice.
+std::map<track_idx_t, ChordSpan> chordSpans(const std::vector<EngravingItem*>& items)
+{
+    std::map<track_idx_t, ChordSpan> spans;
+    for (EngravingItem* e : items) {
+        Chord* c = ornamentChordOf(e);
+        if (!c) {
+            continue;
+        }
+        ChordSpan& span = spans[c->track()];
+        if (!span.first || c->tick() < span.first->tick()) {
+            span.first = c;
+        }
+        if (!span.last || c->tick() > span.last->tick()) {
+            span.last = c;
+        }
+    }
+    return spans;
+}
+
+void applyGuitar(GTech tech, Score* score, const std::vector<EngravingItem*>& items, bool& changed,
+                 std::vector<EngravingItem*>& added)
+{
+    switch (tech) {
+    case GTech::Bend:
+    case GTech::Dive:
+        for (const auto& [from, to] : notePairs(items)) {
+            added.push_back(score->addGuitarBend(tech == GTech::Bend ? GuitarBendType::BEND : GuitarBendType::DIVE, from, to));
+        }
+        break;
+    case GTech::Scoop:
+    case GTech::Dip: {
+        // A scoop goes on every selected note, a dip on the earliest one of each staff.
+        std::map<staff_idx_t, Note*> earliest;
+        std::vector<Note*> notes;
+        for (EngravingItem* e : items) {
+            Note* n = e->isNote() ? toNote(e) : e->isGuitarBendSegment() ? toGuitarBendSegment(e)->guitarBend()->startNote() : nullptr;
+            if (n && std::find(notes.begin(), notes.end(), n) == notes.end()) {
+                notes.push_back(n);
+                Note*& first = earliest[n->staffIdx()];
+                if (!first || n->tick() < first->tick()) {
+                    first = n;
+                }
+            }
+        }
+        if (tech == GTech::Scoop) {
+            for (Note* n : notes) {
+                added.push_back(score->addGuitarBend(GuitarBendType::SCOOP, n));
+            }
+        } else {
+            for (const auto& [staff, n] : earliest) {
+                added.push_back(score->addGuitarBend(GuitarBendType::DIP, n));
+            }
+        }
+        break;
+    }
+    case GTech::WhammyBar: {
+        // On each selected staff, from its earliest selected chord to the end of its latest.
+        std::map<staff_idx_t, StaffSpot> spots;
+        for (EngravingItem* e : items) {
+            Chord* c = ornamentChordOf(e);
+            if (!c) {
+                continue;
+            }
+            const Fraction end = e->isWhammyBarSegment() ? toWhammyBarSegment(e)->whammyBar()->tick2() : endIncludingTies(c);
+            StaffSpot& spot = spots[c->staffIdx()];
+            if (!spot.chord || c->tick() < spot.chord->tick()) {
+                spot.chord = c;
+            }
+            spot.end = std::max(spot.end, end);
+        }
+        for (const auto& [staff, spot] : spots) {
+            added.push_back(addWhammyBar(score, spot.chord, spot.end));
+        }
+        break;
+    }
+    case GTech::HammerPull:
+        for (const auto& [track, span] : chordSpans(items)) {
+            added.push_back(addHammerPull(score, span.first, span.last));
+        }
+        break;
+    case GTech::Tap:
+    case GTech::LeftTap: {
+        std::vector<Chord*> chords;
+        for (EngravingItem* e : items) {
+            Chord* c = ornamentChordOf(e);
+            if (c && std::find(chords.begin(), chords.end(), c) == chords.end()) {
+                chords.push_back(c);
+                changed = true; // the same hand again removed it
+                added.push_back(addTapping(score, c, tech == GTech::Tap ? TappingHand::RIGHT : TappingHand::LEFT));
+            }
+        }
+        break;
+    }
+    case GTech::TapPull:
+    case GTech::LeftTapPull:
+        for (const auto& [track, span] : chordSpans(items)) {
+            added.push_back(addTapping(score, span.first, tech == GTech::TapPull ? TappingHand::RIGHT : TappingHand::LEFT));
+            added.push_back(addHammerPull(score, span.first, span.last));
+        }
+        break;
+    }
+}
 
 std::vector<EngravingItem*> applyToSelection(const OrnamentEntry& entry, Score* score,
                                              const std::vector<EngravingItem*>& items, bool& changed)
@@ -272,35 +482,14 @@ std::vector<EngravingItem*> applyToSelection(const OrnamentEntry& entry, Score* 
         break;
     }
     case OKind::Glissando: {
-        // Between the selected notes: two notes are joined, and from more notes each one but the last joins the
-        // next note in its voice (a single note too). A selected glissando keeps its two notes.
-        std::vector<std::pair<Note*, Note*> > pairs;
-        std::vector<Note*> notes;
-        for (EngravingItem* e : items) {
-            if (e->isNote()) {
-                notes.push_back(toNote(e));
-            } else if (e->isGlissandoSegment()) {
-                const Glissando* g = toGlissandoSegment(e)->glissando();
-                if (g->startElement() && g->startElement()->isNote() && g->endElement() && g->endElement()->isNote()) {
-                    pairs.push_back({ toNote(g->startElement()), toNote(g->endElement()) });
-                }
-            }
-        }
-        std::sort(notes.begin(), notes.end(), [](const Note* a, const Note* b) { return a->tick() < b->tick(); });
-        if (notes.size() == 2 && notes[0]->tick() != notes[1]->tick()) {
-            pairs.push_back({ notes[0], notes[1] });
-        } else {
-            for (Note* n : notes) {
-                if (notes.size() == 1 || n->tick() != notes.back()->tick()) {
-                    pairs.push_back({ n, nullptr });
-                }
-            }
-        }
-        for (const auto& [from, to] : pairs) {
+        for (const auto& [from, to] : notePairs(items)) {
             added.push_back(addGlissando(score, from, to, entry));
         }
         break;
     }
+    case OKind::Guitar:
+        applyGuitar(entry.guitar, score, items, changed, added);
+        break;
     }
     std::erase(added, nullptr);
     return added;
@@ -354,6 +543,9 @@ bool addOrnamentAtCaret(const OrnamentEntry& entry, Score* score, ChordRest* cr,
     if (entry.kind == OKind::Trill) {
         return addTrill(score, cr, caret, entry);
     }
+    if (entry.kind == OKind::Guitar && entry.guitar == GTech::WhammyBar) {
+        return addWhammyBar(score, cr, caret);
+    }
     if (!cr->isChord()) {
         return false;
     }
@@ -382,6 +574,20 @@ std::string ornamentPrefill(const EngravingItem* item)
         return glissandoText(toGlissandoSegment(item)->glissando()->glissandoType());
     case ElementType::CHORDLINE:
         return jazzArticulationText(toChordLine(item)->chordLineType(), toChordLine(item)->isStraight());
+    case ElementType::GUITAR_BEND_SEGMENT:
+        switch (toGuitarBendSegment(item)->guitarBend()->bendType()) {
+        case GuitarBendType::BEND: return guitarText(GTech::Bend);
+        case GuitarBendType::DIVE: return guitarText(GTech::Dive);
+        case GuitarBendType::SCOOP: return guitarText(GTech::Scoop);
+        case GuitarBendType::DIP: return guitarText(GTech::Dip);
+        default: return std::string(); // pre-bends, grace-note and slight bends have no entry
+        }
+    case ElementType::HAMMER_ON_PULL_OFF_SEGMENT:
+        return guitarText(GTech::HammerPull);
+    case ElementType::TAPPING:
+        return guitarText(toTapping(item)->hand() == TappingHand::LEFT ? GTech::LeftTap : GTech::Tap);
+    case ElementType::WHAMMY_BAR_SEGMENT:
+        return guitarText(GTech::WhammyBar);
     default:
         return std::string();
     }
@@ -398,7 +604,8 @@ PopoverDef mu::dorico::ornamentsPopover()
     def.icon = muse::ui::IconCode::Code::ORNAMENT;
     def.supportsLocal = false; // Dorico: Return only
     def.itemTypes = { ElementType::ORNAMENT, ElementType::TRILL_SEGMENT, ElementType::ARPEGGIO,
-                      ElementType::GLISSANDO_SEGMENT, ElementType::CHORDLINE };
+                      ElementType::GLISSANDO_SEGMENT, ElementType::CHORDLINE, ElementType::GUITAR_BEND_SEGMENT,
+                      ElementType::HAMMER_ON_PULL_OFF_SEGMENT, ElementType::TAPPING, ElementType::WHAMMY_BAR_SEGMENT };
     def.validate = [](const std::string& text) { return parseOrnament(text).status; };
     def.prefill = ornamentPrefill;
 
@@ -409,10 +616,16 @@ PopoverDef mu::dorico::ornamentsPopover()
         }
         Score* score = notation->elements()->msScore();
         const OKind kind = parsed.entry.kind;
-        // During note input jazz articulations (and glissandos) go on the last input note, which is selected;
-        // the rest wait at the caret for the next note.
-        if (notation->interaction()->noteInput()->isNoteInputMode() && kind != OKind::JazzArticulation
-            && kind != OKind::Glissando) {
+        // During note input jazz articulations, glissandos and the guitar items on a note go on the last input note,
+        // which is selected; the rest wait at the caret for the next note. A bend needs a second note (Dorico: not
+        // in note input).
+        const bool inInput = notation->interaction()->noteInput()->isNoteInputMode();
+        if (inInput && kind == OKind::Guitar && (parsed.entry.guitar == GTech::Bend || parsed.entry.guitar == GTech::Dive)) {
+            return false;
+        }
+        const bool onLastNote = kind == OKind::JazzArticulation || kind == OKind::Glissando
+                                || (kind == OKind::Guitar && parsed.entry.guitar != GTech::WhammyBar);
+        if (inInput && !onLastNote) {
             return pending->add([entry = parsed.entry](Score* score, ChordRest* cr, const Fraction& caret) {
                 return addOrnamentAtCaret(entry, score, cr, caret);
             }, notation);

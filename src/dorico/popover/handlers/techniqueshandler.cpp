@@ -30,6 +30,8 @@
 #include "engraving/dom/articulation.h"
 #include "engraving/dom/chord.h"
 #include "engraving/dom/factory.h"
+#include "engraving/dom/fingering.h"
+#include "engraving/dom/harmonicmark.h"
 #include "engraving/dom/input.h"
 #include "engraving/dom/note.h"
 #include "engraving/dom/pedal.h"
@@ -223,6 +225,165 @@ bool removeRetake(Score* score, const Fraction& tick, staff_idx_t staff)
     score->undoRemoveElement(before);
     score->undoRemoveElement(after);
     addPedal(score, from, to, staff, retakeStart, retakeEnd);
+    return true;
+}
+
+// --- Harmonics and string numbers (spec 61): on the selected notes, or the last input note, which is selected ---
+
+std::vector<Note*> selectedNotes(const std::vector<EngravingItem*>& items)
+{
+    std::vector<Note*> notes;
+    for (EngravingItem* e : items) {
+        if (e->isNote() && std::find(notes.begin(), notes.end(), toNote(e)) == notes.end()) {
+            notes.push_back(toNote(e));
+        }
+    }
+    return notes;
+}
+
+Articulation* harmonicCircle(const Chord* chord)
+{
+    for (Articulation* a : chord->articulations()) {
+        if (a->symId() == SymId::stringsHarmonic) {
+            return a;
+        }
+    }
+    return nullptr;
+}
+
+// A natural harmonic: a diamond head, or `circle`, the o above the staff.
+void setNaturalHarmonic(Score* score, Note* note, bool circle)
+{
+    if (!circle) {
+        note->undoChangeProperty(Pid::HEAD_GROUP, NoteHeadGroup::HEAD_DIAMOND);
+    } else if (note->headGroup() == NoteHeadGroup::HEAD_DIAMOND) {
+        note->undoChangeProperty(Pid::HEAD_GROUP, NoteHeadGroup::HEAD_NORMAL);
+    }
+    Chord* chord = note->chord();
+    if (circle != (harmonicCircle(chord) != nullptr)) {
+        Articulation* a = Factory::createArticulation(score->dummy());
+        a->setSymId(SymId::stringsHarmonic);
+        if (!EditChord::toggleArticulation(score, chord, a)) {
+            delete a;
+        }
+    }
+}
+
+std::vector<HarmonicMark*> harmonicMarksIn(Score* score, const Fraction& from, const Fraction& to, staff_idx_t staff)
+{
+    std::vector<HarmonicMark*> marks;
+    for (const auto& i : score->spannerMap().findOverlapping(from.ticks(), to.ticks() - 1)) {
+        if (i.value->isHarmonicMark() && i.value->staffIdx() == staff) {
+            marks.push_back(toHarmonicMark(i.value));
+        }
+    }
+    return marks;
+}
+
+// noharm: the harmonic look and the marks over the notes' span go.
+void removeHarmonics(Score* score, const std::vector<Note*>& notes)
+{
+    std::map<staff_idx_t, std::pair<Fraction, Fraction> > spans;
+    for (Note* n : notes) {
+        if (n->headGroup() == NoteHeadGroup::HEAD_DIAMOND) {
+            n->undoChangeProperty(Pid::HEAD_GROUP, NoteHeadGroup::HEAD_NORMAL);
+        }
+        if (Articulation* o = harmonicCircle(n->chord())) {
+            score->undoRemoveElement(o);
+        }
+        auto& span = spans.try_emplace(n->staffIdx(), n->tick(), n->tick()).first->second;
+        span = { std::min(span.first, n->tick()), std::max(span.second, techniqueEnd(n->chord())) };
+    }
+    for (const auto& [staff, span] : spans) {
+        for (HarmonicMark* h : harmonicMarksIn(score, span.first, span.second, staff)) {
+            score->undoRemoveElement(h);
+        }
+    }
+}
+
+// An artificial or pinch harmonic: AH / PH over the notes of each staff, replacing the marks there.
+std::vector<EngravingItem*> addHarmonicMarks(Score* score, const std::vector<Note*>& notes, bool pinch)
+{
+    std::map<staff_idx_t, Chord*> firsts;
+    std::map<staff_idx_t, Fraction> ends;
+    for (Note* n : notes) {
+        Chord*& first = firsts[n->staffIdx()];
+        if (!first || n->tick() < first->tick()) {
+            first = n->chord();
+        }
+        Fraction& end = ends[n->staffIdx()];
+        end = std::max(end, techniqueEnd(n->chord()));
+    }
+    std::vector<EngravingItem*> added;
+    for (const auto& [staff, first] : firsts) {
+        for (HarmonicMark* old : harmonicMarksIn(score, first->tick(), ends[staff], staff)) {
+            score->undoRemoveElement(old);
+        }
+        HarmonicMark* h = Factory::createHarmonicMark(score->dummy());
+        h->setTrack(first->track());
+        h->setTrack2(first->track());
+        h->setTick(first->tick());
+        h->setTick2(ends[staff]);
+        const String text = pinch ? u"PH" : u"AH";
+        h->setBeginText(text);
+        h->setContinueText(text);
+        score->undoAddElement(h);
+        added.push_back(h);
+    }
+    return added;
+}
+
+// string 3: a circled number on the note; it replaces the string number the note has.
+EngravingItem* addStringNumber(Score* score, Note* note, int number)
+{
+    const ElementList elements = note->el(); // a copy: removing changes the list
+    for (EngravingItem* e : elements) {
+        if (e->isFingering() && toFingering(e)->textStyleType() == TextStyleType::STRING_NUMBER) {
+            score->undoRemoveElement(e);
+        }
+    }
+    Fingering* f = Factory::createFingering(note, TextStyleType::STRING_NUMBER);
+    f->setTrack(note->track());
+    f->setPlainText(String::number(number));
+    score->undoAddElement(f);
+    return f;
+}
+
+bool applyNoteLevel(const TechniquesEntry& entry, Score* score, mu::notation::INotationPtr notation)
+{
+    const std::vector<Note*> notes = selectedNotes(score->selection().elements());
+    if (notes.empty()) {
+        return false;
+    }
+    mu::notation::INotationUndoStackPtr undoStack = notation->undoStack();
+    undoStack->prepareChanges(ADD_TECHNIQUE);
+    std::vector<EngravingItem*> added;
+    if (entry.stringNumber) {
+        // The top note of each selected chord (a single note when only one is selected).
+        std::vector<Chord*> chords;
+        for (Note* n : notes) {
+            if (std::find(chords.begin(), chords.end(), n->chord()) == chords.end()) {
+                chords.push_back(n->chord());
+                added.push_back(addStringNumber(score, notes.size() == 1 ? n : n->chord()->upNote(), entry.stringNumber));
+            }
+        }
+    } else {
+        switch (entry.harmonic->kind) {
+        case HarmonicEntry::Kind::Natural:
+            for (Note* n : notes) {
+                setNaturalHarmonic(score, n, entry.harmonic->circle);
+            }
+            break;
+        case HarmonicEntry::Kind::Artificial:
+        case HarmonicEntry::Kind::Pinch:
+            added = addHarmonicMarks(score, notes, entry.harmonic->kind == HarmonicEntry::Kind::Pinch);
+            break;
+        case HarmonicEntry::Kind::Remove:
+            removeHarmonics(score, notes);
+            break;
+        }
+    }
+    undoStack->commitChanges();
     return true;
 }
 
@@ -517,6 +678,9 @@ PopoverDef mu::dorico::techniquesPopover()
             return false;
         }
         Score* score = notation->elements()->msScore();
+        if (parsed.entry.harmonic || parsed.entry.stringNumber) {
+            return applyNoteLevel(parsed.entry, score, notation);
+        }
         if (notation->interaction()->noteInput()->isNoteInputMode()) {
             return applyTechniqueCaret(parsed.entry, score, *open, notation);
         }

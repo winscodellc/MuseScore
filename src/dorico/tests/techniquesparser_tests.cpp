@@ -107,16 +107,60 @@ TEST(DoricoTechniquesParser, Pedals)
     EXPECT_EQ(status("unac"), ParseStatus::Incomplete);
 }
 
+TEST(DoricoTechniquesParser, StringNumbers)
+{
+    EXPECT_EQ(ok("string 3").stringNumber, 3);
+    EXPECT_EQ(ok("string3").stringNumber, 3);
+    EXPECT_EQ(ok("String 9").stringNumber, 9);
+    EXPECT_EQ(status("string"), ParseStatus::Incomplete);
+    EXPECT_EQ(status("string 3-"), ParseStatus::Incomplete);
+    EXPECT_EQ(status("string 3->"), ParseStatus::Unsupported);
+    EXPECT_EQ(status("string3->"), ParseStatus::Unsupported);
+    EXPECT_EQ(status("string 0"), ParseStatus::Invalid);
+    EXPECT_EQ(status("string 10"), ParseStatus::Invalid);
+    EXPECT_EQ(status("string 3 4"), ParseStatus::Invalid);
+    EXPECT_EQ(status("strong air pressure"), ParseStatus::Ok);
+}
+
+TEST(DoricoTechniquesParser, Harmonics)
+{
+    using K = HarmonicEntry::Kind;
+    for (const char* t : { "harm", "harmonic", "harmonics", "harm nat", "harm natural" }) {
+        ASSERT_TRUE(ok(t).harmonic.has_value()) << t;
+        EXPECT_EQ(ok(t).harmonic->kind, K::Natural) << t;
+        EXPECT_FALSE(ok(t).harmonic->circle) << t;
+    }
+    for (const char* t : { "harm nh", "harm hh", "harm diamond", "harm nat diamond" }) {
+        EXPECT_EQ(ok(t).harmonic->kind, K::Natural) << t;
+        EXPECT_FALSE(ok(t).harmonic->circle) << t;
+    }
+    EXPECT_TRUE(ok("harm circle").harmonic->circle);
+    EXPECT_TRUE(ok("harm nat circleabove").harmonic->circle);
+    EXPECT_EQ(ok("harm art").harmonic->kind, K::Artificial);
+    EXPECT_EQ(ok("harm ah").harmonic->kind, K::Artificial);
+    EXPECT_EQ(ok("harm ph").harmonic->kind, K::Pinch);
+    EXPECT_EQ(ok("harm art pinch").harmonic->kind, K::Pinch);
+    EXPECT_EQ(ok("harm noharm").harmonic->kind, K::Remove);
+
+    // Standalone entries, no `harm` first.
+    EXPECT_EQ(ok("ah").harmonic->kind, K::Artificial);
+    EXPECT_EQ(ok("ph").harmonic->kind, K::Pinch);
+    EXPECT_EQ(ok("nh").harmonic->kind, K::Natural);
+    EXPECT_EQ(ok("hh").harmonic->kind, K::Natural);
+    EXPECT_EQ(ok("noharm").harmonic->kind, K::Remove);
+    EXPECT_EQ(ok("nh circle").harmonic->circle, true);
+    EXPECT_EQ(status("noh"), ParseStatus::Incomplete);
+    EXPECT_EQ(status("ah xyz"), ParseStatus::Invalid);
+
+    // Valid Dorico words we do not draw.
+    for (const char* t : { "harm nat n1 s1 p4 diamond", "harmonic art p=4 s=D4 paren", "harm open", "harm noopen", "harm white",
+                           "harm touched", "harm stopped", "harm s=3", "harm n=2", "harm art sounding" }) {
+        EXPECT_EQ(status(t), ParseStatus::Unsupported) << t;
+    }
+}
+
 TEST(DoricoTechniquesParser, UnsupportedEntries)
 {
-    EXPECT_EQ(status("string 3"), ParseStatus::Unsupported);
-    EXPECT_EQ(status("string"), ParseStatus::Incomplete);
-    EXPECT_EQ(status("string 0"), ParseStatus::Invalid);
-    EXPECT_EQ(status("strong air pressure"), ParseStatus::Ok);
-
-    EXPECT_EQ(status("harm nat n1 s1 p4 diamond"), ParseStatus::Unsupported);
-    EXPECT_EQ(status("harmonic art p=4 s=D4 paren"), ParseStatus::Unsupported);
-    EXPECT_EQ(status("harm"), ParseStatus::Unsupported);
     EXPECT_EQ(status("har"), ParseStatus::Incomplete);
     EXPECT_EQ(status("harm dia"), ParseStatus::Incomplete);
     EXPECT_EQ(status("harm p="), ParseStatus::Incomplete);

@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -45,6 +46,19 @@ struct TechniqueItem {
     bool hidden = false;        // [pizz]
 };
 
+//! `harm ...` (spec 61), look only: the kind of harmonic and how a natural one is drawn.
+struct HarmonicEntry {
+    enum class Kind {
+        Natural,    // harm, nat, nh, hh
+        Artificial, // art, ah
+        Pinch,      // ph, pinch
+        Remove      // noharm
+    };
+
+    Kind kind = Kind::Natural;
+    bool circle = false; // natural: the circle above the staff instead of a diamond notehead
+};
+
 //! A playing techniques popover entry: `pizz`, `(arco)`, `vibrato->`, `pizz->arco`, `?`, `ped`, `*`, `^`.
 struct TechniquesEntry {
     enum class Pedal {
@@ -59,6 +73,8 @@ struct TechniquesEntry {
     bool withDuration = false;        // vibrato->: a duration line
     bool stop = false;                // ?: ends the open duration line
     Pedal pedal = Pedal::None;
+    std::optional<HarmonicEntry> harmonic; // harm ...
+    int stringNumber = 0;                  // string 3: 1-9, 0 when not a string indicator
 };
 
 struct TechniquesParse {

@@ -141,16 +141,36 @@ TEST(DoricoOrnamentsParser, ArpeggiosAndGlissandos)
 
 TEST(DoricoOrnamentsParser, UnsupportedIncompleteInvalid)
 {
-    for (const char* t : { "slurarp", "bend", "vibbend", "vibscoop", "vibdip", "wbar", "w/bar", "hammer", "ho", "pull",
-                           "po", "hammerpull", "hopo", "hp", "ligado", "lig", "tap", "tappull", "lhtap", "lhtappull" }) {
-        EXPECT_EQ(status(t), ParseStatus::Unsupported) << t;
-    }
-    for (const char* t : { "", "  ", "t", "mo", "arpeg", "gli", "w/", "fallsm", "inv" }) {
+    EXPECT_EQ(status("slurarp"), ParseStatus::Unsupported);
+    for (const char* t : { "", "  ", "t", "mo", "arpeg", "gli", "w/", "fallsm", "inv", "vib", "lhtappu", "hammerp" }) {
         EXPECT_EQ(status(t), ParseStatus::Incomplete) << t;
     }
     for (const char* t : { "xyz", "trills", "arpx", "glissy", "mor x" }) {
         EXPECT_EQ(status(t), ParseStatus::Invalid) << t;
     }
+}
+
+TEST(DoricoOrnamentsParser, GuitarTechniques)
+{
+    using G = OrnamentEntry::GuitarTech;
+    const std::vector<std::pair<std::string, G> > words = {
+        { "bend", G::Bend }, { "vibbend", G::Dive }, { "vibscoop", G::Scoop }, { "vibdip", G::Dip },
+        { "wbar", G::WhammyBar }, { "w/bar", G::WhammyBar },
+        { "hammer", G::HammerPull }, { "ho", G::HammerPull }, { "pull", G::HammerPull }, { "po", G::HammerPull },
+        { "hammerpull", G::HammerPull }, { "hopo", G::HammerPull }, { "hp", G::HammerPull }, { "ligado", G::HammerPull },
+        { "lig", G::HammerPull },
+        { "tap", G::Tap }, { "lhtap", G::LeftTap }, { "tappull", G::TapPull }, { "lhtappull", G::LeftTapPull },
+    };
+    for (const auto& [text, tech] : words) {
+        const OrnamentEntry e = ok(text);
+        EXPECT_EQ(e.kind, Kind::Guitar) << text;
+        EXPECT_EQ(e.guitar, tech) << text;
+    }
+    EXPECT_EQ(ok("BEND").guitar, G::Bend);
+    EXPECT_EQ(status("bends"), ParseStatus::Invalid);
+    EXPECT_EQ(guitarText(G::HammerPull), "hopo");
+    EXPECT_EQ(guitarText(G::LeftTap), "lhtap");
+    EXPECT_EQ(guitarText(G::WhammyBar), "wbar");
 }
 
 TEST(DoricoOrnamentsParser, PrefillText)

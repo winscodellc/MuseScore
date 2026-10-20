@@ -36,7 +36,21 @@ struct OrnamentEntry {
         JazzOrnament,     // brass symbol above the note: flip, smear, jazz turn, bend
         JazzArticulation, // line beside the notehead: plop, scoop, doit, fall
         Arpeggio,
-        Glissando
+        Glissando,
+        Guitar            // spec 61: bends, vibrato bar, hammer-on / pull-off, tapping
+    };
+
+    enum class GuitarTech {
+        Bend,        // bend
+        Dive,        // vibbend: a dive, or a return when the notes ascend
+        Scoop,       // vibscoop
+        Dip,         // vibdip
+        WhammyBar,   // wbar, w/bar: the vibrato bar line
+        HammerPull,  // hammer, pull, hopo, ligado ...: MuseScore picks H or P from the pitches
+        Tap,         // tap: right-hand tapping
+        LeftTap,     // lhtap
+        TapPull,     // tappull: right-hand tapping then a pull-off
+        LeftTapPull  // lhtappull
     };
 
     Kind kind = Kind::Ornament;
@@ -46,6 +60,7 @@ struct OrnamentEntry {
     bool smooth = false;                                               // JazzArticulation: straight line, not a bend
     engraving::ArpeggioType arpeggio = engraving::ArpeggioType::NORMAL;
     std::optional<engraving::GlissandoType> glissando;                 // empty: the default style
+    GuitarTech guitar = GuitarTech::Bend;                              // Guitar
 };
 
 struct OrnamentParse {
@@ -61,4 +76,5 @@ std::string trillText(const engraving::OrnamentInterval& interval);
 std::string arpeggioText(engraving::ArpeggioType type);
 std::string glissandoText(engraving::GlissandoType type);
 std::string jazzArticulationText(engraving::ChordLineType type, bool smooth);
+std::string guitarText(OrnamentEntry::GuitarTech tech);
 }
