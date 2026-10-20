@@ -1,13 +1,13 @@
 <!-- markdownlint-disable -->
 # 45 — Filters (Edit > Filter: Select Only / Deselect Only)
 
-Status: pending review · Depends on: [44-selection](44-selection.md), [46-jump-bar](done/46-jump-bar.md) (discoverability: no default keys), [00-module-skeleton](00-module-skeleton.md)
+Status: done · Depends on: [44-selection](44-selection.md), [46-jump-bar](46-jump-bar.md) (discoverability: no default keys), [00-module-skeleton](../00-module-skeleton.md)
 Dorico refs: `B = https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/` →
 `B write_mode/write_mode_selecting/write_mode_filters_r.html`,
 `B …/write_mode_filters_select_deselect_changing_t.html`,
 `B …/write_mode_filter_notes_by_pitch_dialog_r.html`;
 forum (item names, unverified): https://forums.steinberg.net/t/keyboard-shortcuts-for-filter/112654
-Reference digests: [reference/dorico-editing.md](reference/dorico-editing.md) §4.7 · [reference/musescore-internals.md](reference/musescore-internals.md) §5
+Reference digests: [reference/dorico-editing.md](../reference/dorico-editing.md) §4.7 · [reference/musescore-internals.md](../reference/musescore-internals.md) §5
 
 ## Goal
 Dorico's one-shot **filters**: with a (large) selection made, choose Edit > Filter > *category* to reduce the selection to only that category (**Select Only**, default) or to everything *except* it (**Deselect Only**).
@@ -61,7 +61,7 @@ Upstream edits: none.
 - [x] Filter Notes > Chords keeps only multi-note chords; Notes > Grace notes keeps grace notes.
 - [x] Notes by Pitch `c4` selects only C4 (same name+accidental only, unit tests); `c` (no octave) selects C in every octave; Sounding mode honours transposing instruments (UI: Dawn, sounding E4 on clarinet and horn).
 - [x] Mode persists across restart; default is Select Only.
-- [ ] MuseScore's selection filter panel behaves exactly as before; filters do not alter its flags. **Not checked in the UI**: the driver cannot reach the macOS menu bar. The new code never touches `SelectionFilter` (it only calls `clearSelection()` / `select()`), so check the panel by hand.
+- [x] MuseScore's selection filter panel behaves exactly as before; filters do not alter its flags. Checked via the jump bar with Filter: Dynamics only: the panel was identical before and after, and unticking Dynamics in the panel still excluded dynamics from a fresh range selection.
 - [x] Barlines/beams are not offered as categories (unit test on the table).
 
 UI run (Dynamic_Strings, Dawn demos, filters run from the jump bar): also checked that a filter is not an undo step, that Top Notes + Delete turns only those notes into rests, and the dialog layout.

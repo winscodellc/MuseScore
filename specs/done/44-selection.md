@@ -1,13 +1,13 @@
 <!-- markdownlint-disable -->
 # 44 — Selection: extend, Select More, deselect, Tab cycling
 
-Status: pending review · Depends on: [10-keymap-preset](10-keymap-preset.md), [12-caret-and-navigation](12-caret-and-navigation.md) (arrow-key semantics are owned by 12; this spec owns selection *extension*, *Select More*, *deselect*, *Tab*)
+Status: done · Depends on: [10-keymap-preset](../10-keymap-preset.md), [12-caret-and-navigation](../12-caret-and-navigation.md) (arrow-key semantics are owned by 12; this spec owns selection *extension*, *Select More*, *deselect*, *Tab*)
 Dorico refs: `B = https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/` →
 `B write_mode/write_mode_selecting/write_mode_notes_notation_selecting_deselecting_t.html`,
 `B …/write_mode_selections_types_r.html`, `B …/write_mode_selecting_more_t.html`, `B …/write_mode_selections_extending_t.html`,
 `B …/write_mode_selecting_marquee_t.html`, `B …/write_mode_system_track_bars_selecting_t.html`,
 `B write_mode/write_mode_navigation/write_mode_navigation_items_music_area_t.html`
-Reference digests: [reference/dorico-editing.md](reference/dorico-editing.md) §4 · [reference/musescore-internals.md](reference/musescore-internals.md) §5
+Reference digests: [reference/dorico-editing.md](../reference/dorico-editing.md) §4 · [reference/musescore-internals.md](../reference/musescore-internals.md) §5
 
 ## Goal
 Selection gestures and keys follow Dorico: extend by item / to bar end-start, Select All = whole flow, Select More in 3 stages, Deselect All, Tab cycling through items at a position.
@@ -96,7 +96,7 @@ Upstream edits: none (keymap via spec 10). `Shift`-double-click and beam/stem cl
 - [x] Select More with two dynamics selected selects all dynamics between them; notes only in selected voice/staff.
 - [x] Changing the selection by any other means resets the stage counter.
 - [x] `Tab` moves to another item at the same segment; `Shift+Tab` back; `Alt+Right/Left` no longer bound to it.
-- [ ] `dorico/select-same-pitch-onwards` on a C4 selects every later C4 in that voice only. **Not checked**: the command has no key or menu item and the UI test driver cannot reach the macOS menu bar, so it was only compiled. Check it when a key or the command search can reach it.
+- [x] `dorico/select-same-pitch-onwards` on a C4 selects every later C4 in that voice only. Checked via the jump bar on the first system of a two-voice score (voice-2 C4s and other pitches stayed unselected); later systems not inspected.
 
 ## Tests
 - `src/dorico/tests/selectmore_tests.cpp`: pure `computeRange`/`collect` over fixture scores `selectmore_data/*.mscx` (dynamics in 3 bars across 2 systems): assert the set of selected items per stage; same scaffolding as `src/engraving/tests/selectionrange_tests.cpp`.

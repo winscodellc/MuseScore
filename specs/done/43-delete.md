@@ -1,14 +1,14 @@
 <!-- markdownlint-disable -->
 # 43 — Delete, Remove Rests, Delete Bars
 
-Status: pending review · Depends on: [00-module-skeleton](00-module-skeleton.md), [10-keymap-preset](10-keymap-preset.md), [11-note-input-modes](done/11-note-input-modes.md) (Insert mode flag)
+Status: done · Depends on: [00-module-skeleton](../00-module-skeleton.md), [10-keymap-preset](../10-keymap-preset.md), [11-note-input-modes](11-note-input-modes.md) (Insert mode flag)
 Dorico refs: `B = https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/` →
 `B write_mode/write_mode_arranging_tools/write_mode_deleting_items_t.html`,
 `B notation_reference/notation_reference_bars/notation_reference_bars_deleting_contents_t.html`,
 `B notation_reference/notation_reference_bars/notation_reference_bars_deleting_t.html`,
 `B notation_reference/notation_reference_rests/notation_reference_rests_deleting_t.html`,
 `B write_mode/write_mode_insert_mode/write_mode_insert_mode_c.html`
-Reference digests: [reference/dorico-editing.md](reference/dorico-editing.md) §3 · [reference/musescore-internals.md](reference/musescore-internals.md) §3, §4
+Reference digests: [reference/dorico-editing.md](../reference/dorico-editing.md) §3 · [reference/musescore-internals.md](../reference/musescore-internals.md) §3, §4
 
 ## Goal
 `Delete`/`Backspace` behave like Dorico: Insert mode closes the gap, otherwise implicit rests; the selection moves to the nearest logical item; Remove Rests and Delete Bars exist as commands.
@@ -72,12 +72,12 @@ Upstream edits: none.
 - [x] Insert on: same delete → following notes shift left, no rests, measure content shortened per `cmdTimeDelete` behaviour.
 - [x] Deleting the last note in a voice selects the previous note in that voice.
 - [x] Deleting selected bars' contents (bars selected, Insert off) leaves empty bars and barlines.
-- [ ] `dorico/delete-bars` removes N selected measures; later music moves left; one undo restores.
-- [ ] `dorico/remove-rests` on voice-2 rests removes them; voice-1 rests become invisible; one undo restores both.
+- [x] `dorico/delete-bars` removes N selected measures; later music moves left; one undo restores.
+- [x] `dorico/remove-rests` on voice-2 rests removes them; voice-1 rests become invisible; one undo restores both.
 - [x] Time signature delete re-bars with the previous time signature; clef delete keeps pitches.
 - [x] Note input active: Backspace behaviour unchanged from upstream.
 
-Not ticked: the two Edit-menu boxes (`delete-bars`, `remove-rests`). The UI driver cannot click the native macOS menu bar, so they need a manual check (Edit > Delete Bars; Edit > Remove Rests on voice-2 and voice-1 rests).
+Checked in the UI via the jump bar (`J`, type the title). That run found a bug: `selectedRests()` stopped a range walk on `endSegment()`, which `next1(ChordRest)` can skip, so Remove Rests ran to the end of the score. It now stops on `tick() < tickEnd()`; re-checked for bar 2, bars 2-3 and the last bar.
 
 ## Tests
 - `dorico_tests` links only `dorico` and cannot load scores (every test there is pure), so no `ScoreRW` fixtures. The code is engine glue; it is checked in the UI (acceptance list above).

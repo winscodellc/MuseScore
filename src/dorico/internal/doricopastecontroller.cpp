@@ -270,7 +270,7 @@ std::vector<Rest*> selectedRests(const Score* score)
     std::vector<Rest*> rests;
     const Selection& sel = score->selection();
     if (sel.isRange()) {
-        for (Segment* s = sel.startSegment(); s && s != sel.endSegment(); s = s->next1(SegmentType::ChordRest)) {
+        for (Segment* s = sel.startSegment(); s && s->tick() < sel.tickEnd(); s = s->next1(SegmentType::ChordRest)) {
             for (track_idx_t t = staff2track(sel.staffStart()); t < staff2track(sel.staffEnd()); ++t) {
                 if (s->element(t) && s->element(t)->isRest()) {
                     rests.push_back(toRest(s->element(t)));
