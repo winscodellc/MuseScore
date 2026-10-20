@@ -250,10 +250,10 @@ Layout selector disabled; view options Page Width and Whole Page. Preview shows 
 | Section | Contents |
 |---|---|
 | Destination | Printer (copies) or graphics file (format, colour mode, resolution, file name, folder) |
-| Job Type | All pages / page range / flow range; one PDF per flow; arrangement (2-up, booklet) |
+| Job Type | Job type menu (Normal / Spreads / 2-up / Booklet); Print range All / Pages (`1-4`, `3-`, `1,3,5-8`) / Flows (Print Flows dialog); separate file for each flow (PDF) |
 | Page Setup | Paper size, orientation, scale |
-| Duplex Printing | One- or two-sided |
-| Annotations | Crop marks, border |
+| Duplex Printing | Print on (One side only / Both sides manually / Both sides automatically), Flip image (portrait), Flip image (landscape) (Flip automatically / long side / short side), Reverse order of outward pages |
+| Annotations | Crop marks, Border, Date and time, Watermark (+ text), View options |
 | Print button | Print, Export, or Print and Export |
 
 ## 6. Coverage map (every section above -> a spec)
