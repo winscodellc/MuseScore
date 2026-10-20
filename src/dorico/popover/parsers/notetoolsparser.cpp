@@ -73,9 +73,16 @@ bool isOneOf(const std::string& s, const std::vector<std::string>& words)
     return std::find(words.begin(), words.end(), s) != words.end();
 }
 
-// The other note tools (invert, reverse, rotate, repeat): valid Dorico, not implemented.
-const std::vector<std::string> UNSUPPORTED_TOOLS = {
-    "inv", "invert", "inversion", "mirror", "ret", "retrograde", "rev", "reverse", "rot", "rotate", "rep", "repeat"
+// The other note tools (repeat): valid Dorico, not implemented.
+const std::vector<std::string> UNSUPPORTED_TOOLS = { "rep", "repeat" };
+
+const std::vector<std::string> INVERT_WORDS = { "inv", "invert", "inversion", "mirror" };
+const std::vector<std::string> REVERSE_WORDS = { "ret", "retrograde", "rev", "reverse" };
+const std::vector<std::string> ROTATE_WORDS = { "rot", "rotate" };
+// Everything else a transformation entry may contain.
+const std::vector<std::string> TRANSFORM_MODIFIERS = {
+    "pitch", "pt", "pit", "rhythm", "rhy", "rm", "diatonic", "diat", "chromatic", "chrom", "root", "first", "top", "bottom",
+    "backwards", "bw", "prev", "player", "voice"
 };
 
 const std::vector<std::string> SEMITONE_UNITS = { "s", "st", "semitones" };
@@ -302,6 +309,158 @@ ParseStatus worse(ParseStatus a, ParseStatus b)
     };
     return rank(a) >= rank(b) ? a : b;
 }
+
+// A note name and its octave: `c4`, `eb4`, `g#6`, `bb-1`. `partial` for one that still lacks its octave.
+bool parseCentreName(const std::string& w, TransformSpec& spec, bool& partial)
+{
+    static const int LETTER[7] = { 5, 6, 0, 1, 2, 3, 4 }; // a..g -> C = 0
+    partial = false;
+    if (w.empty() || w[0] < 'a' || w[0] > 'g') {
+        return false;
+    }
+    size_t i = 1;
+    int alter = 0;
+    while (i < w.size() && (w[i] == '#' || w[i] == 'b')) {
+        alter += w[i] == '#' ? 1 : -1;
+        ++i;
+    }
+    const size_t d = i + (i < w.size() && w[i] == '-' ? 1 : 0);
+    if (d == w.size()) {
+        partial = true; // `e`, `eb`, `e-`
+        return false;
+    }
+    if (std::abs(alter) > 2 || w.size() - d > 2 || !std::all_of(w.begin() + d, w.end(), isNoteToolsDigit)) {
+        return false;
+    }
+    spec.letter = LETTER[w[0] - 'a'];
+    spec.alter = alter;
+    spec.octave = std::stoi(w.substr(i));
+    return true;
+}
+
+// Invert, reverse and rotate entries: `inv`, `inveb4`, `ret inv pt`, `rot rm bw 3`. nullopt if the text is not one.
+std::optional<NoteToolsParse> parseTransform(const std::string& lt)
+{
+    std::vector<std::string> words = splitWords(lt);
+    if (words.empty()) {
+        return std::nullopt;
+    }
+    std::vector<std::string> tools = INVERT_WORDS;
+    tools.insert(tools.end(), REVERSE_WORDS.begin(), REVERSE_WORDS.end());
+    tools.insert(tools.end(), ROTATE_WORDS.begin(), ROTATE_WORDS.end());
+
+    NoteToolsParse out;
+    if (!isOneOf(words[0], tools)) {
+        if (isProperPrefixOfAny(words[0], tools)) {
+            out.status = words.size() == 1 ? ParseStatus::Incomplete : ParseStatus::Invalid;
+            return out;
+        }
+        // `inveb4`, `rot2`: the tool word with the rest glued on
+        std::string tool;
+        for (const std::string& t : tools) {
+            if (t.size() < words[0].size() && words[0].compare(0, t.size(), t) == 0 && t.size() > tool.size()) {
+                tool = t;
+            }
+        }
+        if (tool.empty()) {
+            return std::nullopt;
+        }
+        words.insert(words.begin() + 1, words[0].substr(tool.size()));
+        words[0] = tool;
+    }
+
+    std::vector<std::string> vocabulary = tools;
+    vocabulary.insert(vocabulary.end(), TRANSFORM_MODIFIERS.begin(), TRANSFORM_MODIFIERS.end());
+
+    TransformSpec spec;
+    bool inv = false, rev = false, rot = false, pt = false, rm = false;
+    bool centreSet = false, invertOnly = false, rotateOnly = false, backwards = false, needSteps = false;
+    ParseStatus status = ParseStatus::Ok;
+    for (size_t i = 0; i < words.size(); ++i) {
+        const std::string& w = words[i];
+        const bool last = i + 1 == words.size();
+        bool partial = false;
+        if (isOneOf(w, INVERT_WORDS)) {
+            inv = true;
+        } else if (isOneOf(w, REVERSE_WORDS)) {
+            rev = true;
+        } else if (isOneOf(w, ROTATE_WORDS)) {
+            rot = true;
+        } else if (w == "pitch" || w == "pt" || w == "pit") {
+            pt = true;
+        } else if (w == "rhythm" || w == "rhy" || w == "rm") {
+            rm = true;
+        } else if (w == "diatonic" || w == "diat" || w == "chromatic" || w == "chrom") {
+            spec.diatonic = w[0] == 'd';
+            invertOnly = true;
+        } else if (w == "root" || w == "first" || w == "top" || w == "bottom") {
+            status = centreSet ? ParseStatus::Invalid : status;
+            centreSet = true;
+            spec.centre = w == "root" ? InvertCentre::Root : w == "first" ? InvertCentre::First
+                          : w == "top" ? InvertCentre::Top : InvertCentre::Bottom;
+            invertOnly = true;
+        } else if (w == "backwards" || w == "bw" || w == "prev" || w == "-") {
+            backwards = true;
+            rotateOnly = true;
+            needSteps = last; // `rot bw` waits for its count
+        } else if (w == "voice") {
+            // the transformation only touches the selected voices anyway
+        } else if (w == "player") {
+            status = worse(status, ParseStatus::Unsupported);
+        } else if (isNoteToolsDigit(w[0]) || (w[0] == '-' && w.size() > 1 && isNoteToolsDigit(w[1]))) {
+            const bool negative = w[0] == '-';
+            const std::string digits = w.substr(negative ? 1 : 0);
+            if (digits.size() > 3 || !std::all_of(digits.begin(), digits.end(), isNoteToolsDigit)) {
+                status = ParseStatus::Invalid;
+                continue;
+            }
+            backwards = backwards || negative;
+            spec.steps = std::stoi(digits);
+            rotateOnly = true;
+            needSteps = false;
+        } else if (parseCentreName(w, spec, partial)) {
+            status = centreSet ? ParseStatus::Invalid : status;
+            centreSet = true;
+            spec.centre = InvertCentre::Pitch;
+            invertOnly = true;
+        } else if (last && (partial || isProperPrefixOfAny(w, vocabulary))) {
+            status = worse(status, ParseStatus::Incomplete);
+        } else {
+            status = ParseStatus::Invalid;
+        }
+    }
+    if (needSteps) {
+        status = worse(status, ParseStatus::Incomplete);
+    }
+
+    const bool misplaced = (rot && (inv || rev)) || (rotateOnly && !rot) || (invertOnly && !inv);
+    if (misplaced) {
+        status = ParseStatus::Invalid;
+    }
+    spec.op = rot ? TransformOp::Rotate : rev ? TransformOp::Reverse : TransformOp::Invert;
+    spec.invert = inv;
+    if (spec.op == TransformOp::Invert) {
+        if (rm) {
+            status = ParseStatus::Invalid; // there is no rhythm to invert
+        }
+        spec.pitches = true;
+        spec.rhythms = false;
+    } else {
+        spec.pitches = pt || !rm;
+        spec.rhythms = rm || !pt;
+        if (inv && !spec.pitches) {
+            status = ParseStatus::Invalid;
+        }
+    }
+    if (backwards) {
+        spec.steps = -spec.steps;
+    }
+    out.status = status;
+    if (status == ParseStatus::Ok) {
+        out.transform = spec;
+    }
+    return out;
+}
 }
 
 NoteToolsParse mu::dorico::parseNoteTools(const std::string& raw)
@@ -312,6 +471,9 @@ NoteToolsParse mu::dorico::parseNoteTools(const std::string& raw)
     if (text.empty()) {
         out.status = ParseStatus::Incomplete;
         return out;
+    }
+    if (std::optional<NoteToolsParse> transform = parseTransform(lower(text))) {
+        return *transform;
     }
     if (const std::optional<ParseStatus> other = otherToolStatus(text)) {
         out.status = *other;

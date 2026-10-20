@@ -58,6 +58,13 @@ target_sources(dorico PRIVATE
     internal/filters.h
     internal/filtersettings.h
     internal/selectmore.cpp
+    internal/transact.h
+    internal/transformcontroller.cpp
+    internal/transformcontroller.h
+    internal/transform.cpp
+    internal/transformapply.cpp
+    internal/transformapply.h
+    internal/transform.h
     internal/selectmore.h
     internal/selectionsummary.cpp
     internal/selectionsummary.h

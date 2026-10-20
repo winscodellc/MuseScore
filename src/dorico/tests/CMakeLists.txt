@@ -47,6 +47,7 @@ set(MODULE_TEST_SRC
     ${CMAKE_CURRENT_LIST_DIR}/repeatsparser_tests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/techniquesparser_tests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/tempoparser_tests.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/transform_tests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/timesigparser_tests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/tupletparser_tests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/trackblocks_tests.cpp

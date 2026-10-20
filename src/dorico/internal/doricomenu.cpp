@@ -171,6 +171,23 @@ const std::vector<MenuSpec>& mu::dorico::doricoMenus()
                 item("command://notation/pitch-spell-flats"),
                 item("menu-enharmonic-spelling"),
             }),
+            menu("dorico-menu-transform", "Transform", {
+                menu("dorico-menu-transform-pitches", "Pitches", {
+                    item("command://dorico/transform/invert-pitches"),
+                    item("command://dorico/transform/reverse-pitches"),
+                    item("command://dorico/transform/reverse-invert-pitches"),
+                    item("command://dorico/transform/rotate-pitches"),
+                }),
+                menu("dorico-menu-transform-rhythm", "Rhythm", {
+                    item("command://dorico/transform/reverse-rhythms"),
+                    item("command://dorico/transform/rotate-rhythms"),
+                }),
+                menu("dorico-menu-transform-all", "All", {
+                    item("command://dorico/transform/reverse-all"),
+                    item("command://dorico/transform/reverse-invert-all"),
+                    item("command://dorico/transform/rotate-all"),
+                }),
+            }),
             item("menu-voices"),
             item("menu-tools-measures"),
             sep(),

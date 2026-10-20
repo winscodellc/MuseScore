@@ -119,6 +119,15 @@ static std::vector<CommandInfo> makeCommandInfos()
                      "Applies the copied articulations and slurs to the notes from the selected one on"));
     v.push_back(info(DORICO_EXPLODE_COMMAND, "Explode", "Spreads the notes of the copied chords over the selected staves, top-down"));
     v.push_back(info(DORICO_REDUCE_COMMAND, "Reduce", "Merges the copied staves onto the selected staves, top-down"));
+    static const char* TRANSFORM_TITLES[9] = {
+        "Invert Pitches...", "Reverse Pitches", "Reverse and Invert Pitches...", "Rotate Pitches...", "Reverse Rhythms",
+        "Rotate Rhythms...", "Reverse Pitches and Rhythms", "Reverse and Invert Pitches and Reverse Rhythms...",
+        "Rotate Pitches and Rhythms..."
+    };
+    for (size_t i = 0; i < DORICO_TRANSFORM_COMMANDS.size(); ++i) {
+        v.push_back(info(DORICO_TRANSFORM_COMMANDS[i], TRANSFORM_TITLES[i],
+                         "Inverts, reverses or rotates the pitches and/or rhythms of the selected notes"));
+    }
     v.push_back(info(DORICO_REMOVE_RESTS_COMMAND, "Remove Rests", "Removes the selected rests (voice 1 rests are hidden)"));
     v.push_back(info(DORICO_DELETE_BARS_COMMAND, "Delete Bars", "Deletes the selected bars; the music after them moves left"));
     v.push_back(info(DORICO_EXTEND_TO_BAR_START_COMMAND, "Extend Selection to Bar Start", "Extends the selection back to the start of its bar"));

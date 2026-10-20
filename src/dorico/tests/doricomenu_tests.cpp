@@ -22,6 +22,7 @@
 
 #include <gtest/gtest.h>
 
+#include "dorico/doricocommands.h"
 #include "dorico/internal/doricomenu.h"
 
 using namespace mu::dorico;
@@ -55,5 +56,30 @@ TEST(DoricoMenu, WindowHasTheFiveModes)
     }
     for (const char* mode : { "setup", "write", "engrave", "play", "print" }) {
         EXPECT_TRUE(ids.contains(QString("command://dorico/mode-") + mode)) << mode;
+    }
+}
+
+TEST(DoricoMenu, WriteHasTheTransformSubmenu)
+{
+    // Spec 65: Pitches (4 items), Rhythm (2) and All (3), every item a registered command
+    const MenuSpec& write = doricoMenus()[3];
+    const MenuSpec* transform = nullptr;
+    for (const MenuSpec& child : write.children) {
+        if (child.id == "dorico-menu-transform") {
+            transform = &child;
+        }
+    }
+    ASSERT_NE(transform, nullptr);
+    ASSERT_EQ(transform->children.size(), 3u);
+    EXPECT_EQ(transform->children[0].title, "Pitches");
+    EXPECT_EQ(transform->children[1].title, "Rhythm");
+    EXPECT_EQ(transform->children[2].title, "All");
+    EXPECT_EQ(transform->children[0].children.size(), 4u);
+    EXPECT_EQ(transform->children[1].children.size(), 2u);
+    EXPECT_EQ(transform->children[2].children.size(), 3u);
+
+    const QStringList placed = placedItemIds(doricoMenus());
+    for (const auto& command : DORICO_TRANSFORM_COMMANDS) {
+        EXPECT_TRUE(placed.contains(QString::fromStdString(command.toString()))) << command.toString();
     }
 }

@@ -75,6 +75,8 @@ qt_add_qml_module(dorico_qml
         DoricoMixer.qml
         InspectorSection.qml
         FilterNotesByPitchDialog.qml
+        InvertPitchesDialog.qml
+        RotateDialog.qml
         JumpBar.qml
         ResourceDropdown.qml
         trackcolor.js

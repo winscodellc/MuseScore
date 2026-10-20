@@ -44,6 +44,7 @@
 #include "internal/doricoselectioncontroller.h"
 #include "internal/jumpbar/jumpbarcontroller.h"
 #include "internal/popovercontroller.h"
+#include "internal/transformcontroller.h"
 
 #include "log.h"
 
@@ -100,6 +101,8 @@ void DoricoModule::resolveImports()
             ir->registerPageUri(modeUri(mode));
         }
         ir->registerQmlUri(muse::Uri("musescore://dorico/filternotesbypitch"), "MuseScore.Dorico", "FilterNotesByPitchDialog"); // spec 45
+        ir->registerQmlUri(muse::Uri("musescore://dorico/transforminvert"), "MuseScore.Dorico", "InvertPitchesDialog"); // spec 65
+        ir->registerQmlUri(muse::Uri("musescore://dorico/transformrotate"), "MuseScore.Dorico", "RotateDialog");
     }
 
     auto cr = globalIoc()->resolve<muse::rcommand::ICommandsRegister>(mname);
@@ -144,6 +147,7 @@ void DoricoContext::registerExports()
     m_noteInputController = std::make_shared<DoricoNoteInputController>(iocContext());
     m_pasteController = std::make_shared<DoricoPasteController>(iocContext());
     m_selectionController = std::make_shared<DoricoSelectionController>(iocContext());
+    m_transformController = std::make_shared<DoricoTransformController>(iocContext());
     m_popoverController = std::make_shared<PopoverController>(iocContext());
     m_jumpBarController = std::make_shared<JumpBarController>(iocContext());
 
@@ -171,6 +175,7 @@ void DoricoContext::onInit(const IApplication::RunMode&)
     m_noteInputController->init();
     m_pasteController->init();
     m_selectionController->init();
+    m_transformController->init();
     m_popoverController->init();
     m_jumpBarController->init();
 }

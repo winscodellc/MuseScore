@@ -158,6 +158,8 @@ CommandState DoricoCommandsState::commandState(const Command& command) const
         pasteSpecialEnabled = score && pasteSpecialCanExplode(score);
     } else if (command == DORICO_REDUCE_COMMAND) {
         pasteSpecialEnabled = score && pasteSpecialCanReduce(score);
+    } else if (std::find(DORICO_TRANSFORM_COMMANDS.begin(), DORICO_TRANSFORM_COMMANDS.end(), command) != DORICO_TRANSFORM_COMMANDS.end()) {
+        pasteSpecialEnabled = score && !score->selection().noteList().empty();
     } else if (command == DORICO_PASTE_INTO_NEW_VOICE_COMMAND || command == DORICO_PASTE_ARTICULATIONS_COMMAND
                || std::find(DORICO_PASTE_INTO_VOICE_COMMANDS.begin(), DORICO_PASTE_INTO_VOICE_COMMANDS.end(), command)
                != DORICO_PASTE_INTO_VOICE_COMMANDS.end()) {

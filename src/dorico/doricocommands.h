@@ -125,6 +125,19 @@ inline static const muse::rcommand::Command DORICO_PASTE_ARTICULATIONS_COMMAND("
 inline static const muse::rcommand::Command DORICO_EXPLODE_COMMAND("command://dorico/explode");
 inline static const muse::rcommand::Command DORICO_REDUCE_COMMAND("command://dorico/reduce");
 
+// Write > Transform (spec 65), in the order of the menu: Pitches, Rhythm, All
+inline static const std::array<muse::rcommand::Command, 9> DORICO_TRANSFORM_COMMANDS = {
+    muse::rcommand::Command("command://dorico/transform/invert-pitches"),
+    muse::rcommand::Command("command://dorico/transform/reverse-pitches"),
+    muse::rcommand::Command("command://dorico/transform/reverse-invert-pitches"),
+    muse::rcommand::Command("command://dorico/transform/rotate-pitches"),
+    muse::rcommand::Command("command://dorico/transform/reverse-rhythms"),
+    muse::rcommand::Command("command://dorico/transform/rotate-rhythms"),
+    muse::rcommand::Command("command://dorico/transform/reverse-all"),
+    muse::rcommand::Command("command://dorico/transform/reverse-invert-all"),
+    muse::rcommand::Command("command://dorico/transform/rotate-all")
+};
+
 // Delete family (spec 43); Delete itself is `notation/delete`, hooked in DoricoPasteController
 inline static const muse::rcommand::Command DORICO_REMOVE_RESTS_COMMAND("command://dorico/remove-rests");
 inline static const muse::rcommand::Command DORICO_DELETE_BARS_COMMAND("command://dorico/delete-bars");

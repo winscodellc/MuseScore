@@ -62,13 +62,44 @@ struct IntervalSteps {
     int semitones = 0;
 };
 
-//! A note tools entry (spec 35): adds notes at intervals (`3,6`), or transposes (`t-min6`). Invert, reverse, rotate, repeat
-//! and the mappings, and quarter tones, are `Unsupported`.
+enum class TransformOp {
+    Invert,
+    Reverse, // with `invert` set: reverse and invert
+    Rotate
+};
+
+//! The pitch an inversion mirrors around.
+enum class InvertCentre {
+    Outermost, // the highest and lowest notes of the selection swap
+    Pitch,     // `letter`, `alter`, `octave`
+    Root,      // the tonic of the key
+    First,     // the first note of the selection
+    Top,       // the top note of the first chord
+    Bottom
+};
+
+//! Invert / reverse / rotate (spec 65): `inv`, `ret inv pt`, `rot rm bw 3`.
+struct TransformSpec {
+    TransformOp op = TransformOp::Invert;
+    bool pitches = true;
+    bool rhythms = false;
+    bool invert = false; // pitches are inverted (always for Invert, optional for Reverse)
+    bool diatonic = true;
+    InvertCentre centre = InvertCentre::Outermost;
+    int letter = 0; // C = 0 ... B = 6
+    int alter = 0;
+    int octave = 4; // middle C is C4
+    int steps = 1;  // Rotate: positive = forwards, negative = backwards
+};
+
+//! A note tools entry (spec 35): adds notes at intervals (`3,6`), or transposes (`t-min6`); or a transformation (spec 65).
+//! Repeat, the mappings and quarter tones are `Unsupported`.
 struct NoteToolsParse {
     ParseStatus status = ParseStatus::Invalid;
     bool transpose = false;
     NoteToolsScope scope = NoteToolsScope::All;
     std::vector<IntervalSpec> intervals;
+    std::optional<TransformSpec> transform;
 };
 
 NoteToolsParse parseNoteTools(const std::string& text);

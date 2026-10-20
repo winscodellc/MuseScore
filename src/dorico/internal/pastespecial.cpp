@@ -56,6 +56,7 @@
 #include "notation/inotationundostack.h"
 
 #include "pasteplanner.h"
+#include "transact.h"
 
 #include "log.h"
 
@@ -407,21 +408,6 @@ bool pasteAtInVoice(Score* score, Transaction& tx, const ByteArray& data, staff_
         return false;
     }
     exchange();
-    return true;
-}
-
-bool transact(const INotationPtr& notation, const TranslatableString& title, const std::function<bool(Score*, Transaction&)>& body)
-{
-    Score* score = notation->elements()->msScore();
-    INotationUndoStackPtr undoStack = notation->undoStack();
-    undoStack->prepareChanges(title);
-    Transaction& tx = score->transactionManager()->currentOrDummyTransaction();
-    if (!body(score, tx)) {
-        undoStack->rollbackChanges();
-        LOGW() << "Paste special: no room or nothing to do at the destination";
-        return false;
-    }
-    undoStack->commitChanges();
     return true;
 }
 

@@ -179,10 +179,117 @@ TEST(DoricoNoteToolsParserTests, TransposeTakesOneInterval)
 
 TEST(DoricoNoteToolsParserTests, OtherToolsAreUnsupported)
 {
-    for (const char* text : { "inv", "invert", "mirror", "rev", "ret", "rot", "rotate 2", "rep 2 pit", "c4=eb4", "c4=eb4,f4=g4",
-                              "c M to c m", "inv diat" }) {
+    for (const char* text : { "rep", "repeat 2", "rep 2 pit", "c4=eb4", "c4=eb4,f4=g4", "c M to c m", "rev player" }) {
         expectStatus(text, ParseStatus::Unsupported);
     }
+}
+
+namespace {
+TransformSpec transformOf(const std::string& text)
+{
+    const NoteToolsParse p = ok(text);
+    EXPECT_TRUE(p.transform.has_value()) << text;
+    return p.transform.value_or(TransformSpec());
+}
+}
+
+TEST(DoricoNoteToolsParserTests, InvertEntries)
+{
+    for (const char* text : { "inv", "invert", "inversion", "mirror", "INV" }) {
+        const TransformSpec t = transformOf(text);
+        EXPECT_EQ(t.op, TransformOp::Invert) << text;
+        EXPECT_TRUE(t.pitches);
+        EXPECT_FALSE(t.rhythms);
+        EXPECT_TRUE(t.invert);
+        EXPECT_EQ(t.centre, InvertCentre::Outermost);
+        EXPECT_TRUE(t.diatonic);
+    }
+}
+
+TEST(DoricoNoteToolsParserTests, InvertCentres)
+{
+    TransformSpec t = transformOf("inveb4"); // the manual's example
+    EXPECT_EQ(t.centre, InvertCentre::Pitch);
+    EXPECT_EQ(t.letter, 2);
+    EXPECT_EQ(t.alter, -1);
+    EXPECT_EQ(t.octave, 4);
+
+    t = transformOf("inv g#6");
+    EXPECT_EQ(t.letter, 4);
+    EXPECT_EQ(t.alter, 1);
+    EXPECT_EQ(t.octave, 6);
+
+    t = transformOf("inv bb3"); // B flat, not bottom
+    EXPECT_EQ(t.letter, 6);
+    EXPECT_EQ(t.alter, -1);
+
+    EXPECT_EQ(transformOf("inv root").centre, InvertCentre::Root);
+    EXPECT_EQ(transformOf("inv first").centre, InvertCentre::First);
+    EXPECT_EQ(transformOf("inv top").centre, InvertCentre::Top);
+    EXPECT_EQ(transformOf("inv bottom").centre, InvertCentre::Bottom);
+    EXPECT_FALSE(transformOf("inv chrom c4").diatonic);
+    EXPECT_TRUE(transformOf("inv chromatic diat").diatonic);
+}
+
+TEST(DoricoNoteToolsParserTests, ReverseEntries)
+{
+    for (const char* text : { "ret", "retrograde", "rev", "reverse" }) {
+        const TransformSpec t = transformOf(text);
+        EXPECT_EQ(t.op, TransformOp::Reverse) << text;
+        EXPECT_TRUE(t.pitches);
+        EXPECT_TRUE(t.rhythms);
+        EXPECT_FALSE(t.invert);
+    }
+    TransformSpec t = transformOf("rev pt voice"); // the manual's example
+    EXPECT_TRUE(t.pitches);
+    EXPECT_FALSE(t.rhythms);
+    t = transformOf("rev rm");
+    EXPECT_FALSE(t.pitches);
+    EXPECT_TRUE(t.rhythms);
+    t = transformOf("ret invert");
+    EXPECT_EQ(t.op, TransformOp::Reverse);
+    EXPECT_TRUE(t.invert);
+    EXPECT_TRUE(t.pitches);
+    EXPECT_TRUE(t.rhythms);
+    t = transformOf("rev inv eb4 pitch");
+    EXPECT_TRUE(t.invert);
+    EXPECT_EQ(t.centre, InvertCentre::Pitch);
+    EXPECT_FALSE(t.rhythms);
+}
+
+TEST(DoricoNoteToolsParserTests, RotateEntries)
+{
+    TransformSpec t = transformOf("rot");
+    EXPECT_EQ(t.op, TransformOp::Rotate);
+    EXPECT_EQ(t.steps, 1);
+    EXPECT_TRUE(t.pitches);
+    EXPECT_TRUE(t.rhythms);
+    EXPECT_EQ(transformOf("rotate 3").steps, 3);
+    EXPECT_EQ(transformOf("rot3").steps, 3);
+    EXPECT_EQ(transformOf("rot -3").steps, -3);
+    EXPECT_EQ(transformOf("rot bw 3").steps, -3);
+    EXPECT_EQ(transformOf("rot backwards 2").steps, -2);
+    EXPECT_EQ(transformOf("rot prev 2").steps, -2);
+    t = transformOf("rot rm bw 3"); // the manual's example
+    EXPECT_FALSE(t.pitches);
+    EXPECT_TRUE(t.rhythms);
+    EXPECT_EQ(t.steps, -3);
+    t = transformOf("rot pit 2");
+    EXPECT_TRUE(t.pitches);
+    EXPECT_FALSE(t.rhythms);
+}
+
+TEST(DoricoNoteToolsParserTests, TransformMisuse)
+{
+    expectStatus("inv rm", ParseStatus::Invalid);
+    expectStatus("rev inv rm", ParseStatus::Invalid);
+    expectStatus("inv 3", ParseStatus::Invalid);
+    expectStatus("rev 3", ParseStatus::Invalid);
+    expectStatus("rev eb4", ParseStatus::Invalid);
+    expectStatus("rot inv", ParseStatus::Invalid);
+    expectStatus("inv banana", ParseStatus::Invalid);
+    expectStatus("inv c4 e4", ParseStatus::Invalid);
+    expectStatus("rot 1000", ParseStatus::Invalid);
 }
 
 TEST(DoricoNoteToolsParserTests, Invalid)
@@ -199,7 +306,7 @@ TEST(DoricoNoteToolsParserTests, Invalid)
 TEST(DoricoNoteToolsParserTests, IncompleteIsNotAnError)
 {
     for (const char* text : { "", "  ", "-", "M", "dim", "ma", "3,", "5 8", "5 8 se", "3r", "t", "t-", "t top", "bot", "3 bo", "in",
-                              "re", "t to" }) {
+                              "re", "t to", "inv e", "inv eb", "inv ch", "rev p", "rot bw", "rot -", "retro" }) {
         expectStatus(text, ParseStatus::Incomplete);
     }
 }

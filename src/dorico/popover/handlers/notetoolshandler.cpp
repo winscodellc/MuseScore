@@ -36,6 +36,7 @@
 #include "notation/inotationelements.h"
 #include "notation/inotationundostack.h"
 
+#include "../../internal/transformapply.h"
 #include "../parsers/notetoolsparser.h"
 
 using namespace mu::dorico;
@@ -141,6 +142,9 @@ PopoverDef mu::dorico::noteToolsPopover()
         const NoteToolsParse parsed = parseNoteTools(text);
         if (parsed.status != ParseStatus::Ok) {
             return false;
+        }
+        if (parsed.transform) {
+            return applyTransform(notation, *parsed.transform);
         }
         Score* score = notation->elements()->msScore();
         const std::vector<Note*> chains = notetoolspopover::targetChains(score, parsed.scope);
