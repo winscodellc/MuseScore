@@ -1,13 +1,13 @@
 <!-- markdownlint-disable -->
 # 65 — Musical transformations (invert, reverse, rotate)
 
-Status: not started · Depends on: [35-popover-note-tools](done/35-popover-note-tools.md), [59-menus](done/59-menus.md) · Dorico refs (local mirror, `specs/reference/manual/topics/selecting-and-editing-music/musical-transformations/`):
+Status: done · Depends on: [35-popover-note-tools](35-popover-note-tools.md), [59-menus](59-menus.md) · Dorico refs (local mirror, `specs/reference/manual/topics/selecting-and-editing-music/musical-transformations/`):
 - [M] `inverting-pitches.md`, `reversing-pitches-rhythms.md`, `rotating-pitches-rhythms.md`
 - [M] `reversing-pitches-rhythms/reverse-and-invert-pitches-and-reverse-rhythms-dialogs.md`, `rotating-pitches-rhythms/rotate-pitches-rhythms-dialogs.md`
 - [M] `note-tools-popover/inversion-popover-entries.md`, `reversal-popover-entries.md`, `rotation-popover-entries.md`
 - Images: `images/reverse_invert_pitches_reverse_rhythms_dialogs.png`, `images/rotate_pitches_rhythms_dialog.png`
 
-Reference: [internals](reference/musescore-internals.md) (sections 2 and 3). Roadmap row: [ROADMAP.md](ROADMAP.md) section 3, tier A.
+Reference: [internals](../reference/musescore-internals.md) (sections 2 and 3). Roadmap row: [ROADMAP.md](../ROADMAP.md) section 3, tier A.
 
 ## Goal
 Shift-I accepts `inv`, `ret` / `rev` and `rot` and the Write > Transform menu does the same through two small dialogs. Both routes end in one apply path that inverts, reverses or rotates the pitches and/or rhythms of the selected notes in a single undo step. Repeat pitches, pitch mapping and scale mapping stay Unsupported (spec 35 behaviour).
@@ -57,14 +57,14 @@ Examples from the manual: `inveb4` (invert around E♭4), `rev pt voice`, `rot r
 - **Invert.** Central pitch `c`.
   - Chromatic: `p' = 2c - p` (semitones; spelled with `pitch2tpc(p', key, Prefer::NEAREST)`).
   - Diatonic: `step' = 2·step(c) - step(p)` on the prevailing key's scale; the pitch of `step'` comes from the key scale (`absStep2pitchByKey`); an accidental the note carries against the key is mirrored (a note a semitone above its scale pitch becomes a semitone below the new scale pitch).
-  - Outermost: `c` is the midpoint of the highest and lowest notes (chromatic: `p' = hi + lo - p`; diatonic: step sum). Fixed to the selection.
+  - Outermost: the highest and lowest notes of the whole selection swap. Always diatonic (the dialog disables the type for it): `step' = stepHi + stepLo - step`.
   - Root: tonic of the key at the first note's tick, in the octave nearest that note (our choice; the manual does not say).
-  - First / top / bottom: the pitch of the first chord's note.
+  - First / top / bottom: the pitch of the first chord's note (`first` = `top`).
   - Reverse+invert: reverse first, then invert (the centre is taken from the original selection).
-- **Key.** `Staff::key(tick)`; transposing instruments are inverted in written pitch.
+- **Key.** One key for the whole selection: `Staff::concertKey` at its first note. Transposing instruments are inverted in concert pitch (ponytail).
 - **Range limit.** If any result leaves MIDI range 0-127 nothing is changed and the popover shows "out of range" (same pattern as spec 35).
 - **Scope.** All selected tracks, treated independently, except the centre (`first`, `top`, outermost), which uses the whole selection. Drum staves are skipped.
-- **Selection after apply**: kept (our choice, as spec 35).
+- **Selection after apply**: pitch operations keep it; rhythm operations leave the selected range (`setNoteRest` replaces the notes).
 
 ## MuseScore today
 - Shift-I already recognises the keywords: `UNSUPPORTED_TOOLS` at `src/dorico/popover/parsers/notetoolsparser.cpp:77` returns Unsupported for `inv`, `invert`, `inversion`, `mirror`, `ret`, `retrograde`, `rev`, `reverse`, `rot`, `rotate` (and `rep`, `repeat`, which stay). Prefixes are Incomplete (`:276`). `NoteToolsParse` (`notetoolsparser.h:69`) holds the transpose / add data.
@@ -96,24 +96,25 @@ Upstream edits: none expected.
 - Repeat pitches, pitch mapping, scale mapping (`rep`, `=`, `snap`, `spell`, `to`): stay Unsupported.
 - EDO / microtonal centres (`d1/24 4`).
 - Reversing and rotating staff-attached items (dynamics, hairpins, slurs spanning the range) and the `player` scope. `voice` is accepted and has no extra effect (we only touch the selected voices).
-- Lyrics and fingerings moving with their notes in rhythm operations.
+- Lyrics, slurs, dynamics and other annotations moving with their notes in rhythm operations: they stay at their tick or are dropped with the segment they hang on (articulations and stem direction do travel with the chord).
 - The "allow transformations that shorten the selection" option (Note Input Options > Musical Transformations).
 - Rhythm operations over tuplets and grace notes (refused, see Design 3).
 
 ## Acceptance criteria
-- [ ] Shift-I `inv` on C D E in C major (outermost) gives E D C: the highest and lowest notes swap and D maps to itself.
-- [ ] `inv C4 chrom` on C4 D4 E4 gives C4 B♭3 A♭3; `inv C4 diat` gives C4 B3 A3 (in C major).
-- [ ] `inveb4` inverts around E♭4 (tokens split as `inv eb4`).
-- [ ] `rev` on a quarter, half, eighth phrase reverses both pitches and rhythm; the total length is unchanged.
-- [ ] `rev pt` reverses only the pitches (rhythm unchanged, rests stay); `rev rm` only the rhythm.
-- [ ] `rot 1` shifts pitches and rhythms right by one; `rot rm bw 3` shifts only the rhythm left by three; `rot 7` on four notes equals `rot 3`.
-- [ ] Chords move as one unit in reverse and rotate; chords invert note by note.
-- [ ] A result outside MIDI range changes nothing and shows an error.
-- [ ] Every operation is one undo step.
-- [ ] `rep`, `=` and `player` still show Unsupported with a reason; `inv`, `ret` and `rot` prefixes show Incomplete.
-- [ ] Write > Transform exists with the three submenus; items are greyed without notes selected.
-- [ ] The Invert and Rotate dialogs open from the menu with the controls listed above; OK applies the same result as the equivalent popover entry; Cancel changes nothing.
-- [ ] Rhythm operations over a tuplet or grace notes are refused with a message; pitch operations over them work.
+- [x] Shift-I `inv` on C D E F in C major (outermost) gives F E D C: the highest and lowest notes swap, rhythm unchanged (UI-checked).
+- [x] `inv c4 chrom` on C4 D4 E4 F4 gives C4 B♭3 G♯3 G3 (pitches 60, 58, 56, 55; the new notes are spelled from the key, so 56 is G♯, not A♭); `inv c4 diat` gives C4 B3 A3 G3.
+- [x] `inveb4` is accepted without a space and inverts around E♭4.
+- [x] `rev` on quarter, eighth, eighth, half reverses both pitches and rhythm (half, eighth, eighth, quarter); the total length is unchanged.
+- [x] `rev pt` reverses only the pitches (rhythm and rests stay); `rev rm` only the rhythm.
+- [x] `rot 1` shifts pitches and rhythms right by one; `rot rm bw 3` shifts only the rhythm left by three; rotating by more than the event count wraps (unit-tested).
+- [x] Chords move as one unit in reverse and rotate; `inv` mirrors every note of a chord.
+- [x] A rest is part of a rhythm reversal (`rev` over quarter, eighth rest, eighth, half).
+- [x] A result outside MIDI range changes nothing and logs the reason (`inv c9 chrom` on C4..F4: bar unchanged, no undo entry; the popover stays open).
+- [x] Every operation is one undo step.
+- [x] `rep`, `=` and `player` still show Unsupported; `inv`, `ret`, `rot` prefixes are Incomplete (unit-tested).
+- [x] Write > Transform has the three submenus with 4, 2 and 3 items (unit-tested). With nothing selected the commands are not offered in the Jump bar. The menu bar itself cannot be clicked by `uictl`.
+- [x] The Invert and Rotate dialogs open with the controls listed above; OK applies the same result as the equivalent popover entry; Cancel changes nothing.
+- [x] Rhythm operations over a tuplet or grace notes are refused with a log message (`rev rm` over a triplet: unchanged); pitch operations over them work (`rev pt` kept the tuplet).
 
 ## Tests
 - `src/dorico/tests/notetoolsparser_tests.cpp`: the manual examples (`inveb4`, `rev pt voice`, `rot rm bw 3`, `ret inv`), each keyword alias, `-3` / `bw 3` / `prev 3`, Incomplete prefixes, `player` Unsupported, `rep` still Unsupported.

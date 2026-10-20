@@ -323,3 +323,13 @@ No hook. Pages are QML children in `WindowContent.qml:100-118`; `pageByUri()` (`
 - `QXmlStreamReader`: a helper that copies an element must stop **on** its end tag (like `skipCurrentElement`); reading one token further makes the caller's `readNextStartElement()` skip the next sibling.
 - `QClipboard::dataChanged` is the only trigger for command states that depend on the clipboard (`DoricoCommandsState` connects it).
 
+
+### Transformations internals (found in spec 65)
+- `Score::setNoteRest(seg, track, NoteVal(), len)` writes a **rest** (a `NoteVal` with pitch -1 is a rest). It runs `makeGap` itself, splits the length into tied durations, and ends with `select(nr, SINGLE)`, so a rewrite that loops over it leaves one note selected: restore the range with `deselectAll()` + `selection().setRangeTicks(...)`.
+- `makeGap` deletes the chords of the span and slurs in it, and annotations only from the second segment on; nothing is moved. Save what must survive (note values, articulation clones via `Articulation::clone`, stem direction) before the first write.
+- `NoteVal` with `tpc1` and `tpc2` both `Tpc::TPC_INVALID` is respelled by `Note::setNval` from the concert key (`pitch2tpc(..., Prefer::NEAREST)`); for `EditNote::undoChangePitch` the tpcs must be given (see `transformapply::spell`).
+- `NoteInput::addNoteToTiedChord(tx, score, chord, nval, ...)` adds a note to every chord of a tie chain and ties them (returns null if the pitch is already there). Removing a note of a chain: remove its `Tie`s first, then `undoRemoveElement(note)`.
+- `pitch2absStepByKey(pitch, tpc, key, alter)` returns the absolute step (C0 = 0, MIDI 60 = step 35) and the alteration against the key's degree; `absStep2pitchByKey(step, key)` is the key's scale pitch. Out of `MIN_STEP..MAX_STEP` it wraps, so check the range first.
+- `Segment::next1(SegmentType)` crosses measures; `tick2segment(tick, true, ChordRest)` is the first segment at a tick.
+- `transact(notation, title, body)` lives in `internal/transact.h` (shared by Paste Special and Transform).
+- uictl cannot type a bare `;` (it separates commands): send the tuplets key as `key mscore none+";"`.
