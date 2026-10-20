@@ -14,7 +14,7 @@ None. This is plumbing. Naming used by all later specs:
 | CMake target / `muse_create_module` name | `dorico` |
 | Module class | `mu::dorico::DoricoModule` (global part) and `mu::dorico::DoricoContext` (per-window part) |
 | Command URI prefix | `command://dorico/` |
-| CMake options | `MUE_BUILD_DORICO_MODULE`, `MUE_BUILD_DORICO_QML`, `MUE_BUILD_DORICO_TESTS` |
+| CMake options | `MUE_BUILD_DORICO_MODULE`, `MUE_BUILD_DORICO_QML`, `MUE_BUILD_DORICO_TESTS` (the first two were removed 2026-10-20: the module is always built, hybrid goal; only `MUE_BUILD_DORICO_TESTS` remains) |
 | QML module URI | `MuseScore.Dorico` (target `dorico_qml`) |
 | Test binary | `dorico_tests` |
 
@@ -102,7 +102,7 @@ inline static const muse::rcommand::Command DORICO_NOOP_COMMAND("command://doric
 - [x] `cmake -P build.cmake run` starts the app. The log has a line from `DoricoModule::onInit` ("dorico module init").
 - [x] Preferences > Shortcuts lists "Dorico no-op" with an empty shortcut.
 - [x] Dispatching `command://dorico/noop` logs "dorico noop" (assign a temporary shortcut in Preferences and press it).
-- [x] Configuring with `-DMUE_BUILD_DORICO_MODULE=OFF` still builds (exit 0, no `DoricoModule` symbols in the binary). **It no longer runs**: since spec 50, `appshell/qml/.../WindowContent.qml` imports `MuseScore.Dorico` unconditionally, so the main window fails to load (`module "MuseScore.Dorico" is not installed`). The fork's window shell now depends on the module, so OFF is not supported; guarding the import and the page registration is not planned.
+- [x] Configuring with `-DMUE_BUILD_DORICO_MODULE=OFF` still builds (exit 0, no `DoricoModule` symbols in the binary). **It no longer runs**: since spec 50, `appshell/qml/.../WindowContent.qml` imports `MuseScore.Dorico` unconditionally, so the main window fails to load (`module "MuseScore.Dorico" is not installed`). The fork's window shell now depends on the module, so OFF was not supported, and the switch was removed 2026-10-20 (the module is always built); guarding the import and the page registration is not planned.
 - [x] `git diff --stat` for upstream (non-`src/dorico`) files touches exactly: `CMakeLists.txt`, `src/CMakeLists.txt`, `src/app/CMakeLists.txt`, `src/app/app_config.h.in`, `src/app/appfactory.cpp`.
 - [x] `cmake -P build.cmake -DMUSE_ENABLE_UNIT_TESTS=ON build` builds `dorico_tests`, and its one smoke test passes.
 

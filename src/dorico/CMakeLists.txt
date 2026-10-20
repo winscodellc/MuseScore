@@ -149,9 +149,7 @@ target_sources(dorico PRIVATE
 
 target_link_libraries(dorico PRIVATE engraving muse_uicomponents_qml)
 
-if (MUE_BUILD_DORICO_QML)
-    add_subdirectory(qml/MuseScore/Dorico)
-endif()
+add_subdirectory(qml/MuseScore/Dorico)
 
 # SetupConfigure.cmake only switches off the upstream *_TESTS options when unit tests are disabled,
 # so we gate on MUSE_ENABLE_UNIT_TESTS ourselves (keeps upstream edits minimal).
