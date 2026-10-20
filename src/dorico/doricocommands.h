@@ -163,6 +163,12 @@ inline static const muse::rcommand::Command DORICO_LYRICS_NEXT_LINE_COMMAND("com
 inline static const muse::rcommand::Command DORICO_LYRICS_ABOVE_COMMAND("command://dorico/lyrics-above");
 inline static const muse::rcommand::Command DORICO_LYRICS_BELOW_COMMAND("command://dorico/lyrics-below");
 
+// Jump bar (spec 46)
+inline static const muse::rcommand::Command DORICO_JUMP_BAR_COMMAND("command://dorico/jump-bar");
+inline static const muse::rcommand::Command DORICO_JUMP_BAR_COMMANDS_COMMAND("command://dorico/jump-bar-commands");
+inline static const muse::rcommand::Command DORICO_JUMP_BAR_GOTO_COMMAND("command://dorico/jump-bar-goto");
+inline static const muse::rcommand::Command DORICO_GO_TO_BAR_COMMAND("command://dorico/go-to-bar");
+
 // Popovers (spec 20). The id is the URI tail; PopoverRegistry has the matching PopoverDef.
 inline static const std::array<muse::rcommand::Command, 16> DORICO_POPOVER_COMMANDS = {
     muse::rcommand::Command("command://dorico/popover/bars"),

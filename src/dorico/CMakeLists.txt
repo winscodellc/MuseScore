@@ -60,6 +60,12 @@ target_sources(dorico PRIVATE
     internal/selectionsummary.h
     internal/noteinpututils.h
     internal/partlayouts.h
+    internal/jumpbar/commandcatalog.cpp
+    internal/jumpbar/commandcatalog.h
+    internal/jumpbar/gotoparser.cpp
+    internal/jumpbar/gotoparser.h
+    internal/jumpbar/jumpbarcontroller.cpp
+    internal/jumpbar/jumpbarcontroller.h
     internal/popovercontroller.cpp
     internal/popovercontroller.h
     popover/handlers/barshandler.cpp
@@ -134,6 +140,7 @@ target_sources(dorico PRIVATE
     idoricocaret.h
     idoricomenuarranger.h
     idoricomodestate.h
+    ijumpbarcontroller.h
     ipopovercontroller.h
 )
 

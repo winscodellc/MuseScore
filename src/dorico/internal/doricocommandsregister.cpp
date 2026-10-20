@@ -146,6 +146,11 @@ static std::vector<CommandInfo> makeCommandInfos()
     v.push_back(staveSharing);
     v.push_back(info(DORICO_OPEN_PUBLISH_COMMAND, "Dorico: Publish", "Opens MuseScore's Publish page (upload and share)"));
 
+    v.push_back(info(DORICO_JUMP_BAR_COMMAND, "Jump Bar", "Opens the jump bar in the mode it was last used in"));
+    v.push_back(info(DORICO_JUMP_BAR_COMMANDS_COMMAND, "Jump Bar: Commands", "Opens the jump bar to find and run a command"));
+    v.push_back(info(DORICO_JUMP_BAR_GOTO_COMMAND, "Jump Bar: Go To", "Opens the jump bar to go to a bar, rehearsal mark or page"));
+    v.push_back(info(DORICO_GO_TO_BAR_COMMAND, "Go To Bar", "Opens the jump bar to go to a bar"));
+
     const PopoverRegistry popovers = makePopoverRegistry();
     for (const Command& command : DORICO_POPOVER_COMMANDS) {
         const std::string& title = popovers.find(command.pathSegments().back())->title;

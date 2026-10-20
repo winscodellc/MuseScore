@@ -23,6 +23,7 @@ set(MODULE_TEST dorico_tests)
 set(MODULE_TEST_SRC
     ${CMAKE_CURRENT_LIST_DIR}/barsparser_tests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/chordsymbolsparser_tests.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/commandcatalog_tests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/figuredbassparser_tests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/fingeringparser_tests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/clefparser_tests.cpp
@@ -30,6 +31,7 @@ set(MODULE_TEST_SRC
     ${CMAKE_CURRENT_LIST_DIR}/doricoshell_tests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/doricomenu_tests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/dynamicsparser_tests.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/gotoparser_tests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/holdsparser_tests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/keysigparser_tests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/noteinput_tests.cpp

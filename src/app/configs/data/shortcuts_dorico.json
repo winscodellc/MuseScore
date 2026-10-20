@@ -259,6 +259,8 @@
         {"command": "command://dorico/extend-to-bar-end", "sequences": ["Ctrl+Shift+Right"]},
         {"command": "command://dorico/extend-to-bar-start", "sequences": ["Ctrl+Shift+Left"]},
         {"command": "command://dorico/select-more", "sequences": ["Ctrl+Shift+A"]},
+        {"command": "command://dorico/jump-bar", "sequences": ["J"]},
+        {"command": "command://dorico/go-to-bar", "sequences": ["Ctrl+G"]},
         {"command": "command://dorico/deselect-all", "sequences": ["Ctrl+D"]},
         {"command": "command://dorico/next-item-at-position", "sequences": ["Tab"]},
         {"command": "command://dorico/prev-item-at-position", "sequences": ["Shift+Tab"]},

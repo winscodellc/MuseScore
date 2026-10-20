@@ -239,6 +239,16 @@ DockPage {
                 view: notationView.paintView
             }
         }
+
+        // The jump bar (spec 46): same host as the popovers.
+        Loader {
+            parent: notationView.paintView
+            anchors.fill: parent
+            active: root.uri === "musescore://notation"
+            sourceComponent: JumpBar {
+                view: notationView.paintView
+            }
+        }
     }
 
     statusBar: DockStatusBar {

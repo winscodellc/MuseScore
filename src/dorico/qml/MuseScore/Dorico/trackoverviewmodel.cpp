@@ -27,6 +27,7 @@
 #include "engraving/dom/part.h"
 #include "engraving/dom/segment.h"
 #include "engraving/types/constants.h"
+#include "notation/inotation.h"
 #include "notation/inotationplayback.h"
 #include "notation/inotationundostack.h"
 

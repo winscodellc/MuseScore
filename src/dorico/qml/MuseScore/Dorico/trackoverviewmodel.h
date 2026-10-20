@@ -29,6 +29,7 @@
 #include "async/asyncable.h"
 #include "modularity/ioc.h"
 #include "context/iglobalcontext.h"
+#include "engraving/dom/score.h"
 #include "notation/imasternotation.h"
 #include "playback/iplaybackcontroller.h"
 

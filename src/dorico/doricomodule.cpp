@@ -42,6 +42,7 @@
 #include "internal/doriconoteinputcontroller.h"
 #include "internal/doricopastecontroller.h"
 #include "internal/doricoselectioncontroller.h"
+#include "internal/jumpbar/jumpbarcontroller.h"
 #include "internal/popovercontroller.h"
 
 #include "log.h"
@@ -143,11 +144,13 @@ void DoricoContext::registerExports()
     m_pasteController = std::make_shared<DoricoPasteController>(iocContext());
     m_selectionController = std::make_shared<DoricoSelectionController>(iocContext());
     m_popoverController = std::make_shared<PopoverController>(iocContext());
+    m_jumpBarController = std::make_shared<JumpBarController>(iocContext());
 
     ioc()->registerExport<IDoricoModeState>(mname, m_modeState);
     ioc()->registerExport<IDoricoCaret>(mname, m_caret);
     ioc()->registerExport<IDoricoPaste>(mname, m_pasteController);
     ioc()->registerExport<IPopoverController>(mname, m_popoverController);
+    ioc()->registerExport<IJumpBarController>(mname, m_jumpBarController);
     ioc()->registerExport<IDoricoMenuArranger>(mname, std::make_shared<DoricoMenuArranger>(iocContext()));
 }
 
@@ -168,4 +171,5 @@ void DoricoContext::onInit(const IApplication::RunMode&)
     m_pasteController->init();
     m_selectionController->init();
     m_popoverController->init();
+    m_jumpBarController->init();
 }

@@ -37,6 +37,8 @@ qt_add_qml_module(dorico_qml
         doricotoolsmodel.h
         doricoviewmenumodel.cpp
         doricoviewmenumodel.h
+        jumpbarmodel.cpp
+        jumpbarmodel.h
         lowerzonemodel.cpp
         lowerzonemodel.h
         popovermodel.cpp
@@ -72,6 +74,7 @@ qt_add_qml_module(dorico_qml
         DoricoChannelStrip.qml
         DoricoMixer.qml
         InspectorSection.qml
+        JumpBar.qml
         ResourceDropdown.qml
         trackcolor.js
     RESOURCES
