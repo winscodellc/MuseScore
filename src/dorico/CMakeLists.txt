@@ -70,6 +70,8 @@ target_sources(dorico PRIVATE
     internal/selectionsummary.h
     internal/noteinpututils.h
     internal/partlayouts.h
+    internal/printjob.cpp
+    internal/printjob.h
     internal/jumpbar/commandcatalog.cpp
     internal/jumpbar/commandcatalog.h
     internal/jumpbar/gotoparser.cpp

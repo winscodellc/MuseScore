@@ -29,6 +29,8 @@ qt_add_qml_module(dorico_qml
     SOURCES
         doricopanelmodel.cpp
         doricopanelmodel.h
+        doricoprinter.cpp
+        doricoprinter.h
         doricotopbarmodel.cpp
         doricotopbarmodel.h
         doricostatusmodel.cpp
@@ -66,6 +68,7 @@ qt_add_qml_module(dorico_qml
         PaletteSections.qml
         PlayPage.qml
         Popover.qml
+        PrintOptions.qml
         PrintPage.qml
         SetupPage.qml
         ToolSection.qml
@@ -98,6 +101,8 @@ qt_add_qml_module(dorico_qml
 # DoricoPanelModel (spec 53) builds palette trees; palette/internal headers include their module headers without a path.
 target_include_directories(dorico_qml PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../../../../palette)
 target_link_libraries(dorico_qml PRIVATE palette)
+# DoricoPrinter (spec 62) prints without the system dialog.
+target_link_libraries(dorico_qml PRIVATE Qt::PrintSupport)
 # TrackInspectorModel (spec 57) reads the mixer's channel items; their header includes playback headers without a path.
 target_include_directories(dorico_qml PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../../../../playback
                                               ${CMAKE_CURRENT_LIST_DIR}/../../../../playback/qml/MuseScore/Playback)

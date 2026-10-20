@@ -48,19 +48,6 @@ DoricoPage {
         Component.onCompleted: load()
     }
 
-    // 0 = printer, then the graphics formats MuseScore can export.
-    property int destination: 0
-    readonly property var destinations: [
-        { "text": qsTrc("dorico", "Printer"), "value": "" },
-        { "text": qsTrc("dorico", "PDF"), "value": "pdf" },
-        { "text": qsTrc("dorico", "PNG"), "value": "png" },
-        { "text": qsTrc("dorico", "SVG"), "value": "svg" }
-    ]
-    readonly property string suffix: root.destinations[root.destination].value
-    // The graphics format remembered while Printer is chosen (index into destinations, 1..3).
-    property int graphicsFormat: 1
-    property bool filePerLayout: true
-
     onVisibleChanged: {
         if (visible) {
             root.printModel.load()
@@ -242,179 +229,14 @@ DoricoPage {
                     contentHeight: options.implicitHeight + 8
 
                     // Dorico's Print Options: collapsible sections (Duplex Printing and Annotations start closed)
-                    Column {
+                    PrintOptions {
                         id: options
 
                         width: parent.width
-                        spacing: 2
-
-                        InspectorSection {
-                            width: options.width
-                            title: qsTrc("dorico", "Destination")
-
-                            // Printer | Graphics, then the graphics format (MuseScore exports PDF, PNG and SVG).
-                            RowLayout {
-                                width: parent.width
-                                spacing: 0
-
-                                FlatButton {
-                                    Layout.fillWidth: true
-                                    text: qsTrc("dorico", "Printer")
-                                    accentButton: root.suffix === ""
-                                    transparent: root.suffix !== ""
-                                    navigation.panel: optionsNav
-                                    navigation.order: 1
-                                    onClicked: root.destination = 0
-                                }
-
-                                FlatButton {
-                                    Layout.fillWidth: true
-                                    text: qsTrc("dorico", "Graphics")
-                                    accentButton: root.suffix !== ""
-                                    transparent: root.suffix === ""
-                                    navigation.panel: optionsNav
-                                    navigation.order: 2
-                                    onClicked: root.destination = root.graphicsFormat
-                                }
-                            }
-
-                            StyledDropdown {
-                                width: parent.width
-                                visible: root.suffix !== ""
-                                model: root.destinations.slice(1)
-                                currentIndex: root.graphicsFormat - 1
-                                navigation.panel: optionsNav
-                                navigation.order: 3
-                                onActivated: function(index, value) {
-                                    root.graphicsFormat = index + 1
-                                    root.destination = root.graphicsFormat
-                                }
-                            }
-
-                            StyledTextLabel {
-                                width: parent.width
-                                visible: root.suffix === ""
-                                text: qsTrc("dorico", "Copies and printer are chosen in the system print dialog, once per layout.")
-                                wrapMode: Text.WordWrap
-                                horizontalAlignment: Text.AlignLeft
-                                opacity: 0.7
-                            }
-                        }
-
-                        InspectorSection {
-                            width: options.width
-                            title: qsTrc("dorico", "Job Type")
-
-                            StyledTextLabel {
-                                width: parent.width
-                                text: qsTrc("dorico", "Print range:")
-                                horizontalAlignment: Text.AlignLeft
-                            }
-
-                            // Only All is real: MuseScore prints or exports whole layouts, and has one flow.
-                            RowLayout {
-                                width: parent.width
-                                spacing: 0
-
-                                FlatButton {
-                                    Layout.fillWidth: true
-                                    text: qsTrc("dorico", "All")
-                                    accentButton: true
-                                    navigation.panel: optionsNav
-                                    navigation.order: 4
-                                }
-
-                                DoricoButton {
-                                    Layout.fillWidth: true
-                                    text: qsTrc("dorico", "Pages")
-                                    available: false
-                                    navigation.panel: optionsNav
-                                    navigation.order: 5
-                                }
-
-                                DoricoButton {
-                                    Layout.fillWidth: true
-                                    text: qsTrc("dorico", "Flows")
-                                    available: false
-                                    navigation.panel: optionsNav
-                                    navigation.order: 6
-                                }
-                            }
-
-                            CheckBox {
-                                width: parent.width
-                                visible: root.suffix === "pdf"
-                                text: qsTrc("dorico", "One file per layout")
-                                checked: root.filePerLayout
-                                navigation.panel: optionsNav
-                                navigation.order: 7
-                                onClicked: root.filePerLayout = !root.filePerLayout
-                            }
-
-                            StyledTextLabel {
-                                width: parent.width
-                                visible: root.suffix === "png" || root.suffix === "svg"
-                                text: qsTrc("dorico", "One file per page")
-                                horizontalAlignment: Text.AlignLeft
-                                opacity: 0.7
-                            }
-                        }
-
-                        InspectorSection {
-                            width: options.width
-                            title: qsTrc("dorico", "Page Setup")
-
-                            StyledTextLabel {
-                                width: parent.width
-                                text: root.layouts.layoutInfos[root.layouts.currentLayoutIndex] ?? ""
-                                horizontalAlignment: Text.AlignLeft
-                                wrapMode: Text.WordWrap
-                            }
-
-                            FlatButton {
-                                text: qsTrc("dorico", "Page Setup...")
-                                navigation.panel: optionsNav
-                                navigation.order: 8
-                                onClicked: root.layouts.dispatch("command://notation/open-page-settings")
-                            }
-                        }
-
-                        InspectorSection {
-                            width: options.width
-                            title: qsTrc("dorico", "Duplex Printing")
-                            expanded: false
-
-                            DoricoButton {
-                                text: qsTrc("dorico", "Two-sided")
-                                available: false
-                                navigation.panel: optionsNav
-                                navigation.order: 9
-                            }
-                        }
-
-                        InspectorSection {
-                            width: options.width
-                            title: qsTrc("dorico", "Annotations")
-                            expanded: false
-
-                            Row {
-                                spacing: 4
-
-                                DoricoButton {
-                                    text: qsTrc("dorico", "Crop marks")
-                                    available: false
-                                    navigation.panel: optionsNav
-                                    navigation.order: 10
-                                }
-
-                                DoricoButton {
-                                    text: qsTrc("dorico", "Border")
-                                    available: false
-                                    navigation.panel: optionsNav
-                                    navigation.order: 11
-                                }
-                            }
-                        }
+                        printModel: root.printModel
+                        nav: optionsNav
+                        layoutInfo: root.layouts.layoutInfos[root.layouts.currentLayoutIndex] ?? ""
+                        onPageSetupRequested: root.layouts.dispatch("command://notation/open-page-settings")
                     }
                 }
 
@@ -426,19 +248,13 @@ DoricoPage {
                     anchors.margins: 8
 
                     accentButton: true
-                    enabled: root.printModel.hasChecked
-                    text: root.suffix === "" ? qsTrc("dorico", "Print") : qsTrc("dorico", "Export")
+                    enabled: root.printModel.hasChecked && root.printModel.pagesValid
+                    text: root.printModel.buttonLabel
 
                     navigation.panel: optionsNav
-                    navigation.order: 20
+                    navigation.order: 60
 
-                    onClicked: {
-                        if (root.suffix === "") {
-                            root.printModel.print()
-                        } else {
-                            root.printModel.exportTo(root.suffix, root.filePerLayout)
-                        }
-                    }
+                    onClicked: root.printModel.run()
                 }
             }
         }
