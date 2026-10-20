@@ -2,9 +2,9 @@
 
 # 62 - Print panel parity
 
-Status: pending review - Depends on: 58 - Dorico refs: `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/print_mode/print_mode_print_options_panel_r.html`, `.../print_mode_printers_c.html`, `.../print_mode_page_range_printing_exporting_t.html`, `.../print_mode_pages_arrangements_for_printing_exporting_r.html`, `.../print_mode_booklet_printing_c.html`, `.../print_mode_paper_size_orientation_setup_r.html`, `.../print_mode_duplex_printing_r.html`, `.../print_mode_annotations_r.html`, `.../print_mode_graphics_files_formats_r.html`
+Status: done - Depends on: 58 - Dorico refs: `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/print_mode/print_mode_print_options_panel_r.html`, `.../print_mode_printers_c.html`, `.../print_mode_page_range_printing_exporting_t.html`, `.../print_mode_pages_arrangements_for_printing_exporting_r.html`, `.../print_mode_booklet_printing_c.html`, `.../print_mode_paper_size_orientation_setup_r.html`, `.../print_mode_duplex_printing_r.html`, `.../print_mode_annotations_r.html`, `.../print_mode_graphics_files_formats_r.html`
 
-Local mirror: `reference/manual/topics/print-mode/` (`project-window-in-print-mode/print-options-panel.md`, `printers.md`, `specifying-ranges-of-pages-flows.md`, `page-arrangements-for-printing-exporting*.md`, `page-vs-paper-size/`, `duplex-printing.md`, `annotations.md`, `exporting-layouts-as-graphics-files*`, `graphics-file-formats.md`).
+Local mirror: `../reference/manual/topics/print-mode/` (`project-window-in-print-mode/print-options-panel.md`, `printers.md`, `specifying-ranges-of-pages-flows.md`, `page-arrangements-for-printing-exporting*.md`, `page-vs-paper-size/`, `duplex-printing.md`, `annotations.md`, `exporting-layouts-as-graphics-files*`, `graphics-file-formats.md`).
 
 ## Goal
 
@@ -78,7 +78,8 @@ No upstream edits. All new code is in `src/dorico/`.
 ## As built
 
 - **`internal/printjob.{h,cpp}`**: `PrintSettings` (+ JSON, clamps copies and scale, unknown keys ignored), `parsePageRanges`, `selectedPages`, `pageGroups`, `imposeSheets`, `manualDuplexPasses`, `copyOrder`, `placePage`, `slotRect`, `isLandscape`, `pageSmallerThanPaper`, `buttonKind`.
-- **`qml/MuseScore/Dorico/doricoprinter.{h,cpp}`**: `DoricoPrinter::print` (own `QPrinter`, no dialog; Pass All / Outward / Inward), `writePdf` (`QPdfWriter`, layouts one after another), printer, paper-size and auto-duplex queries. `paintPrint` forces the viewport, so a page is moved and scaled with the painter's world transform (see `reference/musescore-internals.md`, "Printing without the system dialog"). The page mode is set to PAGE while painting and restored.
+- **`qml/MuseScore/Dorico/doricoprinter.{h,cpp}`**: `DoricoPrinter::print` (own `QPrinter`, no dialog; Pass All / Outward / Inward), `writePdf` (`QPdfWriter`, layouts one after another), printer, paper-size and auto-duplex queries. `paintPrint` forces the viewport, so a page is moved and scaled with the painter's world transform (see `../reference/musescore-internals.md`, "Printing without the system dialog"). The page mode is set to PAGE while painting and restored.
+- Paper layouts use `QPageLayout::FullPageMode`. A zero-margin layout in standard mode is silently rejected by a `QPrinter`, which leaves the job on the printer's default paper. The first printer run found this.
 - **`PrintModel`**: per-layout `PrintSettings`; `settings` (shared values, mixed keys left out), `setSetting`, `run`, `buttonLabel`, `pagesValid`, `landscapeLayout`, printers and paper sizes. Settings are saved as JSON in a metaTag (`doricoPrintSettingsScore` on the full score, `doricoPrintSettings` on a part) and the project is marked unsaved. `print()` (System Dialogs > Print...) is kept and ignores the panel, as in Dorico. `exportTo` was removed: PNG / SVG go through `runImageJobs`.
 - **`PrintOptions.qml`** (new, used by `PrintPage.qml`): the five sections in the manual's order.
 - Graphics PDF: one file per layout (`<name>[-<part>][-<first>[-<last>]].pdf`), or one combined file when no layout asks for its own; the save dialog names the first file. Several files ask once before replacing existing ones.
@@ -96,19 +97,26 @@ Differences from Dorico worth knowing: the Pages field validates when editing fi
 
 - `dorico_tests`: 16 `Dorico_PrintJobTests` pass.
 - UI-tested on 2026-10-20 (`ui-tester`, macOS, `demos/Dawn.mscx`, 5 pages): panel sections and controls, printer list, button label, Graphics view, PDF All / Pages `1,3-` / Booklet / 2-up / Spreads page counts, sizes and sheet order, Border / Crop marks / Date and time / Watermark (and no watermark in Mono), invalid Pages text, per-layout settings, mixed values blank, save and reopen. The first run found a blank first page in every PDF (a `newPage()` before the first sheet), fixed and re-checked.
-- **Not exercised**: anything that sends a job to a printer. A real printer is installed on the test machine, so the Printer destination was never run. `DoricoPrinter::print` (printer name, copies, collate, duplex, manual duplex pass order and the "turn the stack over" box), Fit to Paper / Custom Scale on a real sheet and the odd-final-page paper are covered only by the shared sheet code that the PDF checks run. Try them with a PDF-printing destination before relying on them.
+- Printer destination tested on 2026-10-20 against a paused CUPS queue: `lpadmin -p DoricoTest -E -v lpd://127.0.0.1/none -P .../PrintCore.framework/Resources/Generic.ppd`, then `cupsdisable`. Jobs stay held, IPP job attributes are read with `ipptool` Get-Jobs, and the spool files (`sudo cp /var/spool/cups/d<job>-001`) are PDFs on macOS. No system dialog appeared. Checked:
+  - Copies 3 with collate gives copies=3, collate=true, 15 impressions. Copies 2 without collate gives collate=false.
+  - "Print and Export" with one layout set to Printer and one to Graphics gives a held job plus a PDF.
+  - Booklet with Both sides manually gives one job, then the turn-the-stack-over box, then a second job. The pages sit on the left and right of each sheet.
+  - Both sides automatically gives sides=two-sided-long-edge.
+  - On the sheet, Fit to Paper, 100% and 50% scale the page by 0.0617, 0.06 and 0.03.
+  - This run found that the paper size was ignored (every sheet came out Letter). Fixed (full-page layouts, see "As built") and re-checked: media=Legal / Letter follows the panel. The sheet geometry after the fix was not dumped.
+- Not exercised: the odd-final-page paper on a printer, and a printer without multiple-copies support (the `copyOrder` fallback is only unit tested).
 
 ## Acceptance criteria
 
 - [x] `parsePageRanges` accepts `1-4`, `3-`, `1,3,5-8` and rejects `0`, `5-2`, `a`, out-of-range pages.
 - [x] Booklet of 4 pages: side 1 = p4 | p1, side 2 = p2 | p3; 6 pages pad to 8 with blanks at the end. Spreads puts odd pages on the right; 2-up puts page 1 on the left.
 - [x] The Printer menu lists the system printers and selects the default one.
-- [ ] Copies and Collate are set on the `QPrinter`.
-- [ ] Print prints the checked layouts with no system dialog, each with its own settings (the button labels Print and Export were seen; the mixed Print and Export label was not).
+- [x] Copies and Collate are set on the `QPrinter`.
+- [x] Print prints the checked layouts with no system dialog, each with its own settings; the label reads Print, Export or Print and Export.
 - [x] Pages `1,3-` on a graphics PDF writes two files with the right page counts.
 - [x] Job type Booklet / 2-up / Spreads writes landscape sheets in the right order.
-- [ ] Fit to Paper and Custom Scale change the page size on the sheet (the Scale factor field is checked; the result on a sheet is not).
-- [ ] Both sides manually prints the outward pages, shows the "turn the stack over" message, then the inward pages; Reverse order of outward pages reverses the first set (the order is unit tested).
+- [x] Fit to Paper and Custom Scale change the page size on the sheet.
+- [x] Both sides manually prints the outward pages, shows the "turn the stack over" message, then the inward pages; Reverse order of outward pages reverses the first set (the order is unit tested).
 - [x] Crop marks and Border appear when the page is smaller than the paper; Date and time and Watermark appear on the pages; the watermark is absent from Mono graphics.
 - [x] Settings are per layout, survive save and reopen, and mixed values show blank.
 - [x] Unsupported controls (Flows) are unavailable with a tooltip.
