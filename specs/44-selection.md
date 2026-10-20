@@ -1,7 +1,7 @@
 <!-- markdownlint-disable -->
 # 44 — Selection: extend, Select More, deselect, Tab cycling
 
-Status: todo · Depends on: [10-keymap-preset](10-keymap-preset.md), [12-caret-and-navigation](12-caret-and-navigation.md) (arrow-key semantics are owned by 12; this spec owns selection *extension*, *Select More*, *deselect*, *Tab*)
+Status: pending review · Depends on: [10-keymap-preset](10-keymap-preset.md), [12-caret-and-navigation](12-caret-and-navigation.md) (arrow-key semantics are owned by 12; this spec owns selection *extension*, *Select More*, *deselect*, *Tab*)
 Dorico refs: `B = https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/` →
 `B write_mode/write_mode_selecting/write_mode_notes_notation_selecting_deselecting_t.html`,
 `B …/write_mode_selections_types_r.html`, `B …/write_mode_selecting_more_t.html`, `B …/write_mode_selections_extending_t.html`,
@@ -70,6 +70,16 @@ Persist `SelectMoreState` in the module's per-window context object (spec 00 `IC
 
 Upstream edits: none (keymap via spec 10). `Shift`-double-click and beam/stem clicks: no edit.
 
+## As built
+- `internal/selectmore.{h,cpp}`: engine-free `selectMore(all, selected, stage, ctx)` (ticks are ints, bar / system ranges come from callbacks); `tests/selectmore_tests.cpp` covers it. The planned `.mscx` fixtures were not used: `dorico_tests` cannot load scores (spec 40).
+- `internal/doricoselectioncontroller.{h,cpp}` (per window, wired like `DoricoPasteController`) has all the handlers. Select More keeps the last result's items; a press carries on from there only while the selection still holds exactly those items, so any other selection change starts again at the first press (no `selectionChanged` subscription).
+- Items expand by `(type, staff, voice)`, plus verse and placement for lyrics (the lyrics rule) and grace notes apart from main notes. A spanner counts once, by its first segment, at its start tick. Galley = `Score::linearMode()`.
+- `Cmd-Shift-Right/Left`: range from the active chord/rest to the last/first chord/rest of its bar in the same voice; already there goes to the next/previous bar's. `add-to-selection-next/prev-measure` are unbound (menu-only).
+- **Tab does not use `goto-next-element`** (it walks on through the whole score). `dorico/next-item-at-position` / `prev-item-at-position` cycle, at the selected item's tick and staff: chord or rest of each voice (a chord is one stop), articulations, lyrics, staff annotations, spanners that start there; system-attached items are skipped; it wraps around. Not in note input.
+- Edit menu: Select None, Select More, Select To > End/Start Of System, End/Start Of Flow (existing `add-to-selection-*` commands, no keys).
+- `dorico/select-same-pitch-onwards` has a command and no key or menu item (the `Shift`-double-click gesture is deferred).
+- `fingeringhandler.cpp` got the includes it was missing (`score.h`, `popovernavigation.h`): adding files shifted the unity batches and exposed it.
+
 ## Deferred / unsupported
 - Marquee tool as a status-bar mode (MuseScore keeps Shift-drag rubber band).
 - Click-beam → beam group, click-stem → chord, `Shift-Opt`-click hidden item, `Shift`-double-click gesture (command provided, gesture later).
@@ -79,14 +89,14 @@ Upstream edits: none (keymap via spec 10). `Shift`-double-click and beam/stem cl
 - Selection changes in the undo/History list (Dorico records selections; MuseScore does not).
 
 ## Acceptance criteria
-- [ ] `Cmd+A` selects the whole score; `Cmd+D` clears; `Esc` still cancels as upstream.
-- [ ] `Cmd+Shift+Right` extends a note selection to the end of its bar; `Cmd+Shift+Left` to its start.
-- [ ] `Shift+Right/Left` extend by one chord/rest.
-- [ ] Select More: one dynamic in bar 3 with other dynamics in bar 3 → bar's dynamics; press again → system; again → score. If bar 3 has only that dynamic, first press goes straight to stage 2.
-- [ ] Select More with two dynamics selected selects all dynamics between them; notes only in selected voice/staff.
-- [ ] Changing the selection by any other means resets the stage counter.
-- [ ] `Tab` moves to another item at the same segment; `Shift+Tab` back; `Alt+Right/Left` no longer bound to it.
-- [ ] `dorico/select-same-pitch-onwards` on a C4 selects every later C4 in that voice only.
+- [x] `Cmd+A` selects the whole score; `Cmd+D` clears; `Esc` still cancels as upstream.
+- [x] `Cmd+Shift+Right` extends a note selection to the end of its bar; `Cmd+Shift+Left` to its start.
+- [x] `Shift+Right/Left` extend by one chord/rest.
+- [x] Select More: one dynamic in bar 3 with other dynamics in bar 3 → bar's dynamics; press again → system; again → score. If bar 3 has only that dynamic, first press goes straight to stage 2. (UI for the stages; the alone-in-bar skip by unit test only.)
+- [x] Select More with two dynamics selected selects all dynamics between them; notes only in selected voice/staff.
+- [x] Changing the selection by any other means resets the stage counter.
+- [x] `Tab` moves to another item at the same segment; `Shift+Tab` back; `Alt+Right/Left` no longer bound to it.
+- [ ] `dorico/select-same-pitch-onwards` on a C4 selects every later C4 in that voice only. **Not checked**: the command has no key or menu item and the UI test driver cannot reach the macOS menu bar, so it was only compiled. Check it when a key or the command search can reach it.
 
 ## Tests
 - `src/dorico/tests/selectmore_tests.cpp`: pure `computeRange`/`collect` over fixture scores `selectmore_data/*.mscx` (dynamics in 3 bars across 2 systems): assert the set of selected items per stage; same scaffolding as `src/engraving/tests/selectionrange_tests.cpp`.

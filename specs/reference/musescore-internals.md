@@ -221,6 +221,11 @@ Handlers are registered in `src/notationscene/internal/notationactioncontroller.
 - **SelectionTarget** (`src/notation/notationtypes.h:113`) is handled in `NotationSelection::select` (`src/notation/internal/notationselection.cpp:190-290`) and `addToSelection` (:292). Targets include Similar, SimilarInStaff, SimilarInRange, NotesInChord, All, Section, Top/BottomNoteInChord, TopStaff and others.
 - **Score-level helpers:** `Score::selectSimilar` / `selectSimilarInRange` / `cmdSelectAll` / `cmdSelectSection` (`src/engraving/dom/score.h:515,516,758,759`).
 - **Extending the selection:** `add-to-selection-{next,prev}-{chord,measure}`, `-{above,below}-staff`, `-{begin,end}-{system,score}` (`notationactioncontroller.cpp:151-160`; `expandSelection` :3773).
+- **Selection internals (found in spec 44):**
+  - `Score::scanElements(fn)` visits every note, annotation, lyric and spanner segment once; `EngravingItem::tick()` is wrong for a spanner segment (use `spanner()->tick()`).
+  - `interaction->select(vec, SelectType::ADD)` after `clearSelection()` builds a list selection; `SelectType::RANGE` with one chord/rest extends the existing range from its anchor (as `expandSelection` does).
+  - `Selection::activeCR()` is the moving end of a range; `Score::linearMode()` is true in continuous view.
+  - `Score::nextElement` (`goto-next-element`) walks through the whole score; there is no "other items at this tick" command, so Tab is built from `Segment::cr(track)`, `Chord::articulations()`, `ChordRest::lyrics()`, `Segment::annotations()` and `spannerMap().findOverlapping(tick, tick)`.
 - **Selection filter** (`src/engraving/dom/selectionfilter.h`):
   - `VoicesSelectionFilterTypes` (4 voices).
   - `NotesInChordSelectionFilterTypes` (TOP, 7th…2nd, BOTTOM).
