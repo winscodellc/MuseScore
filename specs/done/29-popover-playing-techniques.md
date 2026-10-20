@@ -121,7 +121,7 @@ Example: `harm nat n1 s1 p4 diamond`.
 
 ## Deferred / unsupported
 - Harp pedaling entries (`--^|^---`, `BbEb`, `DCBbEbFGA`) → `Unsupported` in v1 (follow-up uses `HarpPedalDiagram`).
-- All harmonics entries (`harm …`) → `Unsupported` (tokenised for correct error reporting).
+- **Harmonic looks and `string N` are now implemented in [spec 61](61-guitar-techniques.md).** Original v1 note: all harmonics entries (`harm …`) → `Unsupported` (tokenised for correct error reporting).
 - `string 1`…`9` string indicator outside staff → `Unsupported` unless the palette has an equivalent text.
 - Pedal levels (`1/4`, `1/2`, `3/4`, `1`), `sost`, `s*`, `unacorda`, `u*` → `Unsupported` until the palette lines are verified.
 - Technique grouping of `A->B` and automatic continuation lines when a new technique starts.

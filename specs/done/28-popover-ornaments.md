@@ -79,7 +79,7 @@ Trill intervals: `1`–`8` degree; `M`/`maj`/`major` major; `m`/`min`/`minor` mi
 - The dorico module is a unity build: file-local helper names must be unique across `popover/` files (`tempoparser.cpp`'s `Gradual` / `GRADUALS` / `trim` renamed, they clashed with `dynamicsparser.cpp` once the batches shifted).
 
 ## Deferred / unsupported
-- Guitar techniques (all rows: `bend`, `vibbend`, `vibscoop`, `vibdip`, `wbar`, `w/bar`, `hammer`, `ho`, `pull`, `po`, `hammerpull`, `hopo`, `hp`, `ligado`, `lig`, `tap`, `tappull`, `lhtap`, `lhtappull`) -> `Unsupported` (tablature-only elements; revisit).
+- **Now implemented in [spec 61](61-guitar-techniques.md)** (all except `slurarp`). Original v1 note: guitar techniques (all rows: `bend`, `vibbend`, `vibscoop`, `vibdip`, `wbar`, `w/bar`, `hammer`, `ho`, `pull`, `po`, `hammerpull`, `hopo`, `hp`, `ligado`, `lig`, `tap`, `tappull`, `lhtap`, `lhtappull`) -> `Unsupported` (tablature-only elements; revisit).
 - `slurarp` (curved arpeggio) -> `Unsupported` (no MuseScore type).
 - Jazz ornaments (flip, smear, jazz turn, bend) are `Articulation`s: Return on one does not reopen this popover (the articulation type is shared with every other articulation).
 - `scoop` has no smooth variant in Dorico's popover (Dorico calls the smooth one a lift); a straight scoop has no prefill.

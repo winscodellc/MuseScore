@@ -333,3 +333,12 @@ No hook. Pages are QML children in `WindowContent.qml:100-118`; `pageByUri()` (`
 - `Segment::next1(SegmentType)` crosses measures; `tick2segment(tick, true, ChordRest)` is the first segment at a tick.
 - `transact(notation, title, body)` lives in `internal/transact.h` (shared by Paste Special and Transform).
 - uictl cannot type a bare `;` (it separates commands): send the tuplets key as `key mscore none+";"`.
+
+### Guitar items internals (found in spec 61)
+- `Score::addGuitarBend(type, note, endNote)` (`editing/cmd.cpp`) calls `undoAddElement` itself. For BEND / DIVE a null `endNote` means `SLine::guessFinalNote`, else `GuitarBend::createEndNote` **adds a new note**; SCOOP / DIP / SLIGHT_BEND start and end on the same note. Returns null when refused (duplicate dip, existing bend, pre-bend rules).
+- `Score::addSlur(first, second, tmpl)` clones the template, so a `Factory::createHammerOnPullOff` template works (delete it afterwards). `second == nullptr` takes the next chord of the voice; a HOPO with no next chord creates an end note. H / P text comes from `HammerOnPullOffSegment::updateHopoText` (pitch direction on notation staves, fret on TAB), it cannot be forced.
+- `Tapping` is an `Articulation` (own `ElementType::TAPPING`, `setHand`), `Chord::tapping()` finds it. `EditChord::toggleArticulation` compares by `hasArticulation`, so write the toggle by hand (same hand = remove, else replace).
+- `WhammyBar` and `HarmonicMark` are `ChordTextLineBase` spanners, added like a trill (track, track2, tick, tick2, `undoAddElement`); `startElement()` is not set until layout, use `startChord()`. `HarmonicMark` text: `setBeginText` + `setContinueText` (`AH` / `PH`, what the Guitar Pro importer uses).
+- A string number is `Factory::createFingering(note, TextStyleType::STRING_NUMBER)` + `setPlainText`; a TAB staff only shows it if its staff type shows fingering.
+- Natural harmonic look = `Pid::HEAD_GROUP` `HEAD_DIAMOND` via `undoChangeProperty` (links follow); `Note::setHarmonic` is Guitar Pro import state only.
+- The ornaments popover re-edits an item (Return) only if its type is in `PopoverDef::itemTypes` and `ornamentChordOf` / `ornamentPrefill` know it; `GuitarBendSegment` carries the bend, `toHammerOnPullOffSegment(e)->hammerOnPullOff()`, `toWhammyBarSegment(e)->whammyBar()`.

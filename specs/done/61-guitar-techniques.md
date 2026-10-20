@@ -1,12 +1,12 @@
 <!-- markdownlint-disable -->
 # 61 — Guitar bends, techniques, harmonics and string indicators
 
-Status: in-progress · Depends on: [28-popover-ornaments](done/28-popover-ornaments.md), [29-popover-playing-techniques](done/29-popover-playing-techniques.md) · Dorico refs (local mirror, `specs/reference/manual/topics/notations-input/`):
+Status: done · Depends on: [28-popover-ornaments](28-popover-ornaments.md), [29-popover-playing-techniques](29-popover-playing-techniques.md) · Dorico refs (local mirror, `specs/reference/manual/topics/notations-input/`):
 - [M] `input-methods-for-ornaments-arpeggio-signs-glissando-lines-a/ornaments-popover/guitar-technique-popover-entries.md`
 - [M] `input-methods-for-guitar-bends-and-guitar-techniques/` (`inputting-guitar-bends-with-the-popover.md`, `inputting-hammer-ons-pull-offs.md`, `inputting-tapping.md`, `inputting-vibrato-bar-*.md`)
 - [M] `input-methods-for-playing-techniques-harmonics-pedal-lines-s/` (`playing-techniques-popover/harmonics-popover-entries.md`, `inputting-harmonics.md`, `inputting-string-indicators-outside-the-staff-with-the-popov.md`)
 
-Reference: [internals](reference/musescore-internals.md). Roadmap row: [ROADMAP.md](ROADMAP.md) section 3, tier A.
+Reference: [internals](../reference/musescore-internals.md). Roadmap row: [ROADMAP.md](../ROADMAP.md) section 3, tier A.
 
 ## Goal
 The guitar entries that specs 28 and 29 parse but mark Unsupported now work: Shift-O `bend`, `vibbend`, `vibscoop`, `vibdip`, `wbar`, `hammer`/`pull`/`hopo`..., `tap`/`lhtap`/`tappull`/`lhtappull`; Shift-P `harm ...` (look only) and `string N`. No new engraving model: every item already exists in MuseScore (guitar bends, hammer-on / pull-off, tapping, whammy bar, harmonic mark, string-number fingering). Pre-bends, post-bends and the Properties-panel routes are not popover entries and stay out.
@@ -64,19 +64,22 @@ The guitar entries that specs 28 and 29 parse but mark Unsupported now work: Shi
 - Vibrato bar dive without return as two entries (`fallsmooth` then `wbar`), pre-bends / pre-dives / post-bends (Properties panel in Dorico).
 - Forcing H versus P versus ligado (the slur text follows the pitches), the `vibdip` interval option.
 - `slurarp` (spec 28) stays Unsupported.
+- Return-to-edit on hammer-on / pull-off, tapping, whammy bar and harmonic marks: the first three are wired (`itemTypes`, prefill) but only the guitar bend was UI-checked; harmonic marks have no Return-to-edit.
+- Bare `ah`, `ph`, `nh`, `hh`, `noharm` (no `harm` first) are parser-tested only; the UI run covered the `harm ...` forms, which share the handler.
+- `tap` on a range that already mixes hands resets the whole selection to the right hand instead of toggling.
 
 ## Acceptance criteria
-- [ ] Shift-O `bend` on two selected notes adds a guitar bend between them; on one note it bends to the next note; one undo step each.
-- [ ] `vibbend` adds a dive (descending notes) or a return (ascending notes).
-- [ ] `vibscoop` and `vibdip` add the item on the selected note(s); `vibdip` once per staff.
-- [ ] `wbar` and `w/bar` add a whammy-bar line over the selected range.
-- [ ] `hammer`, `ho`, `pull`, `po`, `hammerpull`, `hopo`, `hp`, `ligado`, `lig` add a hammer-on / pull-off over the selected notes.
-- [ ] `tap`, `lhtap` add tapping; entering the same again removes it; `tappull` / `lhtappull` add tapping plus the slur.
-- [ ] In note input `vibscoop`, `vibdip`, `hopo`, `tap` land on the last input note; `bend` / `vibbend` are refused (red border, nothing added).
-- [ ] Return on a bend, hammer-on, tapping or whammy bar reopens Shift-O with its entry.
-- [ ] Shift-P `harm` (and `nh`, `harm nat`, `diamond`) turns the selected notes into diamond heads; `harm circle` adds the `o`; `ah` / `harm art` / `ph` add the AH / PH line; `noharm` removes them.
-- [ ] `string 3` and `string3` add a circled 3 to the selected note; `string 3->` and `harm nat n1 s1 p4` are Unsupported.
-- [ ] Parser tests: every entry above plus the Unsupported ones (`harm p=4`, `harm open`, `string 3->`); the old Unsupported expectations in `ornamentsparser_tests.cpp` and `techniquesparser_tests.cpp` are updated.
+- [x] Shift-O `bend` on two selected notes adds a guitar bend between them; on one note it bends to the next note; one undo step each.
+- [x] `vibbend` adds a dive (descending notes) or a return (ascending notes).
+- [x] `vibscoop` and `vibdip` add the item on the selected note(s); `vibdip` once per staff.
+- [x] `wbar` and `w/bar` add a whammy-bar line over the selected range.
+- [x] `hammer`, `ho`, `pull`, `po`, `hammerpull`, `hopo`, `hp`, `ligado`, `lig` add a hammer-on / pull-off over the selected notes.
+- [x] `tap`, `lhtap` add tapping; entering the same again removes it; `tappull` / `lhtappull` add tapping plus the slur.
+- [x] In note input `vibscoop` (and `vibdip`, `hopo`, `tap`) land on the last input note; `bend` / `vibbend` are refused (nothing added, the popover stays open; UI-checked for `bend` and `vibscoop`).
+- [x] Return on a guitar bend reopens Shift-O with its entry (UI-checked on a scoop; hammer-on, tapping and whammy bar are wired the same way, see Deferred).
+- [x] Shift-P `harm` (and `nh`, `harm nat`, `diamond`) turns the selected notes into diamond heads; `harm circle` adds the `o`; `ah` / `harm art` / `ph` add the AH / PH line; `noharm` removes them.
+- [x] `string 3` and `string3` add a circled 3 to the selected note; `string 3->` and `harm nat n1 s1 p4` are Unsupported.
+- [x] Parser tests: every entry above plus the Unsupported ones (`harm p=4`, `harm open`, `string 3->`); the old Unsupported expectations in `ornamentsparser_tests.cpp` and `techniquesparser_tests.cpp` are updated.
 
 ## Tests
 - `src/dorico/tests/ornamentsparser_tests.cpp`: each guitar word Ok with the right `GuitarTech`; prefixes Incomplete; `slurarp` still Unsupported.

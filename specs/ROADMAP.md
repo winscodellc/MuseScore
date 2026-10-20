@@ -247,7 +247,7 @@ One line of scope each; each gets a full spec in its own session, per `specs/REA
 
 | # | Title | Scope | Size |
 |---|---|---|---|
-| 61 | [Guitar bends, techniques, harmonics, string indicators](61-guitar-techniques.md) | Popover entries for `bend`, `hammer`, `pull`, `tap`, vibrato bar, `harm ...`, `string N`; wire to `guitarbend.cpp`, `hammeronpulloff.cpp`, `tapping.cpp`, `harmonicmark.cpp` (28, 29 follow-up) | M |
+| 61 | [Guitar bends, techniques, harmonics, string indicators](done/61-guitar-techniques.md) | Popover entries for `bend`, `hammer`, `pull`, `tap`, vibrato bar, `harm ...`, `string N`; wire to `guitarbend.cpp`, `hammeronpulloff.cpp`, `tapping.cpp`, `harmonicmark.cpp` (28, 29 follow-up) | M |
 | 62 | Print panel parity | Copies / collate, paper size, orientation, scale, page and flow ranges, duplex | M |
 | 63 | Mixer parity | Channel filter bar, rename, 190 px strips, icon toolbar, reverb picker (57 polish) | S |
 | 64 | Stage and Space templates | Preset pan / reverb layouts applied to all channels | S |
