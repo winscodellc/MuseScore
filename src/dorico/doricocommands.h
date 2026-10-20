@@ -107,6 +107,21 @@ inline static const muse::rcommand::Command DORICO_MOVE_RIGHT_COMMAND("command:/
 inline static const muse::rcommand::Command DORICO_MOVE_LEFT_COMMAND("command://dorico/move-left");
 inline static const muse::rcommand::Command DORICO_SCISSORS_COMMAND("command://dorico/scissors");
 
+// Edit > Paste Special (spec 41). Paste Into Voice commands are in voice order (1-4).
+inline static const muse::rcommand::Command DORICO_DUPLICATE_TO_STAFF_ABOVE_COMMAND("command://dorico/duplicate-to-staff-above");
+inline static const muse::rcommand::Command DORICO_DUPLICATE_TO_STAFF_BELOW_COMMAND("command://dorico/duplicate-to-staff-below");
+inline static const muse::rcommand::Command DORICO_MOVE_TO_STAFF_ABOVE_COMMAND("command://dorico/move-to-staff-above");
+inline static const muse::rcommand::Command DORICO_MOVE_TO_STAFF_BELOW_COMMAND("command://dorico/move-to-staff-below");
+inline static const std::array<muse::rcommand::Command, 4> DORICO_PASTE_INTO_VOICE_COMMANDS = {
+    muse::rcommand::Command("command://dorico/paste-into-voice-1"),
+    muse::rcommand::Command("command://dorico/paste-into-voice-2"),
+    muse::rcommand::Command("command://dorico/paste-into-voice-3"),
+    muse::rcommand::Command("command://dorico/paste-into-voice-4")
+};
+inline static const muse::rcommand::Command DORICO_PASTE_INTO_NEW_VOICE_COMMAND("command://dorico/paste-into-new-voice");
+inline static const muse::rcommand::Command DORICO_SWAP_STAVES_COMMAND("command://dorico/swap-staves");
+inline static const muse::rcommand::Command DORICO_PASTE_ARTICULATIONS_COMMAND("command://dorico/paste-articulations");
+
 // Project window modes and zones (spec 50). Mode commands are in `Mode` order (Setup, Write, Engrave, Play, Print).
 inline static const std::array<muse::rcommand::Command, 5> DORICO_MODE_COMMANDS = {
     muse::rcommand::Command("command://dorico/mode-setup"),

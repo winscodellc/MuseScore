@@ -48,6 +48,8 @@ target_sources(dorico PRIVATE
     internal/notationspanels.h
     internal/doricopastecontroller.cpp
     internal/doricopastecontroller.h
+    internal/pastespecial.cpp
+    internal/pastespecial.h
     internal/pasteplanner.cpp
     internal/pasteplanner.h
     internal/selectionsummary.cpp

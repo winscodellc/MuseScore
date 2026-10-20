@@ -104,6 +104,19 @@ static std::vector<CommandInfo> makeCommandInfos()
                      "Moves the selected note before the previous one, or the selected dynamic or text to the previous note"));
     v.push_back(info(DORICO_SCISSORS_COMMAND, "Dorico: scissors", "Removes the ties of the selected tie chains"));
 
+    v.push_back(info(DORICO_DUPLICATE_TO_STAFF_ABOVE_COMMAND, "Duplicate to Staff Above", "Copies the selection to the staff above"));
+    v.push_back(info(DORICO_DUPLICATE_TO_STAFF_BELOW_COMMAND, "Duplicate to Staff Below", "Copies the selection to the staff below"));
+    v.push_back(info(DORICO_MOVE_TO_STAFF_ABOVE_COMMAND, "Move to Staff Above", "Cuts the selection and pastes it onto the staff above"));
+    v.push_back(info(DORICO_MOVE_TO_STAFF_BELOW_COMMAND, "Move to Staff Below", "Cuts the selection and pastes it onto the staff below"));
+    for (int i = 0; i < 4; ++i) {
+        v.push_back(info(DORICO_PASTE_INTO_VOICE_COMMANDS[i], "Voice " + std::to_string(i + 1),
+                         "Pastes the copied music into this voice of the selected staff"));
+    }
+    v.push_back(info(DORICO_PASTE_INTO_NEW_VOICE_COMMAND, "New Voice", "Pastes the copied music into the first voice that is empty there"));
+    v.push_back(info(DORICO_SWAP_STAVES_COMMAND, "Swap", "Swaps the contents of the two selected staves for the selected range"));
+    v.push_back(info(DORICO_PASTE_ARTICULATIONS_COMMAND, "Paste Articulations",
+                     "Applies the copied articulations and slurs to the notes from the selected one on"));
+
     static const char* MODES[] = { "Setup", "Write", "Engrave", "Play", "Print" };
     for (int i = 0; i < 5; ++i) {
         v.push_back(info(DORICO_MODE_COMMANDS[i], std::string("Dorico: ") + MODES[i] + " mode", "Switches the project window to this mode"));

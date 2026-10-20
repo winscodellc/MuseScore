@@ -23,11 +23,8 @@
 #include "doricopastecontroller.h"
 
 #include <algorithm>
+#include <functional>
 #include <optional>
-
-#include <QClipboard>
-#include <QGuiApplication>
-#include <QMimeData>
 
 #include "engraving/dom/chord.h"
 #include "engraving/dom/measure.h"
@@ -50,6 +47,9 @@
 #include "notation/inotationundostack.h"
 #include "notationscene/notationcommands.h"
 
+#include "../doricocommands.h"
+#include "pastespecial.h"
+
 #include "log.h"
 
 using namespace mu::dorico;
@@ -58,40 +58,6 @@ using namespace mu::notation;
 using namespace muse;
 
 namespace {
-struct PasteClip {
-    Fraction len;
-    size_t staves = 0;
-    ByteArray data;
-};
-
-std::optional<PasteClip> pasteClipFromClipboard()
-{
-    const QMimeData* md = QGuiApplication::clipboard()->mimeData();
-    const QString format = QString::fromLatin1(mimeStaffListFormat);
-    if (!md || !md->hasFormat(format)) {
-        return std::nullopt;
-    }
-
-    PasteClip clip;
-    clip.data = ByteArray::fromQByteArray(md->data(format));
-    XmlReader xml(clip.data);
-    if (!xml.readNextStartElement() || xml.name() != "StaffList") {
-        return std::nullopt;
-    }
-    clip.len = Fraction::fromString(xml.attribute("len"));
-    clip.staves = static_cast<size_t>(xml.intAttribute("staves", 0));
-    if (clip.len.isZero() || clip.staves == 0) {
-        return std::nullopt;
-    }
-    return clip;
-}
-
-Segment* pasteSegmentAt(Score* score, const Fraction& tick)
-{
-    Measure* m = score->tick2measure(tick);
-    return m ? m->undoGetSegment(SegmentType::ChordRest, tick) : nullptr;
-}
-
 //! End of the last bar of `staff` that has a chord starting at or after `from`; `from` itself when there is none.
 Fraction pasteStaffTailEnd(const Score* score, staff_idx_t staff, const Fraction& from)
 {
@@ -224,6 +190,26 @@ std::vector<PasteTarget> pasteTargets(const Score* score, const PasteClip& clip,
 
 void DoricoPasteController::init()
 {
+    // Edit > Paste Special (spec 41)
+    const auto onNotation = [this](const muse::rcommand::Command& command, std::function<bool(const INotationPtr&)> run) {
+        dispatcher()->onRequest(this, command, [this, run]() {
+            if (INotationPtr notation = globalContext()->currentNotation()) {
+                run(notation);
+            }
+            return muse::make_ok();
+        });
+    };
+    onNotation(DORICO_DUPLICATE_TO_STAFF_ABOVE_COMMAND, [](const INotationPtr& n) { return pasteSpecialDuplicate(n, -1); });
+    onNotation(DORICO_DUPLICATE_TO_STAFF_BELOW_COMMAND, [](const INotationPtr& n) { return pasteSpecialDuplicate(n, 1); });
+    onNotation(DORICO_MOVE_TO_STAFF_ABOVE_COMMAND, [](const INotationPtr& n) { return pasteSpecialMove(n, -1); });
+    onNotation(DORICO_MOVE_TO_STAFF_BELOW_COMMAND, [](const INotationPtr& n) { return pasteSpecialMove(n, 1); });
+    for (int voice = 0; voice < 4; ++voice) {
+        onNotation(DORICO_PASTE_INTO_VOICE_COMMANDS[voice], [voice](const INotationPtr& n) { return pasteSpecialIntoVoice(n, voice); });
+    }
+    onNotation(DORICO_PASTE_INTO_NEW_VOICE_COMMAND, [](const INotationPtr& n) { return pasteSpecialIntoVoice(n, -1); });
+    onNotation(DORICO_SWAP_STAVES_COMMAND, [](const INotationPtr& n) { return pasteSpecialSwap(n); });
+    onNotation(DORICO_PASTE_ARTICULATIONS_COMMAND, [](const INotationPtr& n) { return pasteSpecialArticulations(n); });
+
     dispatcher()->preDispatch().onReceive(this, [this](const muse::rcommand::Command& command, bool* allowDispatch) {
         if (command == mu::notation::PASTE_COMMAND && tryPaste()) {
             *allowDispatch = false;

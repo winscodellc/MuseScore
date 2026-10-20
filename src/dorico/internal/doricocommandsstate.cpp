@@ -24,9 +24,13 @@
 
 #include <algorithm>
 
+#include "notation/inotation.h"
+#include "notation/inotationelements.h"
 #include "notation/inotationstyle.h"
+#include "engraving/dom/score.h"
 
 #include "../doricocommands.h"
+#include "pastespecial.h"
 
 #include "log.h"
 
@@ -123,6 +127,21 @@ CommandState DoricoCommandsState::commandState(const Command& command) const
     const bool enabled = lyricsCommand ? notationController()->isLyricsEditing()
                          : (globalContext()->currentProject() != nullptr || command == DORICO_OPEN_HUB_COMMAND) && !editingText;
 
+    const notation::INotationPtr notation = globalContext()->currentNotation();
+    const engraving::Score* score = notation ? notation->elements()->msScore() : nullptr;
+    bool pasteSpecialEnabled = true;
+    if (command == DORICO_DUPLICATE_TO_STAFF_ABOVE_COMMAND || command == DORICO_MOVE_TO_STAFF_ABOVE_COMMAND) {
+        pasteSpecialEnabled = score && pasteSpecialCanMove(score, -1);
+    } else if (command == DORICO_DUPLICATE_TO_STAFF_BELOW_COMMAND || command == DORICO_MOVE_TO_STAFF_BELOW_COMMAND) {
+        pasteSpecialEnabled = score && pasteSpecialCanMove(score, 1);
+    } else if (command == DORICO_SWAP_STAVES_COMMAND) {
+        pasteSpecialEnabled = score && pasteSpecialCanSwap(score);
+    } else if (command == DORICO_PASTE_INTO_NEW_VOICE_COMMAND || command == DORICO_PASTE_ARTICULATIONS_COMMAND
+               || std::find(DORICO_PASTE_INTO_VOICE_COMMANDS.begin(), DORICO_PASTE_INTO_VOICE_COMMANDS.end(), command)
+               != DORICO_PASTE_INTO_VOICE_COMMANDS.end()) {
+        pasteSpecialEnabled = score && pasteSpecialHasTarget(score);
+    }
+
     bool checked = false;
     for (size_t i = 0; i < DORICO_MODE_COMMANDS.size(); ++i) {
         if (command == DORICO_MODE_COMMANDS[i]) {
@@ -146,7 +165,7 @@ CommandState DoricoCommandsState::commandState(const Command& command) const
         checked = std::all_of(it->second.begin(), it->second.end(), [&](SymId s) { return current.count(s) > 0; });
     }
 
-    return CommandState(enabled, checked);
+    return CommandState(enabled && pasteSpecialEnabled, checked);
 }
 
 async::Channel<Command, CommandState> DoricoCommandsState::commandStateChanged() const

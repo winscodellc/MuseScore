@@ -41,6 +41,8 @@
         {"command": "command://notation/goto-prev-segment-element", "sequences": []},
         {"command": "command://notation/goto-first-element", "sequences": []},
         {"command": "command://notation/goto-last-element", "sequences": []},
+        {"command": "command://dorico/move-to-staff-above", "sequences": ["Alt+N"]},
+        {"command": "command://dorico/move-to-staff-below", "sequences": ["Alt+M"]},
         {"command": "command://notation/move-up", "sequences": ["N"]},
         {"command": "command://notation/move-down", "sequences": ["M"]},
         {"command": "command://notation/toggle-note-input", "sequences": ["Shift+N"]},
