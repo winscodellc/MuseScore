@@ -174,7 +174,6 @@ const std::vector<MenuSpec>& mu::dorico::doricoMenus()
             item("menu-voices"),
             item("menu-tools-measures"),
             sep(),
-            item("command://notation/staff-explode"),
             item("command://notation/staff-implode"),
             item("command://notation/open-realizechordsymbols"),
             item("command://notation/slash-fill"),
