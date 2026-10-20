@@ -315,3 +315,11 @@ No hook. Pages are QML children in `WindowContent.qml:100-118`; `pageByUri()` (`
 
 ### `src/dorico/` at the start of the UI series
 `IDoricoModeState` (`idoricomodestate.h:30-42`) has only Chord/Insert flags. `qml/MuseScore/Dorico/` has only `DoricoPlaceholder.qml`; its imports are `muse_ui_qml` and `muse_uicomponents_qml`. `DoricoModule` registers commands, state and the preset switch (`doricomodule.cpp:51-95`), no URIs and no UI.
+
+### Explode / Reduce internals (found in spec 47)
+- `ImplodeExplode::explode` cannot give Dorico's allocation: each staff keeps exactly one note (`stavesPerNote = max((lastStaff - srcStaff) / nnotes, 1)`), so 4 notes onto 3 staves loses the bottom note; it also forces whole bars and works on the score, not the clipboard. The fork pastes the clip on every staff and prunes chords itself (`explodeInto`, `explodeNotes`).
+- `ImplodeExplode::implode` with a **single** staff selected merges the voices of that staff: notes are added to the voice-1 chord only when the chord has the same duration (otherwise the source chord stays in its voice), unison pitches are skipped (`findNote`), and the emptied source chords are removed. Slurs on removed chords are dropped by `checkSpanner`. That is Reduce's merge step.
+- A multi-staff `StaffList` payload splits per staff: each `<Staff id>` is self-contained, and the trailing `<SpannerMap>` items carry an absolute `<track>` (always written in clipboard mode since `curTrack` is `nidx`), so `track / VOICES` is the source staff. `staffClipOf` rebuilds a one-staff payload with root `staff=<id> staves=1`; `Paste::pasteStaff` offsets by `dstStaff - staff`. **Staves are read one after the other**: staff 0 starts with `<location><fractions>TICK</fractions></location>` (the clip tick) but every later staff starts with a rewind relative to where the previous one ended (`<fractions>-1/1</fractions>`), so a staff cut out of a clip lands at the wrong tick (tick 0 on the destination) unless that leading location is rewritten to the clip tick.
+- `QXmlStreamReader`: a helper that copies an element must stop **on** its end tag (like `skipCurrentElement`); reading one token further makes the caller's `readNextStartElement()` skip the next sibling.
+- `QClipboard::dataChanged` is the only trigger for command states that depend on the clipboard (`DoricoCommandsState` connects it).
+

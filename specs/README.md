@@ -162,7 +162,7 @@ Status: todo | in-progress | pending review | done  -  Depends on: NN, NN  -  Do
 | 44 | [Selection](done/44-selection.md) | done | 12 |
 | 45 | [Filters](done/45-filters.md) | done | 44 |
 | 46 | [Jump bar and Go To Bar](done/46-jump-bar.md) | done | 20 (overlay), 10 |
-| 47 | [Explode / Reduce](47-explode-reduce.md) | todo | 41 (lowest priority) |
+| 47 | [Explode / Reduce](47-explode-reduce.md) | done (greyed state unverified) | 41 |
 | 50 | [UI shell and modes](done/50-ui-shell-and-modes.md) | done | 00, 10 |
 | 51 | [Status bar](done/51-status-bar.md) | done | 50 |
 | 52 | [Write: Notes toolbox and panel](done/52-write-notes-toolbox-and-panel.md) | done | 50, 11 |

@@ -1,7 +1,7 @@
 <!-- markdownlint-disable -->
 # 47 — Paste Special: Explode and Reduce
 
-Status: todo (lowest priority) · Depends on: [40-copy-paste](done/40-copy-paste.md), [41-paste-special](done/41-paste-special.md), [46-jump-bar](done/46-jump-bar.md)
+Status: done · Depends on: [40-copy-paste](done/40-copy-paste.md), [41-paste-special](done/41-paste-special.md), [46-jump-bar](done/46-jump-bar.md)
 Dorico refs: `B = https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/` →
 `B write_mode/write_mode_arranging_tools/write_mode_arranging_exploding_t.html`,
 `B write_mode/write_mode_arranging_tools/write_mode_arranging_reducing_t.html`
@@ -34,38 +34,41 @@ Edit > Paste Special > **Explode** (spread chords of copied music across several
 - Existing tests: `src/engraving/tests/implodeexplode_tests.cpp` with `implode_explode_data/`.
 - Gap: Dorico is **clipboard-driven** (copy anywhere, paste into chosen staves) and has the exact "more notes than staves" / "fewer notes" / odd-extras and unison/cue/clef-change rules; MuseScore's functions are in-place and have their own allocation (verify against the rules above before relying on it).
 
-## Design
-Three increasing steps; ship each separately.
+## Design (as built)
+Both live in `src/dorico/internal/pastespecial.{h,cpp}` next to the other Paste Special commands (no new `explode.cpp`), and run in one `transact` (one undo step). Internals found on the way: [reference/musescore-internals.md](reference/musescore-internals.md) "Explode / Reduce internals".
 
-1. **Explode wrapper** — `command://dorico/explode`: `dorico/paste` (spec 40) the clipboard into the **first** selected destination staff at the selection start (clipboard is normally one staff of chords), re-select the destination staves as a complete-measure range of the pasted span, then call `ImplodeExplode::explode(score)` (via `INotationInteraction::explodeSelectedStaff()` for the undo/error handling). One undo step (wrap in the paste's transaction). Then compare the allocation to the table above; where MuseScore differs (fewer-notes-than-staves duplication incl. slurs/dynamics, odd extras to upper staves) add a post-pass in `src/dorico/internal/explode.cpp` on the exploded range.
-2. **Reduce, rhythm-matched** — `command://dorico/reduce`: paste each clipboard staff to consecutive scratch positions is not possible (destination has fewer staves), so: determine groups with the top-down split `groups[i] = sources [floor(i*n/m) .. floor((i+1)*n/m))`, with the larger groups first (5→3 gives 2,2,1); for each group paste its sources into the destination staff in the **same voice** with Chord-mode merge (spec 40, Chord flag) so notes stack into chords; remove duplicate pitches (`epitch()` + staff) in a chord; delete clef changes, ottavas (octave lines) in the pasted span. Equivalent to `ImplodeExplode::implode` for the matched-rhythm case — prefer calling `implode` after pasting the sources onto consecutive destination staves when enough exist, else use the merge routine.
-3. **Reduce, differing rhythms** — merge into additional voices (max 4 in MuseScore): when a group's sources have different rhythmic grids at any position, put each source in its own voice instead of chord-merging, keeping rests; stem directions default.
+1. **Explode** (`pasteSpecialExplode`): `ImplodeExplode::explode` is **not** used (it keeps one note per staff, so 4 notes onto 3 staves lose a note, and it forces whole bars). The one-staff clip is pasted onto every selected staff at the selection start, then each staff prunes every chord (all voices, grace chords) to its share, `explodeNotes(nNotes, nStaves)`: more notes than staves = contiguous runs with the extras on the upper staves (4/3 = 2,1,1; 5/3 = 2,2,1); fewer notes = a note is shared (2/3 = top, bottom, bottom). Slurs and dynamics are duplicated by the paste itself.
+2. **Reduce, rhythm-matched** (`pasteSpecialReduce`): the clip is split per staff (`staffClipOf`), groups come from `reduceGroups(nSources, nDest)` (5/3 = 2,2,1). Source `j` of a group is pasted into **voice `j`** of its destination staff (`pasteAtInVoice`). If every voice of a group has the same chord rhythm, the group is merged into voice 1 with `ImplodeExplode::implode` on that one staff (same-duration chords stack, unison pitches are skipped), then the clef changes and octave lines in the span are removed.
+3. **Reduce, differing rhythms**: the same paste, and the merge is skipped for that staff, so the sources stay in their own voices (max 4 per staff).
 
 | Command | Title | Key | Behaviour |
 |---|---|---|---|
-| `command://dorico/explode` | Paste Special > Explode | none | step 1 |
-| `command://dorico/reduce` | Paste Special > Reduce | none | steps 2–3 |
+| `command://dorico/explode` | Paste Special > Explode | none | needs a one-staff clip and a range of 2+ staves |
+| `command://dorico/reduce` | Paste Special > Reduce | none | needs a clip with more staves than the range has |
 
 Settings (replace the Note Input Options "Paste Special" page): `dorico/reduce/voicing` = `auto` (merge when rhythms match, else voices; default). No UI page in this spec.
 
-Upstream edits: none.
+Upstream edits: none. `DoricoCommandsState` also refreshes on `QClipboard::dataChanged`, so the two items enable as soon as something is copied.
 
 ## Deferred / unsupported
 - The Note Input Options **Paste Special** page (voicing approach choices); only `auto` exists.
 - Cue removal (MuseScore has no cue model), "reset cross-staff notes" prerequisite helper, slash voices.
 - Reduce with more than 4 distinct rhythms (MuseScore 4-voice limit).
 - Local time signatures / differing time stretch (upstream also refuses).
-- Everything in step 3 until steps 1–2 are done; this whole spec is after specs 40–46.
+- A copied staff that holds more than one voice, and a destination staff that would need more than four voices: Reduce refuses (`LOGW`), nothing changes.
+- Sources that already sit in the destination voices (destination music in voices the sources do not use is merged too); slurs on chords that Reduce merges away are dropped by `ImplodeExplode::implode`.
+- Rhythm-matched means the chords of every voice start and last the same; a group with a rest where another voice has a chord counts as different and is left in voices.
 
 ## Acceptance criteria
-- [ ] Copy a 3-note chord line, select 3 staves, `Explode`: top note → staff 1, middle → 2, bottom → 3; one undo removes everything.
-- [ ] 2-note chords onto 3 staves: top note staff 1, bottom note staves 2 **and** 3 (fewer notes than staves → duplicate; slurs/dynamics duplicated).
-- [ ] 4-note chords onto 3 staves: staff 1 gets 2 notes, staves 2 and 3 one each (extras go to upper staves; check the odd case with 5 notes / 3 staves → 2,2,1).
-- [ ] Reduce of 4 staves in identical rhythm onto 2 staves: each destination staff holds chords of 2 sources, unisons removed, clef changes/ottavas of the sources gone.
-- [ ] Reduce 5→3 groups are 2,2,1 top-down.
-- [ ] Reduce with differing rhythms keeps every rhythm (extra voices), no notes lost.
-- [ ] Both commands are single undo steps and unavailable without a clipboard / destination selection.
+- [x] Copy a 3-note chord line, select 3 staves, `Explode`: top note → staff 1, middle → 2, bottom → 3; one undo removes everything.
+- [x] 2-note chords onto 3 staves: top note staff 1, bottom note staves 2 **and** 3 (fewer notes than staves → duplicate; slurs/dynamics duplicated).
+- [x] 4-note chords onto 3 staves: staff 1 gets 2 notes, staves 2 and 3 one each (extras go to upper staves; check the odd case with 5 notes / 3 staves → 2,2,1).
+- [x] Reduce of 4 staves in identical rhythm onto 2 staves: each destination staff holds chords of 2 sources, unisons removed, clef changes/ottavas of the sources gone.
+- [x] Reduce 5→3 groups are 2,2,1 top-down.
+- [x] Reduce with differing rhythms keeps every rhythm (extra voices), no notes lost.
+- [x] Both commands are single undo steps (UI-checked).
+- [ ] Both commands are unavailable (greyed) without a clipboard / destination selection. **Not verified**: the Help-search access the UI tester uses shows no greyed state (a 2-staff clip on a 2-staff range dispatched nothing). Enabling logic: `pasteSpecialCanExplode` / `pasteSpecialCanReduce`, refreshed on selection and clipboard changes.
 
 ## Tests
-- Extend the existing harness: new cases in `src/dorico/tests/explodereduce_tests.cpp` + fixtures `explodereduce_data/*.mscx`/`-ref.mscx`, modelled on `src/engraving/tests/implodeexplode_tests.cpp` + `implode_explode_data/`. Pure helper `reduceGroups(nSources, nDest)` → `{2,2,1}` etc. gets table tests; explode allocation tested via the 3/2/4/5-note cases above.
-- Manual: orchestral-style 5-staff passage reduced to a piano-style 2–3 staff system.
+- `src/dorico/tests/pastespecial_tests.cpp`: table tests for `reduceGroups` (5/3, 4/2, 3/3, 7/3) and `explodeNotes` (3/3, 2/3, 1/3, 4/3, 5/3), and `staffClipOf` (one staff kept, spanners filtered by track, every staff starts at the clip tick, round trip through `pasteClipFrom` / `pasteClipVoices`). The `.mscx` fixtures of the first draft were dropped: `dorico_tests` cannot load scores.
+- UI (ui-tester, generated 5-staff score): Explode 3 / 2 / 4 / 5 notes onto 3 staves, Explode at a non-zero bar, Reduce 4 onto 2, 5 onto 3, differing rhythms, one undo step each. Found and fixed: staves after the first were pasted at tick 0 (their leading `<location>` rewinds from the previous staff; `staffClipOf` now rewrites it).
