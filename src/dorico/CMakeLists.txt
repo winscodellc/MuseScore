@@ -54,6 +54,9 @@ target_sources(dorico PRIVATE
     internal/pasteplanner.h
     internal/doricoselectioncontroller.cpp
     internal/doricoselectioncontroller.h
+    internal/filters.cpp
+    internal/filters.h
+    internal/filtersettings.h
     internal/selectmore.cpp
     internal/selectmore.h
     internal/selectionsummary.cpp

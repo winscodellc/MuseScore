@@ -22,12 +22,51 @@
 
 #include "doricomenu.h"
 
+#include <algorithm>
+#include <cctype>
+
+#include "../doricocommands.h"
+#include "filters.h"
+
 using namespace mu::dorico;
 
 namespace {
 MenuSpec item(const char* id) { return { id, {}, {} }; }
 MenuSpec sep() { return { "-", {}, {} }; }
 MenuSpec menu(const char* id, const char* title, std::vector<MenuSpec> children) { return { id, title, std::move(children) }; }
+MenuSpec titled(const std::string& id, const std::string& title) { return { QString::fromStdString(id), QString::fromStdString(title), {} }; }
+
+//! Edit > Filter (spec 45): the two modes, a submenu per group of filters, then the single-category filters
+MenuSpec filterMenu()
+{
+    std::vector<MenuSpec> children = { item("command://dorico/filter-select-only"), item("command://dorico/filter-deselect-only"), sep() };
+    std::vector<std::string> groups;
+    for (const FilterDef& def : filterDefs()) {
+        if (!def.group.empty() && std::find(groups.begin(), groups.end(), def.group) == groups.end()) {
+            groups.push_back(def.group);
+        }
+    }
+    for (const std::string& group : groups) {
+        std::string id = "dorico-menu-filter-" + group;
+        std::transform(id.begin(), id.end(), id.begin(), [](unsigned char c) { return std::tolower(c); });
+        std::vector<MenuSpec> entries;
+        for (const FilterDef& def : filterDefs()) {
+            if (def.group == group) {
+                entries.push_back(titled(doricoFilterCommandUri(def.id), def.title));
+            }
+        }
+        if (group == "Notes") {
+            entries.push_back(titled("command://dorico/filter-notes-by-pitch", "Notes by Pitch…"));
+        }
+        children.push_back({ QString::fromStdString(id), QString::fromStdString(group), std::move(entries) });
+    }
+    for (const FilterDef& def : filterDefs()) {
+        if (def.group.empty()) {
+            children.push_back(titled(doricoFilterCommandUri(def.id), def.title));
+        }
+    }
+    return { "dorico-menu-filter", "Filter", std::move(children) };
+}
 }
 
 const std::vector<MenuSpec>& mu::dorico::doricoMenus()
@@ -97,6 +136,7 @@ const std::vector<MenuSpec>& mu::dorico::doricoMenus()
                 item("command://notation/add-to-selection-begin-score"),
             }),
             item("command://notation/select-section"),
+            filterMenu(),
             item("command://app/dock/toggle-selection-filter"),
             item("command://notation/view/show-search"),
             sep(),

@@ -33,7 +33,7 @@
 namespace mu::dorico {
 struct MenuSpec {
     QString id;                      // item / submenu id, or "-" for a separator
-    QString title;                   // only for submenus this table creates (and the ten top-level menus)
+    QString title;                   // for submenus this table creates (and the ten top-level menus); on an item it replaces the command's title
     std::vector<MenuSpec> children;  // non-empty: a submenu created here
 
     bool isSeparator() const { return id == "-"; }

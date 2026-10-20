@@ -99,6 +99,7 @@ void DoricoModule::resolveImports()
         for (Mode mode : { Mode::Setup, Mode::Engrave, Mode::Play, Mode::Print }) {
             ir->registerPageUri(modeUri(mode));
         }
+        ir->registerQmlUri(muse::Uri("musescore://dorico/filternotesbypitch"), "MuseScore.Dorico", "FilterNotesByPitchDialog"); // spec 45
     }
 
     auto cr = globalIoc()->resolve<muse::rcommand::ICommandsRegister>(mname);

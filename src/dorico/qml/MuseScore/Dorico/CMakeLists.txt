@@ -74,6 +74,7 @@ qt_add_qml_module(dorico_qml
         DoricoChannelStrip.qml
         DoricoMixer.qml
         InspectorSection.qml
+        FilterNotesByPitchDialog.qml
         JumpBar.qml
         ResourceDropdown.qml
         trackcolor.js

@@ -23,6 +23,7 @@
 #include "doricocommandsregister.h"
 
 #include "../doricocommands.h"
+#include "filters.h"
 #include "../popover/popoverregistry.h"
 #include "rcommand/commandtypes.h"
 
@@ -127,6 +128,20 @@ static std::vector<CommandInfo> makeCommandInfos()
     v.push_back(info(DORICO_PREV_ITEM_COMMAND, "Previous Item at Position", "Selects the previous item at the same rhythmic position"));
     v.push_back(info(DORICO_SELECT_SAME_PITCH_ONWARDS_COMMAND, "Select Same Pitch Onwards",
                      "Selects the note and every later note of the same pitch in its voice"));
+
+    CommandInfo selectOnly = info(DORICO_FILTER_SELECT_ONLY_COMMAND, "Select Only", "Filters keep only the chosen category of the selection");
+    selectOnly.decoration.checkable = Checkable::Yes;
+    v.push_back(selectOnly);
+    CommandInfo deselectOnly = info(DORICO_FILTER_DESELECT_ONLY_COMMAND, "Deselect Only",
+                                    "Filters remove the chosen category from the selection");
+    deselectOnly.decoration.checkable = Checkable::Yes;
+    v.push_back(deselectOnly);
+    v.push_back(info(DORICO_FILTER_NOTES_BY_PITCH_COMMAND, "Filter: Notes > Notes by Pitch",
+                     "Filters the selected notes by the pitches you choose in a dialog"));
+    for (const FilterDef& def : filterDefs()) {
+        v.push_back(info(doricoFilterCommand(def.id), "Filter: " + (def.group.empty() ? "" : def.group + " > ") + def.title,
+                         "Filters the selection down to (or without) these items, as set by Select Only / Deselect Only"));
+    }
 
     static const char* MODES[] = { "Setup", "Write", "Engrave", "Play", "Print" };
     for (int i = 0; i < 5; ++i) {

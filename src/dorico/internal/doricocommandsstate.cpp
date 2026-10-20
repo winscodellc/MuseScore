@@ -30,6 +30,7 @@
 #include "engraving/dom/score.h"
 
 #include "../doricocommands.h"
+#include "filtersettings.h"
 #include "pastespecial.h"
 
 #include "log.h"
@@ -88,11 +89,17 @@ void DoricoCommandsState::init()
         updateCommandStates();
     });
 
+    // Edit > Filter > Select Only / Deselect Only show the current mode as checked
+    muse::settings()->valueChanged(FILTER_MODE_KEY).onReceive(this, [this](const Val&) {
+        updateCommandStates();
+    });
+
     updateCommandStates();
 }
 
 void DoricoCommandsState::deinit()
 {
+    muse::settings()->valueChanged(FILTER_MODE_KEY).disconnect(this);
     modes()->modeChanged().disconnect(this);
     modes()->modesChanged().disconnect(this);
     notationController()->noteInputStateChanged().disconnect(this);
@@ -155,6 +162,8 @@ CommandState DoricoCommandsState::commandState(const Command& command) const
         checked = modes()->isChordMode();
     } else if (command == DORICO_TOGGLE_INSERT_MODE_COMMAND) {
         checked = modes()->isInsertMode();
+    } else if (command == DORICO_FILTER_SELECT_ONLY_COMMAND || command == DORICO_FILTER_DESELECT_ONLY_COMMAND) {
+        checked = filterIsDeselectOnly() == (command == DORICO_FILTER_DESELECT_ONLY_COMMAND);
     } else if (command == DORICO_TOGGLE_STAVE_SHARING_COMMAND) {
         const notation::INotationPtr notation = globalContext()->currentNotation();
         checked = notation && notation->style()->styleValue(engraving::Sid::enableStaveSharing).toBool();

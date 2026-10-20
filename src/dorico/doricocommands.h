@@ -23,6 +23,7 @@
 #pragma once
 
 #include <array>
+#include <string>
 
 #include "rcommand/commandtypes.h"
 
@@ -134,6 +135,19 @@ inline static const muse::rcommand::Command DORICO_DESELECT_ALL_COMMAND("command
 inline static const muse::rcommand::Command DORICO_NEXT_ITEM_COMMAND("command://dorico/next-item-at-position");
 inline static const muse::rcommand::Command DORICO_PREV_ITEM_COMMAND("command://dorico/prev-item-at-position");
 inline static const muse::rcommand::Command DORICO_SELECT_SAME_PITCH_ONWARDS_COMMAND("command://dorico/select-same-pitch-onwards");
+
+// Filters (spec 45). One command per category: command://dorico/filter/<FilterDef::id> (see internal/filters.h).
+inline static const muse::rcommand::Command DORICO_FILTER_SELECT_ONLY_COMMAND("command://dorico/filter-select-only");
+inline static const muse::rcommand::Command DORICO_FILTER_DESELECT_ONLY_COMMAND("command://dorico/filter-deselect-only");
+inline static const muse::rcommand::Command DORICO_FILTER_NOTES_BY_PITCH_COMMAND("command://dorico/filter-notes-by-pitch");
+inline std::string doricoFilterCommandUri(const std::string& id)
+{
+    return "command://dorico/filter/" + id;
+}
+inline muse::rcommand::Command doricoFilterCommand(const std::string& id)
+{
+    return muse::rcommand::Command(doricoFilterCommandUri(id));
+}
 
 // Project window modes and zones (spec 50). Mode commands are in `Mode` order (Setup, Write, Engrave, Play, Print).
 inline static const std::array<muse::rcommand::Command, 5> DORICO_MODE_COMMANDS = {

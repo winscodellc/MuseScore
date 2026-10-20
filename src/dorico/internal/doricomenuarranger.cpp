@@ -116,6 +116,9 @@ MenuItem* DoricoMenuArranger::build(const MenuSpec& spec, QObject* owner)
     auto* item = new MenuItem(info, owner);
     item->setCommandQuery(muse::rcommand::CommandQuery(command));
     item->setCommandState(commandsState()->commandState(command));
+    if (!spec.title.isEmpty()) {
+        item->setTitle(muse::TranslatableString("dorico", spec.title.toUtf8().constData())); // the table's name for a long command title
+    }
     m_used.insert(spec.id);
     return item;
 }

@@ -25,6 +25,7 @@ set(MODULE_TEST_SRC
     ${CMAKE_CURRENT_LIST_DIR}/chordsymbolsparser_tests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/commandcatalog_tests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/figuredbassparser_tests.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/filters_tests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/fingeringparser_tests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/clefparser_tests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/doricomodule_tests.cpp
