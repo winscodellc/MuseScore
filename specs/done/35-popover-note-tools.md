@@ -90,9 +90,7 @@ One engine for both tools: pick the target notes, then move each one. `Note::tra
   5. The selection is left as it is (our choice).
 
 ## Deferred / unsupported
-- Invert (`inv`, `invert`, `mirror`, central-pitch forms).
-- Reverse / retrograde (`ret`, `rev`, `pitch`, `rhythm`, `player`, `voice`).
-- Rotate (`rot`, step counts, backwards).
+- Invert (`inv`, `invert`, `mirror`, central-pitch forms), reverse / retrograde (`ret`, `rev`, `pitch`, `rhythm`, `player`, `voice`) and rotate (`rot`, step counts, backwards): planned in [65](../65-musical-transformations.md).
 - Repeat pitches (`repeat 2 pitches`).
 - Pitch mapping (`c4=eb4,…`) and scale mapping (`c M to c m`, `snap`, `spell`).
 - Quarter-tone and other non-12-EDO units (`qt`, and `div` outside 12).

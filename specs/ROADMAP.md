@@ -251,7 +251,7 @@ One line of scope each; each gets a full spec in its own session, per `specs/REA
 | 62 | Print panel parity | Copies / collate, paper size, orientation, scale, page and flow ranges, duplex | M |
 | 63 | Mixer parity | Channel filter bar, rename, 190 px strips, icon toolbar, reverb picker (57 polish) | S |
 | 64 | Stage and Space templates | Preset pan / reverb layouts applied to all channels | S |
-| 65 | Musical transformations | Retrograde, inversion, rotate (already parsed in Shift-I, 35) | S |
+| 65 | [Musical transformations](65-musical-transformations.md) | Retrograde, inversion, rotate (already parsed in Shift-I, 35) | S |
 | 66 | Swing and playback options | Swing playback, rhythmic feel in the tempo popover (26), Playback Options dialog | M |
 | 67 | Tokens | Player / instrument / layout / flow / date tokens, placeholder show / hide | S |
 | 68 | Project dialogs | Project Statistics, Missing Fonts, settings export / import, Jump bar alias editing | S |
