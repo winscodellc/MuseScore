@@ -33,6 +33,7 @@ class DoricoDurationsController;
 class DoricoModeState;
 class DoricoNoteInputController;
 class DoricoPasteController;
+class DoricoSelectionController;
 class PopoverController;
 
 class DoricoModule : public muse::modularity::IModuleSetup
@@ -63,6 +64,7 @@ private:
     std::shared_ptr<DoricoModeState> m_modeState;
     std::shared_ptr<DoricoNoteInputController> m_noteInputController;
     std::shared_ptr<DoricoPasteController> m_pasteController;
+    std::shared_ptr<DoricoSelectionController> m_selectionController;
     std::shared_ptr<PopoverController> m_popoverController;
 };
 }

@@ -52,6 +52,10 @@ target_sources(dorico PRIVATE
     internal/pastespecial.h
     internal/pasteplanner.cpp
     internal/pasteplanner.h
+    internal/doricoselectioncontroller.cpp
+    internal/doricoselectioncontroller.h
+    internal/selectmore.cpp
+    internal/selectmore.h
     internal/selectionsummary.cpp
     internal/selectionsummary.h
     internal/noteinpututils.h

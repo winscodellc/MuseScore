@@ -118,6 +118,15 @@ static std::vector<CommandInfo> makeCommandInfos()
                      "Applies the copied articulations and slurs to the notes from the selected one on"));
     v.push_back(info(DORICO_REMOVE_RESTS_COMMAND, "Remove Rests", "Removes the selected rests (voice 1 rests are hidden)"));
     v.push_back(info(DORICO_DELETE_BARS_COMMAND, "Delete Bars", "Deletes the selected bars; the music after them moves left"));
+    v.push_back(info(DORICO_EXTEND_TO_BAR_START_COMMAND, "Extend Selection to Bar Start", "Extends the selection back to the start of its bar"));
+    v.push_back(info(DORICO_EXTEND_TO_BAR_END_COMMAND, "Extend Selection to Bar End", "Extends the selection on to the end of its bar"));
+    v.push_back(info(DORICO_SELECT_MORE_COMMAND, "Select More",
+                     "Selects more items of the same types and voices: its bar, then its system, then the whole flow"));
+    v.push_back(info(DORICO_DESELECT_ALL_COMMAND, "Select None", "Deselects everything"));
+    v.push_back(info(DORICO_NEXT_ITEM_COMMAND, "Next Item at Position", "Selects the next item at the same rhythmic position"));
+    v.push_back(info(DORICO_PREV_ITEM_COMMAND, "Previous Item at Position", "Selects the previous item at the same rhythmic position"));
+    v.push_back(info(DORICO_SELECT_SAME_PITCH_ONWARDS_COMMAND, "Select Same Pitch Onwards",
+                     "Selects the note and every later note of the same pitch in its voice"));
 
     static const char* MODES[] = { "Setup", "Write", "Engrave", "Play", "Print" };
     for (int i = 0; i < 5; ++i) {

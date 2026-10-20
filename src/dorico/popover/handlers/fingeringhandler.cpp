@@ -28,6 +28,7 @@
 #include "engraving/dom/instrument.h"
 #include "engraving/dom/note.h"
 #include "engraving/dom/part.h"
+#include "engraving/dom/score.h"
 #include "engraving/dom/staff.h"
 #include "engraving/dom/stringdata.h"
 
@@ -36,6 +37,7 @@
 #include "notation/inotationundostack.h"
 
 #include "../parsers/fingeringparser.h"
+#include "../popovernavigation.h"
 
 using namespace mu::dorico;
 using namespace mu::engraving;

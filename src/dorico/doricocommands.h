@@ -126,6 +126,15 @@ inline static const muse::rcommand::Command DORICO_PASTE_ARTICULATIONS_COMMAND("
 inline static const muse::rcommand::Command DORICO_REMOVE_RESTS_COMMAND("command://dorico/remove-rests");
 inline static const muse::rcommand::Command DORICO_DELETE_BARS_COMMAND("command://dorico/delete-bars");
 
+// Selection (spec 44). Select All is `notation/select-all`, Shift-arrows stay MuseScore's `add-to-selection-*`.
+inline static const muse::rcommand::Command DORICO_EXTEND_TO_BAR_START_COMMAND("command://dorico/extend-to-bar-start");
+inline static const muse::rcommand::Command DORICO_EXTEND_TO_BAR_END_COMMAND("command://dorico/extend-to-bar-end");
+inline static const muse::rcommand::Command DORICO_SELECT_MORE_COMMAND("command://dorico/select-more");
+inline static const muse::rcommand::Command DORICO_DESELECT_ALL_COMMAND("command://dorico/deselect-all");
+inline static const muse::rcommand::Command DORICO_NEXT_ITEM_COMMAND("command://dorico/next-item-at-position");
+inline static const muse::rcommand::Command DORICO_PREV_ITEM_COMMAND("command://dorico/prev-item-at-position");
+inline static const muse::rcommand::Command DORICO_SELECT_SAME_PITCH_ONWARDS_COMMAND("command://dorico/select-same-pitch-onwards");
+
 // Project window modes and zones (spec 50). Mode commands are in `Mode` order (Setup, Write, Engrave, Play, Print).
 inline static const std::array<muse::rcommand::Command, 5> DORICO_MODE_COMMANDS = {
     muse::rcommand::Command("command://dorico/mode-setup"),
