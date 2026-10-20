@@ -55,9 +55,13 @@ struct DpPaper {
     double w = 0.0;
     double h = 0.0;
 
+    //! Full-page mode: a QPrinter silently ignores a zero-margin layout in standard mode (it falls outside the
+    //! printable area), so the job would keep the printer's default paper.
     QPageLayout layout() const
     {
-        return QPageLayout(size, landscape ? QPageLayout::Landscape : QPageLayout::Portrait, QMarginsF());
+        QPageLayout result(size, landscape ? QPageLayout::Landscape : QPageLayout::Portrait, QMarginsF());
+        result.setMode(QPageLayout::FullPageMode);
+        return result;
     }
 };
 
