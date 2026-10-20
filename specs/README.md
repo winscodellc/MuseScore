@@ -48,6 +48,7 @@ Namespace `mu::dorico`, commands `command://dorico/<name>`. It is created in spe
 - Notes panel articulations (spec 52): `notationscene/internal/notationcommandsstate.cpp` also refreshes the articulation toggles on selection change; `engraving/dom/chord.cpp` `updateArticulations` removes any articulation (not only the basic four), `articulation.cpp` knows stress / unstress placements; test in `engraving/tests/note_tests.cpp`.
 - Print zoom (spec 58): `notationscene/qml/MuseScore/NotationScene/abstractnotationpaintview.{h,cpp}` `load()`: the main view being shown takes the view commands (zoom, Whole Page). The Dorico pages stay alive and Print's preview is read-only, so MuseScore's "register editable views once, when created" left zoom on the wrong view.
 - Duration keys (spec 13): `notationscene/qml/MuseScore/NotationScene/notationviewinputcontroller.cpp` `shortcutOverrideEvent` lets (Cmd-)Shift-Opt-Left/Right reach the shortcuts when a line or text is selected.
+- Opt-click / Opt-drag copy (spec 42): `notation/internal/notationinteraction.{h,cpp}` `dropRange` pastes a copy through an optional `IDoricoPaste` (Chord / Insert rules) when one is registered; `notationscene/qml/MuseScore/NotationScene/notationviewinputcontroller.cpp` `mousePress_considerStartPasteRangeOnRelease` turns a selected note / chord into a range first, so Opt-click copies it.
 - Dorico pages hide MuseScore's score/part tabs (spec 50): `notationscene/qml/MuseScore/NotationScene/NotationView.qml` `showNotationTabs`.
 
 ### 2. Changing behaviour = new commands, not overriding old ones
@@ -156,7 +157,7 @@ Status: todo | in-progress | pending review | done  -  Depends on: NN, NN  -  Do
 | 36 | [Popover: figured bass (Shift-G)](done/36-popover-figured-bass.md) | done | 20 |
 | 40 | [Copy / paste](done/40-copy-paste.md) | done | 00, 10, 11 |
 | 41 | [Paste Special](done/41-paste-special.md) | done | 40 |
-| 42 | [Repeat (R) and Opt-click](42-repeat-and-alt-click.md) | todo | 40 |
+| 42 | [Repeat (R) and Opt-click](done/42-repeat-and-alt-click.md) | done | 40 |
 | 43 | [Delete](43-delete.md) | todo | 11 |
 | 44 | [Selection](44-selection.md) | todo | 12 |
 | 45 | [Filters](45-filters.md) | todo | 44 |

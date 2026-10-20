@@ -204,6 +204,12 @@ Handlers are registered in `src/notationscene/internal/notationactioncontroller.
 - **Cut/copy a span without the clipboard**: `selection().setRange(...)`, then `RWRegister::writer()->writeStaffSelection(score, filter, staffStart, staffEnd, from, to, startSeg, endSeg)` with any `SelectionFilter` (voice filter: `setFiltered(VoicesSelectionFilterTypes::ALL, false)`, then `setFiltered(1u << voice, true)`). `Score::deleteRange(..., filter, true)` with the same filter deletes just those voices and leaves rests.
 - `Score::addSlur(first, second, nullptr)` is undo-aware (`undoAddElement`); `Chord::updateArticulations(ids)` adds articulations and ornaments (Insert mode).
 
+### Repeat and Opt-click internals (found in spec 42)
+- `Selection::mimeData()` of a range is the same `StaffList` payload the clipboard holds, so R can paste it without touching the clipboard (`pasteClipFrom`).
+- `NotationInteraction::dropRange` (`notationinteraction.cpp`) is the single funnel for Alt+click and Alt+drag (`deleteSourceMaterial` false = copy). It computes the target, then calls `Paste::pasteStaff` inside its own `startEdit` / `apply`, so a replacement paste must run in that transaction (`IDoricoPaste::pasteStaff` takes the `Transaction`).
+- Alt+click only starts from a range (`mousePress_considerStartPasteRangeOnRelease`) and re-reads the selection on release (`:1207`); a selected note / chord has to be turned into a range with `select({chordRest}, SelectType::RANGE)` first.
+- After R on one note (`Paste::repeatListSelection`) only the new note is selected (checked in the GUI), despite `SelectType::ADD`.
+
 ## 5. Selection
 
 - **SelectionTarget** (`src/notation/notationtypes.h:113`) is handled in `NotationSelection::select` (`src/notation/internal/notationselection.cpp:190-290`) and `addToSelection` (:292). Targets include Similar, SimilarInStaff, SimilarInRange, NotesInChord, All, Section, Top/BottomNoteInChord, TopStaff and others.
