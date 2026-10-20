@@ -122,6 +122,10 @@ inline static const muse::rcommand::Command DORICO_PASTE_INTO_NEW_VOICE_COMMAND(
 inline static const muse::rcommand::Command DORICO_SWAP_STAVES_COMMAND("command://dorico/swap-staves");
 inline static const muse::rcommand::Command DORICO_PASTE_ARTICULATIONS_COMMAND("command://dorico/paste-articulations");
 
+// Delete family (spec 43); Delete itself is `notation/delete`, hooked in DoricoPasteController
+inline static const muse::rcommand::Command DORICO_REMOVE_RESTS_COMMAND("command://dorico/remove-rests");
+inline static const muse::rcommand::Command DORICO_DELETE_BARS_COMMAND("command://dorico/delete-bars");
+
 // Project window modes and zones (spec 50). Mode commands are in `Mode` order (Setup, Write, Engrave, Play, Print).
 inline static const std::array<muse::rcommand::Command, 5> DORICO_MODE_COMMANDS = {
     muse::rcommand::Command("command://dorico/mode-setup"),

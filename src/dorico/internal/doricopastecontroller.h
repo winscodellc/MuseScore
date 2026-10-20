@@ -35,7 +35,8 @@
 #include "pasteplanner.h"
 
 namespace mu::dorico {
-//! Cmd-V / Cmd-X with Dorico's destination rules (spec 40), and R on a range (spec 42). Hooks `notation/paste` and `notation/cut` through preDispatch,
+//! Cmd-V / Cmd-X with Dorico's destination rules (spec 40), R on a range (spec 42) and Delete (spec 43). Hooks `notation/paste`, `notation/cut` and
+//! `notation/delete` through preDispatch,
 //! so the menus behave the same as the keys; whatever MuseScore already does the same way is left to its own handler.
 class DoricoPasteController : public IDoricoPaste, public muse::async::Asyncable, public muse::Contextable,
     public muse::rcommand::Commandable
@@ -58,6 +59,8 @@ private:
     //! Both return true when they did the job and MuseScore's own handler must not run.
     bool tryPaste();
     bool tryCut();
+    //! Delete / Backspace on notes and rests (spec 43): Insert mode closes the gap, otherwise the selection goes to the nearest note
+    bool tryDelete();
     //! R on a range: the copy goes after the selection with the same rules as Paste
     bool tryRepeat();
 };

@@ -30,6 +30,7 @@
 #include "engraving/dom/measure.h"
 #include "engraving/dom/mscore.h"
 #include "engraving/dom/note.h"
+#include "engraving/dom/rest.h"
 #include "engraving/dom/score.h"
 #include "engraving/dom/segment.h"
 #include "engraving/editing/noteinput.h"
@@ -213,6 +214,101 @@ std::vector<PasteTarget> pasteTargets(const Score* score, const PasteClip& clip,
 }
 }
 
+namespace {
+//! Insert mode: what follows [from, to) on the staves closes the gap instead of leaving rests (one undo step).
+bool closeGap(const INotationPtr& notation, const TranslatableString& title, staff_idx_t staffStart, staff_idx_t staffEnd,
+              const Fraction& from, const Fraction& to)
+{
+    Score* score = notation->elements()->msScore();
+    INotationUndoStackPtr undoStack = notation->undoStack();
+    undoStack->prepareChanges(title);
+    Transaction& tx = score->transactionManager()->currentOrDummyTransaction();
+    bool ok = true;
+    for (staff_idx_t staff = staffStart; ok && staff < staffEnd; ++staff) {
+        ok = pasteShiftStaffTail(score, tx, staff, to, from);
+    }
+    if (!ok) {
+        undoStack->rollbackChanges();
+        return false;
+    }
+    undoStack->commitChanges();
+    return true;
+}
+
+//! Dorico selects the nearest logical item after a delete: the first chord of the voice from `to` on, else the last one
+//! before `from`. ponytail: walks the score from the start, fine for one key press; use tick2rightSegment if it ever shows.
+ChordRest* nearestChord(const Score* score, track_idx_t track, const Fraction& from, const Fraction& to)
+{
+    ChordRest* before = nullptr;
+    for (Segment* s = score->firstSegment(SegmentType::ChordRest); s; s = s->next1(SegmentType::ChordRest)) {
+        EngravingItem* e = s->element(track);
+        if (!e || !e->isChord()) {
+            continue;
+        }
+        if (s->tick() >= to) {
+            return toChordRest(e);
+        }
+        if (s->tick() < from) {
+            before = toChordRest(e);
+        }
+    }
+    return before;
+}
+
+void selectChord(const INotationPtr& notation, ChordRest* cr)
+{
+    if (cr && cr->isChord()) {
+        notation->interaction()->select({ toChord(cr)->upNote() });
+    } else if (cr) {
+        notation->interaction()->select({ cr });
+    }
+}
+
+//! The rests Remove Rests acts on: the selected ones, or those inside a range.
+std::vector<Rest*> selectedRests(const Score* score)
+{
+    std::vector<Rest*> rests;
+    const Selection& sel = score->selection();
+    if (sel.isRange()) {
+        for (Segment* s = sel.startSegment(); s && s != sel.endSegment(); s = s->next1(SegmentType::ChordRest)) {
+            for (track_idx_t t = staff2track(sel.staffStart()); t < staff2track(sel.staffEnd()); ++t) {
+                if (s->element(t) && s->element(t)->isRest()) {
+                    rests.push_back(toRest(s->element(t)));
+                }
+            }
+        }
+    } else {
+        for (EngravingItem* e : sel.elements()) {
+            if (e->isRest()) {
+                rests.push_back(toRest(e));
+            }
+        }
+    }
+    return rests;
+}
+
+//! Voice 1 cannot lose a rest, so it is hidden; the other voices drop it (one undo step).
+bool removeRests(const INotationPtr& notation)
+{
+    Score* score = notation->elements()->msScore();
+    const std::vector<Rest*> rests = selectedRests(score);
+    if (rests.empty()) {
+        return false;
+    }
+    INotationUndoStackPtr undoStack = notation->undoStack();
+    undoStack->prepareChanges(TranslatableString("undoableAction", "Remove rests"));
+    for (Rest* rest : rests) {
+        if (rest->voice() > 0) {
+            score->deleteItem(rest);
+        } else {
+            rest->undoChangeProperty(Pid::VISIBLE, false);
+        }
+    }
+    undoStack->commitChanges();
+    return true;
+}
+}
+
 void DoricoPasteController::init()
 {
     // Edit > Paste Special (spec 41)
@@ -235,8 +331,16 @@ void DoricoPasteController::init()
     onNotation(DORICO_SWAP_STAVES_COMMAND, [](const INotationPtr& n) { return pasteSpecialSwap(n); });
     onNotation(DORICO_PASTE_ARTICULATIONS_COMMAND, [](const INotationPtr& n) { return pasteSpecialArticulations(n); });
 
+    onNotation(DORICO_REMOVE_RESTS_COMMAND, [](const INotationPtr& n) { return removeRests(n); });
+    dispatcher()->onRequest(this, DORICO_DELETE_BARS_COMMAND, [this]() {
+        dispatcher()->dispatch(mu::notation::REMOVE_SELECTED_RANGE_COMMAND);
+        return muse::make_ok();
+    });
+
     dispatcher()->preDispatch().onReceive(this, [this](const muse::rcommand::Command& command, bool* allowDispatch) {
-        if (command == mu::notation::PASTE_COMMAND && tryPaste()) {
+        if (command == mu::notation::DELETE_COMMAND && tryDelete()) {
+            *allowDispatch = false;
+        } else if (command == mu::notation::PASTE_COMMAND && tryPaste()) {
             *allowDispatch = false;
         } else if (command == mu::notation::CUT_COMMAND && tryCut()) {
             *allowDispatch = false;
@@ -327,21 +431,90 @@ bool DoricoPasteController::tryCut()
     const Fraction to = sel.tickEnd();
     notation->interaction()->copySelection();
 
-    INotationUndoStackPtr undoStack = notation->undoStack();
-    undoStack->prepareChanges(TranslatableString("undoableAction", "Cut"));
-    Transaction& tx = score->transactionManager()->currentOrDummyTransaction();
-    bool ok = true;
-    for (staff_idx_t staff = staffStart; ok && staff < staffEnd; ++staff) {
-        ok = pasteShiftStaffTail(score, tx, staff, to, from);
+    if (closeGap(notation, TranslatableString("undoableAction", "Cut"), staffStart, staffEnd, from, to)) {
+        if (ChordRest* cr = score->findCR(from, staff2track(staffStart))) {
+            notation->interaction()->select({ cr });
+        }
     }
-    if (!ok) {
-        undoStack->rollbackChanges();
+    return true;
+}
+
+bool DoricoPasteController::tryDelete()
+{
+    INotationPtr notation = globalContext()->currentNotation();
+    if (!notation || notation->interaction()->isTextEditingStarted()) {
+        return false;
+    }
+    Score* score = notation->elements()->msScore();
+    if (score->noteEntryMode()) {
+        return false; // Backspace in note input stays MuseScore's
+    }
+    const Selection& sel = score->selection();
+    const bool insertMode = modes()->isInsertMode();
+    const TranslatableString title("undoableAction", "Delete");
+
+    if (sel.isRange()) {
+        // Bars selected with Insert off: MuseScore already empties them and keeps the barlines
+        if (!insertMode || sel.tickEnd() <= sel.tickStart()) {
+            return false;
+        }
+        const track_idx_t track = staff2track(sel.staffStart());
+        const Fraction from = sel.tickStart();
+        if (closeGap(notation, title, sel.staffStart(), sel.staffEnd(), from, sel.tickEnd())) {
+            selectChord(notation, nearestChord(score, track, from, from));
+        }
         return true;
     }
-    undoStack->commitChanges();
+    if (!sel.isList()) {
+        return false;
+    }
 
-    if (ChordRest* cr = score->findCR(from, staff2track(staffStart))) {
-        notation->interaction()->select({ cr });
+    // Only notes and rests; any other item is deleted by MuseScore
+    std::vector<ChordRest*> crs;
+    size_t notes = 0;
+    for (EngravingItem* e : sel.elements()) {
+        if (e->isNote()) {
+            ++notes;
+            ChordRest* cr = toNote(e)->chord();
+            if (std::find(crs.begin(), crs.end(), cr) == crs.end()) {
+                crs.push_back(cr);
+            }
+        } else if (e->isRest()) {
+            crs.push_back(toRest(e));
+        } else {
+            return false;
+        }
+    }
+    if (crs.empty()) {
+        return false;
+    }
+    const track_idx_t track = crs.front()->track();
+    Fraction from = crs.front()->tick();
+    Fraction to = crs.front()->endTick();
+    for (ChordRest* cr : crs) {
+        from = std::min(from, cr->tick());
+        to = std::max(to, cr->endTick());
+    }
+
+    if (insertMode) {
+        // One whole chord or rest: a chord with only some notes selected just loses those notes
+        const bool whole = crs.size() == 1 && (crs.front()->isRest() || notes == toChord(crs.front())->notes().size());
+        if (!whole) {
+            return false;
+        }
+        if (closeGap(notation, title, crs.front()->staffIdx(), crs.front()->staffIdx() + 1, from, to)) {
+            selectChord(notation, nearestChord(score, track, from, from));
+        }
+        return true;
+    }
+
+    if (notes == 0 || std::any_of(crs.begin(), crs.end(), [track](ChordRest* cr) { return cr->track() != track; })) {
+        return false;
+    }
+    notation->interaction()->deleteSelection();
+    // Whole chords became one rest: the selection goes to the nearest note of the voice instead
+    if (sel.isSingle() && sel.element()->isRest()) {
+        selectChord(notation, nearestChord(score, track, from, to));
     }
     return true;
 }

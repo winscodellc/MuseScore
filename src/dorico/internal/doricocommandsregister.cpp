@@ -116,6 +116,8 @@ static std::vector<CommandInfo> makeCommandInfos()
     v.push_back(info(DORICO_SWAP_STAVES_COMMAND, "Swap", "Swaps the contents of the two selected staves for the selected range"));
     v.push_back(info(DORICO_PASTE_ARTICULATIONS_COMMAND, "Paste Articulations",
                      "Applies the copied articulations and slurs to the notes from the selected one on"));
+    v.push_back(info(DORICO_REMOVE_RESTS_COMMAND, "Remove Rests", "Removes the selected rests (voice 1 rests are hidden)"));
+    v.push_back(info(DORICO_DELETE_BARS_COMMAND, "Delete Bars", "Deletes the selected bars; the music after them moves left"));
 
     static const char* MODES[] = { "Setup", "Write", "Engrave", "Play", "Print" };
     for (int i = 0; i < 5; ++i) {
