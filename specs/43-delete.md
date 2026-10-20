@@ -1,7 +1,7 @@
 <!-- markdownlint-disable -->
 # 43 — Delete, Remove Rests, Delete Bars
 
-Status: todo · Depends on: [00-module-skeleton](00-module-skeleton.md), [10-keymap-preset](10-keymap-preset.md), [11-note-input-modes](done/11-note-input-modes.md) (Insert mode flag)
+Status: in-progress · Depends on: [00-module-skeleton](00-module-skeleton.md), [10-keymap-preset](10-keymap-preset.md), [11-note-input-modes](done/11-note-input-modes.md) (Insert mode flag)
 Dorico refs: `B = https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/` →
 `B write_mode/write_mode_arranging_tools/write_mode_deleting_items_t.html`,
 `B notation_reference/notation_reference_bars/notation_reference_bars_deleting_contents_t.html`,
@@ -49,23 +49,22 @@ Reference digests: [reference/dorico-editing.md](reference/dorico-editing.md) §
 - Note input `Backspace` deletes the previous note (existing note-input handling in `NotationActionController`; check before overriding).
 
 ## Design
-`src/dorico/internal/deletecmds.{h,cpp}`; one undo step each.
+All in `src/dorico/internal/doricopastecontroller.{h,cpp}` (it already owns Insert-mode Cut and the gap helper `pasteShiftStaffTail`); one undo step each. There is **no `dorico/delete` command and no new key**: the preset already binds `Del`/`Backspace` to `notation/delete`, and a `preDispatch` hook (`tryDelete`, same pattern as `tryCut`) covers keys, Edit menu and context menu. When the hook returns false MuseScore's own handler runs.
 
-| Command | Title | Key (mac) | Behaviour |
-|---|---|---|---|
-| `command://dorico/delete` | Delete | `Backspace`, `Delete` | If Insert mode (spec 11 flag) **on** and selection is notes/range → `INotationInteraction::removeSelectedRange()` (time delete). Else `deleteSelection()`. Then `selectNearest()` (below). While note input or text editing is active, forward to the existing behaviour untouched. |
-| `command://dorico/remove-rests` | Remove Rests | – (jump bar alias `rr` possible) | For each selected/contained rest: voice 2–4 → `Score::deleteItem` (removes it); voice 1 → `undoChangeProperty(Pid::VISIBLE, false)` (hidden, not removed). |
-| `command://dorico/delete-bars` | Delete Bars | – | Selected measures → `removeSelectedMeasures()`. Popover spec 25 reuses it (`-N`). |
-
-`selectNearest()`: before deleting, remember `(track, tick range)` of the selection; afterwards pick the first **Chord** (not rest) with the same track at `tick >= rangeEnd`, else the last Chord before `rangeStart` in that track, else the rest now at `rangeStart`; select it via `INotationInteraction::select({el}, SelectType::SINGLE, staffIdx)`.
-
-Rebind in [10](10-keymap-preset.md): `Del`/`Backspace` → `dorico/delete`; `Ctrl+Del` is unbound (MuseScore-only keys are removed, see README). `preDispatch` veto on `notation/delete` is the fallback for the context menu / menu paths only.
+| What | Behaviour |
+|---|---|
+| `notation/delete` hook | Not handled (upstream runs) while text editing, in **note input** (Backspace unchanged), or when the selection holds anything but notes/rests. **Insert on**: a range, or one whole chord/rest, → `closeGap` (the tail of the staff moves back, all voices of the staff, like Cut), then select the nearest chord. **Insert off**: a list of notes/rests in one voice → `deleteSelection()`; if the selection ends up one rest, select the nearest chord of the voice instead. A range with Insert off is left to MuseScore (empty bars, barlines stay). |
+| `nearestChord` | first Chord of the track at tick >= end of the deleted span, else the last Chord before its start, else MuseScore's selection stays. |
+| `command://dorico/remove-rests` "Remove Rests" (no key) | Selected rests, or those in a range: voice 2–4 → `Score::deleteItem`; voice 1 → `Pid::VISIBLE` false. One undo step. |
+| `command://dorico/delete-bars` "Delete Bars" (no key) | Dispatches `notation/remove-selected-range` (`cmdTimeDelete`). Edit menu; replaces that command in the Write menu. The Shift-B popover `-N` (spec 25) has its own path. |
 
 Upstream edits: none.
 
 ## Deferred / unsupported
 - Remove Rests via "Starts voice/Ends voice" properties; true removal of voice-1 rests (hidden instead — **ponytail ceiling**: hidden rests still occupy spacing).
 - Holds/pauses surviving note deletion by re-anchoring; hairpin adjustment when deleting an adjacent immediate dynamic; barline-delete bar merging; atonal/open fallback after deleting the first key signature; rehearsal-mark renumbering; linked-dynamic deletion rules.
+- Delete Bars on part of a bar shortens the bar (`cmdTimeDelete`); Dorico keeps the bar length.
+- Insert-mode delete of a chord moves every voice of the staff (no per-voice shift), and ties/slurs crossing the cut break (`pasteShiftStaffTail` ceiling).
 - Stop-position (Shift-Opt-I) pushing material past a stop point (spec 11 defers Insert scope except Voice).
 
 ## Acceptance criteria
@@ -79,5 +78,5 @@ Upstream edits: none.
 - [ ] Note input active: Backspace behaviour unchanged from upstream.
 
 ## Tests
-- `src/dorico/tests/delete_tests.cpp` + fixtures `delete_data/*.mscx`/`-ref.mscx`: `deleteInsertOff`, `deleteInsertOn`, `selectNearestSameVoice`, `removeRestsVoice2`. Pattern: `copypaste_tests.cpp` (`ScoreRW::readScore`, `score->select`, `startCmd`/`endCmd`, `ScoreComp::saveCompareScore`); call `cmdDeleteSelection` / `cmdTimeDelete` on the `Score` directly for the engine part, test `selectNearest` as a pure helper.
+- `dorico_tests` links only `dorico` and cannot load scores (every test there is pure), so no `ScoreRW` fixtures. The code is engine glue; it is checked in the UI (acceptance list above).
 - Manual: toggle `I` and delete in a 4/4 bar; Cmd-Z/Cmd-Shift-Z.

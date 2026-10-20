@@ -210,6 +210,12 @@ Handlers are registered in `src/notationscene/internal/notationactioncontroller.
 - Alt+click only starts from a range (`mousePress_considerStartPasteRangeOnRelease`) and re-reads the selection on release (`:1207`); a selected note / chord has to be turned into a range with `select({chordRest}, SelectType::RANGE)` first.
 - After R on one note (`Paste::repeatListSelection`) only the new note is selected (checked in the GUI), despite `SelectType::ADD`.
 
+### Delete internals (found in spec 43)
+- `notation/delete` → `NotationInteraction::deleteSelection` → `Score::cmdDeleteSelection` (`edit.cpp:2239`): leaves rests, then reselects the rest (or the up-note) at the deleted tick, so "select the nearest chord" has to be done after it.
+- `notation/remove-selected-range` = `cmdTimeDelete` on the selection: it is Dorico's Delete Bars (a partial-bar range shortens the bar).
+- Insert-mode delete = `pasteShiftStaffTail` (spec 40) via `closeGap` in `doricopastecontroller.cpp`; the `preDispatch` hook on `notation/delete` also covers the menus and keeps note-input Backspace on MuseScore's path (`score->noteEntryMode()` → return false).
+- `dorico_tests` cannot load scores, so engine glue is only checked in the UI.
+
 ## 5. Selection
 
 - **SelectionTarget** (`src/notation/notationtypes.h:113`) is handled in `NotationSelection::select` (`src/notation/internal/notationselection.cpp:190-290`) and `addToSelection` (:292). Targets include Similar, SimilarInStaff, SimilarInRange, NotesInChord, All, Section, Top/BottomNoteInChord, TopStaff and others.
