@@ -78,3 +78,19 @@ TEST(DoricoPasteSpecial, ClipVoicesRestartPerStaff)
                            "<Staff id=\"1\"><Chord/></Staff></StaffList>");
     EXPECT_EQ(pasteClipVoices(data), (std::set<int> { 0, 1 }));
 }
+
+TEST(DoricoPasteSpecial, ClipFromReadsLengthAndStaves)
+{
+    const auto parsed = pasteClipFrom(clip("<StaffList tick=\"0\" len=\"3/4\" staff=\"1\" staves=\"2\"/>"));
+    ASSERT_TRUE(parsed.has_value());
+    EXPECT_EQ(parsed->len, mu::engraving::Fraction(3, 4));
+    EXPECT_EQ(parsed->staves, 2u);
+}
+
+TEST(DoricoPasteSpecial, ClipFromRefusesWhatIsNotAStaffList)
+{
+    EXPECT_FALSE(pasteClipFrom(clip("<Foo/>")));
+    EXPECT_FALSE(pasteClipFrom(muse::ByteArray()));
+    EXPECT_FALSE(pasteClipFrom(clip("<StaffList len=\"0/1\" staves=\"1\"/>")));
+    EXPECT_FALSE(pasteClipFrom(clip("<StaffList len=\"1/1\" staves=\"0\"/>")));
+}

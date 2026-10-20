@@ -45,6 +45,8 @@ struct PasteClip {
     muse::ByteArray data;
 };
 
+//! nullopt when `data` is not a staff-list payload
+std::optional<PasteClip> pasteClipFrom(const muse::ByteArray& data);
 std::optional<PasteClip> pasteClipFromClipboard();
 
 mu::engraving::Segment* pasteSegmentAt(mu::engraving::Score* score, const mu::engraving::Fraction& tick);

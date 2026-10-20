@@ -2128,8 +2128,12 @@ bool NotationInteraction::dropRange(const QByteArray& data, const PointF& pos, b
         }
     }
 
+    engraving::Transaction& tx = score()->transactionManager()->currentOrDummyTransaction();
     XmlReader e(data);
-    bool succeeded = Paste::pasteStaff(score()->transactionManager()->currentOrDummyTransaction(), score(), e, segment, staffIdx);
+    // Dorico fork (spec 42): a copy (Opt-click, Opt-drag) follows the Chord and Insert modes
+    bool succeeded = (!deleteSourceMaterial && doricoPaste())
+                     ? doricoPaste()->pasteStaff(tx, score(), ByteArray::fromQByteArray(data), segment, staffIdx)
+                     : Paste::pasteStaff(tx, score(), e, segment, staffIdx);
 
     endDrop();
 

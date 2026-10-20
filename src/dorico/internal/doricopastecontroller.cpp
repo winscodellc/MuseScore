@@ -167,6 +167,31 @@ void pasteRestoreChordNotes(Score* score, Transaction& tx, const std::vector<Pas
     }
 }
 
+//! One copy of `clip` at `target`, in the caller's transaction, with the Insert and Chord rules (spec 40). false = no room.
+bool pasteClipAt(Score* score, Transaction& tx, const PasteClip& clip, const PasteTarget& target, bool insertMode, bool chordMode)
+{
+    if (insertMode) {
+        const size_t lastStaff = std::min(target.staff + clip.staves, score->nstaves());
+        for (staff_idx_t staff = target.staff; staff < lastStaff; ++staff) {
+            if (!pasteShiftStaffTail(score, tx, staff, target.tick, target.tick + clip.len)) {
+                return false;
+            }
+        }
+    }
+    std::vector<PasteChordNotes> before;
+    if (chordMode) {
+        before = pasteChordNotesIn(score, target, clip.staves, clip.len);
+    }
+
+    Segment* dst = pasteSegmentAt(score, target.tick);
+    XmlReader xml(clip.data);
+    if (!dst || !Paste::pasteStaff(tx, score, xml, dst, target.staff)) {
+        return false;
+    }
+    pasteRestoreChordNotes(score, tx, before);
+    return true;
+}
+
 std::vector<PasteTarget> pasteTargets(const Score* score, const PasteClip& clip, bool insertMode)
 {
     if (score->noteEntryMode()) {
@@ -215,6 +240,8 @@ void DoricoPasteController::init()
             *allowDispatch = false;
         } else if (command == mu::notation::CUT_COMMAND && tryCut()) {
             *allowDispatch = false;
+        } else if (command == mu::notation::REPEAT_SELECTION_COMMAND && tryRepeat()) {
+            *allowDispatch = false;
         }
     });
 }
@@ -244,24 +271,10 @@ bool DoricoPasteController::tryPaste()
 
     bool ok = true;
     for (const PasteTarget& target : targets) {
-        const size_t lastStaff = std::min(target.staff + clip->staves, score->nstaves());
-        if (insertMode) {
-            for (staff_idx_t staff = target.staff; ok && staff < lastStaff; ++staff) {
-                ok = pasteShiftStaffTail(score, tx, staff, target.tick, target.tick + clip->len);
-            }
-        }
-        std::vector<PasteChordNotes> before;
-        if (chordMode) {
-            before = pasteChordNotesIn(score, target, clip->staves, clip->len);
-        }
-
-        Segment* dst = ok ? pasteSegmentAt(score, target.tick) : nullptr;
-        XmlReader xml(clip->data);
-        ok = dst && Paste::pasteStaff(tx, score, xml, dst, target.staff);
+        ok = pasteClipAt(score, tx, *clip, target, insertMode, chordMode);
         if (!ok) {
             break;
         }
-        pasteRestoreChordNotes(score, tx, before);
     }
 
     if (!ok) {
@@ -331,4 +344,49 @@ bool DoricoPasteController::tryCut()
         notation->interaction()->select({ cr });
     }
     return true;
+}
+
+bool DoricoPasteController::tryRepeat()
+{
+    INotationPtr notation = globalContext()->currentNotation();
+    if (!notation || notation->interaction()->isTextEditingStarted()) {
+        return false;
+    }
+    Score* score = notation->elements()->msScore();
+    const Selection& sel = score->selection();
+    // Only a range is handled here (copies it with the Insert and Chord rules). Note input, a single chord and a list of notes
+    // repeat the way MuseScore does it, which is already what Dorico does.
+    if (score->noteEntryMode() || !sel.isRange() || !sel.canCopy() || sel.tickEnd() <= sel.tickStart()) {
+        return false;
+    }
+    const std::optional<PasteClip> clip = pasteClipFrom(sel.mimeData());
+    if (!clip) {
+        return false;
+    }
+
+    const PasteTarget target { sel.staffStart(), sel.tickEnd() };
+    const staff_idx_t bottom = std::min(target.staff + clip->staves, score->nstaves());
+
+    INotationUndoStackPtr undoStack = notation->undoStack();
+    undoStack->prepareChanges(TranslatableString("undoableAction", "Repeat selection"));
+    Transaction& tx = score->transactionManager()->currentOrDummyTransaction();
+    while (score->lastMeasure()->endTick() < target.tick + clip->len) {
+        score->appendMeasures(1);
+    }
+    if (!pasteClipAt(score, tx, *clip, target, modes()->isInsertMode(), modes()->isChordMode())) {
+        undoStack->rollbackChanges();
+        LOGW() << "Repeat: no room after the selection";
+        return true;
+    }
+    undoStack->commitChanges();
+
+    score->selection().setRangeTicks(target.tick, target.tick + clip->len, target.staff, bottom);
+    score->update();
+    return true;
+}
+
+bool DoricoPasteController::pasteStaff(Transaction& tx, Score* score, const ByteArray& data, Segment* dst, staff_idx_t staff)
+{
+    const std::optional<PasteClip> clip = pasteClipFrom(data);
+    return clip && dst && pasteClipAt(score, tx, *clip, { staff, dst->tick() }, modes()->isInsertMode(), modes()->isChordMode());
 }

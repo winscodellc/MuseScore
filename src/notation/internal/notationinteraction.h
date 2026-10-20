@@ -48,6 +48,7 @@
 #include "previewmeasure.h"
 #include "scorecallbacks.h"
 #include "notationselection.h"
+#include "dorico/idoricopaste.h" // Dorico fork (spec 42)
 
 class QDrag;
 
@@ -70,6 +71,8 @@ class NotationInteraction : public INotationInteraction, public IInteractionForS
     muse::ContextInject<INotationContextConfiguration> contextConfiguration = { this };
     muse::ContextInject<ISelectInstrumentsScenario> selectInstrumentScenario = { this };
     muse::ContextInject<muse::IInteractive> interactive = { this };
+    // Dorico fork (spec 42): registered only by the Dorico module; null otherwise.
+    muse::ContextInject<mu::dorico::IDoricoPaste> doricoPaste = { this };
 
 public:
     NotationInteraction(Notation* notation, INotationUndoStackPtr undoStack);

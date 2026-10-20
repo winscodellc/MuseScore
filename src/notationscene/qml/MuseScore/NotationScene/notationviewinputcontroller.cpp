@@ -35,6 +35,7 @@
 
 #include "abstractelementpopupmodel.h"
 
+#include "engraving/dom/chord.h" // Dorico fork (spec 42)
 #include "engraving/dom/drumset.h"
 #include "engraving/dom/fret.h"
 #include "engraving/dom/harmony.h"
@@ -797,6 +798,11 @@ bool NotationViewInputController::mousePress_considerStartPasteRangeOnRelease(co
     // Check if this is a left click with Alt modifier
     if (ctx.event->button() != Qt::LeftButton || !(ctx.event->modifiers() & Qt::AltModifier)) {
         return false;
+    }
+
+    // Dorico fork (spec 42): a selected note or chord is copied too, as the range it sits in
+    if (EngravingItem* el = viewInteraction()->selection()->element(); el && (el->isNote() || el->isChordRest())) {
+        viewInteraction()->select({ el->isNote() ? static_cast<EngravingItem*>(toNote(el)->chord()) : el }, SelectType::RANGE);
     }
 
     // Check if we have a range selection that can be copied

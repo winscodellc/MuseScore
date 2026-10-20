@@ -31,12 +31,14 @@
 #include "context/iglobalcontext.h"
 
 #include "../idoricomodestate.h"
+#include "../idoricopaste.h"
 #include "pasteplanner.h"
 
 namespace mu::dorico {
-//! Cmd-V / Cmd-X with Dorico's destination rules (spec 40). Hooks `notation/paste` and `notation/cut` through preDispatch,
+//! Cmd-V / Cmd-X with Dorico's destination rules (spec 40), and R on a range (spec 42). Hooks `notation/paste` and `notation/cut` through preDispatch,
 //! so the menus behave the same as the keys; whatever MuseScore already does the same way is left to its own handler.
-class DoricoPasteController : public muse::async::Asyncable, public muse::Contextable, public muse::rcommand::Commandable
+class DoricoPasteController : public IDoricoPaste, public muse::async::Asyncable, public muse::Contextable,
+    public muse::rcommand::Commandable
 {
     muse::ContextInject<muse::rcommand::ICommandDispatcher> dispatcher = { this };
     muse::ContextInject<context::IGlobalContext> globalContext = { this };
@@ -48,9 +50,15 @@ public:
 
     void init();
 
+    //! IDoricoPaste (Opt-click and Opt-drag, spec 42)
+    bool pasteStaff(mu::engraving::Transaction& tx, mu::engraving::Score* score, const muse::ByteArray& data,
+                    mu::engraving::Segment* dst, mu::engraving::staff_idx_t staff) override;
+
 private:
     //! Both return true when they did the job and MuseScore's own handler must not run.
     bool tryPaste();
     bool tryCut();
+    //! R on a range: the copy goes after the selection with the same rules as Paste
+    bool tryRepeat();
 };
 }

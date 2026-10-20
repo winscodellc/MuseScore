@@ -144,6 +144,7 @@ void DoricoContext::registerExports()
 
     ioc()->registerExport<IDoricoModeState>(mname, m_modeState);
     ioc()->registerExport<IDoricoCaret>(mname, m_caret);
+    ioc()->registerExport<IDoricoPaste>(mname, m_pasteController);
     ioc()->registerExport<IPopoverController>(mname, m_popoverController);
     ioc()->registerExport<IDoricoMenuArranger>(mname, std::make_shared<DoricoMenuArranger>(iocContext()));
 }

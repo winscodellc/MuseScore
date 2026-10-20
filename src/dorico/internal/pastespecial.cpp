@@ -60,16 +60,10 @@ using namespace mu::engraving;
 using namespace mu::notation;
 using namespace muse;
 
-std::optional<PasteClip> mu::dorico::pasteClipFromClipboard()
+std::optional<PasteClip> mu::dorico::pasteClipFrom(const ByteArray& data)
 {
-    const QMimeData* md = QGuiApplication::clipboard()->mimeData();
-    const QString format = QString::fromLatin1(mimeStaffListFormat);
-    if (!md || !md->hasFormat(format)) {
-        return std::nullopt;
-    }
-
     PasteClip clip;
-    clip.data = ByteArray::fromQByteArray(md->data(format));
+    clip.data = data;
     XmlReader xml(clip.data);
     if (!xml.readNextStartElement() || xml.name() != "StaffList") {
         return std::nullopt;
@@ -80,6 +74,16 @@ std::optional<PasteClip> mu::dorico::pasteClipFromClipboard()
         return std::nullopt;
     }
     return clip;
+}
+
+std::optional<PasteClip> mu::dorico::pasteClipFromClipboard()
+{
+    const QMimeData* md = QGuiApplication::clipboard()->mimeData();
+    const QString format = QString::fromLatin1(mimeStaffListFormat);
+    if (!md || !md->hasFormat(format)) {
+        return std::nullopt;
+    }
+    return pasteClipFrom(ByteArray::fromQByteArray(md->data(format)));
 }
 
 Segment* mu::dorico::pasteSegmentAt(Score* score, const Fraction& tick)
