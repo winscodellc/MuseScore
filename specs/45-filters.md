@@ -1,7 +1,7 @@
 <!-- markdownlint-disable -->
 # 45 — Filters (Edit > Filter: Select Only / Deselect Only)
 
-Status: todo · Depends on: [44-selection](44-selection.md), [46-jump-bar](done/46-jump-bar.md) (discoverability: no default keys), [00-module-skeleton](00-module-skeleton.md)
+Status: pending review · Depends on: [44-selection](44-selection.md), [46-jump-bar](done/46-jump-bar.md) (discoverability: no default keys), [00-module-skeleton](00-module-skeleton.md)
 Dorico refs: `B = https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/` →
 `B write_mode/write_mode_selecting/write_mode_filters_r.html`,
 `B …/write_mode_filters_select_deselect_changing_t.html`,
@@ -36,29 +36,17 @@ Dorico's one-shot **filters**: with a (large) selection made, choose Edit > Filt
 - `Score::selectSimilar(e, sameStaff)` / `selectSimilarInRange(e)` (`score.h:515-516`) and commands `SELECT_SIMILAR*` (`notationcommands.h:55-57`) select by *type of one item* — not a filter of the current selection.
 - Gap: MuseScore's filter is a **persistent gate on future selections**; Dorico's is a **one-shot reduce/invert of the current selection**, with a Select/Deselect mode. They coexist: leave MuseScore's panel untouched.
 
-## Design
-`src/dorico/internal/filters.{h,cpp}` — a **pure** predicate table + one applier.
+## Design (as built)
+Pure core `src/dorico/internal/filters.{h,cpp}` (no engine types, unit tested) plus glue in `DoricoSelectionController` (`internal/doricoselectioncontroller.cpp`), which owns selection.
 
-```cpp
-enum class FilterCategory { Notes, GraceNotes, Chords, Rests, Voice1..4, Dynamics, DynamicsGradual, DynamicsImmediate,
-    Hairpins, Tempos, Lyrics, Text, Slurs, Ties, Ornaments, Arpeggios, Glissandi, ChordSymbols, KeySignatures,
-    TimeSignatures, Clefs, RehearsalMarks, Ottavas, PedalLines, OtherLines, Tuplets, Fermatas, BreathMarks,
-    Accidental(arg), Pitch(arg list), NoteInChord(top|bottom|nth), ... };
-bool matches(FilterCategory, const FilterArg&, const EngravingItem*);              // pure, ElementType/subtype/track-based
-std::vector<EngravingItem*> applyFilter(const std::vector<EngravingItem*>& sel, FilterCategory, const FilterArg&, FilterMode);
-```
-Apply: take `INotationSelection::elements()` (for a range selection the contained items), `applyFilter`, then `clearSelection()` + `Score::select(el, SelectType::ADD)` per survivor, one selection change (no undo step — selections are not undoable in MuseScore).
-Dropped per the manual: barlines, beams, fingerings, articulations, tremolos have no category.
+- `FilterItem` = what the filter needs to know about one selected item (`FilterKind`, voice, lyric verse, chord group, grace, stem direction, position in chord, written and sounding `FilterPitch`). The controller describes engine items (`filterItemOf`), `applyFilter(items, predicate, deselectOnly)` returns the survivors, and the controller does `clearSelection()` + `select(survivors, ADD)`. A selection change is not an undo step.
+- **Parts never stay** (stems, hooks, beams, dots, accidentals, ledger lines) and **attached items follow their note** (articulations, fingerings, tremolos, chord lines): a stem left in a list selection would be deleted from the music by Delete. This also gives the manual's "barlines and things that belong to notes are not filterable".
+- `filterDefs()` is the table: one `FilterDef { id, group, title, matches }` per category. Notes: notes, grace notes, chords, top notes, bottom notes, rests. Voices: 1-4, stem up, stem down. Dynamics: all, gradual (hairpins), immediate. Tempo: all, gradual. Lyrics: all, lines 1-4. Single: text, chord symbols, figured bass, slurs, ties, ornaments, arpeggio signs, glissandi, octave lines, pedal lines, other lines, tuplets, holds and pauses, rehearsal marks, playing techniques, clefs.
+- Commands (no default keys, found through the jump bar): one `command://dorico/filter/<id>` per row, titled `Filter: <Group> > <Title>`; `command://dorico/filter-select-only` / `filter-deselect-only` (checkable, setting `dorico/filter/mode` = `select` | `deselect`, default `select`); `command://dorico/filter-notes-by-pitch`.
+- **Notes by Pitch** opens the QML dialog `FilterNotesByPitchDialog` (`musescore://dorico/filternotesbypitch`): Written / Sounding, the pitch list with Remove selected and Clear, note-name and accidental dropdowns, "In octave" + number, Add, OK / Cancel. The list is kept as tokens (`c`, `c4`, `eb4`, `f#5`, `bb` = B flat, `cx` = C double sharp; no octave = every octave; `parsePitchTokens`) in settings `dorico/filter/pitches` and `dorico/filter/pitchesSounding`, so the dialog reopens with the last list. A pitch matches by spelling: `c4` does not match B#3.
+- Menu: Edit > Filter in `doricomenu.cpp` (`filterMenu()`, generated from `filterDefs()`; `MenuSpec.title` on an item gives the menu a short name for a long command title).
 
-| Command | Title | Key | Behaviour |
-|---|---|---|---|
-| `command://dorico/filter` (arg: category [+ arg]) | Filter | none | `applyFilter` with the current mode |
-| `command://dorico/filter-mode-select-only` / `-deselect-only` | Select Only / Deselect Only | none | sets mode; persisted in setting `dorico/filter/mode` ("select"\|"deselect", default select) |
-| `command://dorico/filter-notes-by-pitch` (arg: e.g. `c4,eb,f#5`) | Notes by Pitch | none | pitch tokens: letter + accidental + optional octave (no octave = all octaves); Written/Sounding toggle → `Note::epitch()` vs `ppitch()`+transpose; dialog UI is a second step (QML dialog in the `MuseScore.Dorico` module) |
-
-Each category is registered as its own `CommandInfo` titled `Filter: Dynamics > Gradual` etc. so the Jump bar can find it and the optional Edit > Filter submenu can be generated from the same table. Menu attach point is the optional appshell patch described in [41](done/41-paste-special.md) (the Edit menu is built by the dorico module, spec 59); jump bar is the required path.
-
-Upstream edits: none (menu patch optional).
+Upstream edits: none.
 
 ## Deferred / unsupported
 - Dorico categories MuseScore has no model for: note spacing changes, playing-technique categories beyond MuseScore text types, paragraph-style text filter (MuseScore has text *styles*; map `TextStyleType` as an approximation), slash voices, absolute/relative tempo distinction (MuseScore only has tempo text).
@@ -67,16 +55,17 @@ Upstream edits: none (menu patch optional).
 - Persistent filter gating (keep MuseScore's panel instead).
 
 ## Acceptance criteria
-- [ ] Select a bar range; Filter > Dynamics (Select Only) → only dynamics remain selected; Deselect Only → everything but dynamics.
-- [ ] Filter > Dynamics > Gradual selects hairpins/cresc. text only; Immediate selects p/mf/etc. only.
-- [ ] Filter > Voices > Voice 2 keeps only voice-2 items (notes and rests in track%4==1).
-- [ ] Filter Notes > Chords keeps only multi-note chords; Notes > Grace notes keeps grace notes.
-- [ ] Notes by Pitch `c4` selects only C4 (all enharmonic spellings? no — same name+accidental only); `c` (no octave) selects C in every octave; Sounding mode honours transposing instruments.
-- [ ] Mode persists across restart; default is Select Only.
-- [ ] MuseScore's selection filter panel behaves exactly as before; filters do not alter its flags.
-- [ ] Barlines/beams are not offered as categories.
+- [x] Select a bar range; Filter > Dynamics (Select Only) → only dynamics remain selected; Deselect Only → everything but dynamics.
+- [x] Filter > Dynamics > Gradual selects hairpins/cresc. text only; Immediate selects p/mf/etc. only.
+- [x] Filter > Voices > Voice 2 keeps only voice-2 items (notes and rests in track%4==1).
+- [x] Filter Notes > Chords keeps only multi-note chords; Notes > Grace notes keeps grace notes.
+- [x] Notes by Pitch `c4` selects only C4 (same name+accidental only, unit tests); `c` (no octave) selects C in every octave; Sounding mode honours transposing instruments (UI: Dawn, sounding E4 on clarinet and horn).
+- [x] Mode persists across restart; default is Select Only.
+- [ ] MuseScore's selection filter panel behaves exactly as before; filters do not alter its flags. **Not checked in the UI**: the driver cannot reach the macOS menu bar. The new code never touches `SelectionFilter` (it only calls `clearSelection()` / `select()`), so check the panel by hand.
+- [x] Barlines/beams are not offered as categories (unit test on the table).
+
+UI run (Dynamic_Strings, Dawn demos, filters run from the jump bar): also checked that a filter is not an undo step, that Top Notes + Delete turns only those notes into rests, and the dialog layout.
 
 ## Tests
-- `src/dorico/tests/filters_tests.cpp`: `matches`/`applyFilter` against a fixture `filters_data/mixed.mscx` (notes, chords, grace notes, 2 voices, p, cresc hairpin, slur, lyrics, chord symbols, ottava) — build the element list with `score->selection().elements()` after `score->select(firstMeasure, …RANGE…)`, assert element counts per category and the Deselect Only complement. Model fixtures/infra: `src/engraving/tests/selectionfilter_tests.cpp` + `selectionfilter_data/`.
-- Pitch-token parser unit tests (pure): `c`, `c4`, `eb4`, `f#5`, `c4,e` and invalid tokens.
-- Manual: run from the jump bar; check the panel is unchanged.
+- `src/dorico/tests/filters_tests.cpp` (pure): the table's ids, Select Only / Deselect Only complement, parts dropped, attached items following their note, voices, chords / top / bottom / grace, lyric lines, `parsePitchTokens` (valid and invalid), `matchesPitch` (octave, spelling). `dorico_tests` cannot load scores, so there is no `.mscx` fixture; engine glue is checked in the UI.
+- Manual: run each filter from the jump bar (the macOS menu bar is out of reach of the UI driver); open the Notes by Pitch dialog; check MuseScore's selection filter panel is unchanged.

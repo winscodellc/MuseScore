@@ -234,6 +234,11 @@ Handlers are registered in `src/notationscene/internal/notationactioncontroller.
   - `interaction->select(vec, SelectType::ADD)` after `clearSelection()` builds a list selection; `SelectType::RANGE` with one chord/rest extends the existing range from its anchor (as `expandSelection` does).
   - `Selection::activeCR()` is the moving end of a range; `Score::linearMode()` is true in continuous view.
   - `Score::nextElement` (`goto-next-element`) walks through the whole score; there is no "other items at this tick" command, so Tab is built from `Segment::cr(track)`, `Chord::articulations()`, `ChordRest::lyrics()`, `Segment::annotations()` and `spannerMap().findOverlapping(tick, tick)`.
+- **Filter internals (found in spec 45):**
+  - A range selection's `elements()` also holds the parts of notes (`STEM`, `HOOK`, `BEAM`, `NOTEDOT`, `ACCIDENTAL`) and the articulations / fingerings / tremolos. Delete on a list selection calls `deleteItem` on each, so a stem left in the list would be deleted from the music; drop parts, and keep attached items only with their note (`filters.cpp` `applyFilter`).
+  - Written pitch of a note = `n->pitch() - n->transposition()` with `tpc2()`, sounding = `pitch()` with `tpc1()`; spelling is `tpc2step(tpc)` (0 = C), `tpc2alter(tpc)` and `playingOctave(pitch, tpc)` (`pitchspelling.h`). `Chord::notes()` runs bottom to top, so `upNote` is the last one.
+  - `Interactive::open(UriQuery)` turns every query param into a property of the QML dialog (`createObject(parent, params)`), and the dialog's `root.ret = { errcode: 0, value: ... }` is the promise's `Val`. A QML dialog in `MuseScore.Dorico` registers with `ir->registerQmlUri(Uri("musescore://dorico/<name>"), "MuseScore.Dorico", "<Name>")` in `resolveImports` (`filternotesbypitch`).
+  - `MenuSpec.title` on an item renames the command in the Dorico menu (the jump bar still shows the long command title).
 - **Selection filter** (`src/engraving/dom/selectionfilter.h`):
   - `VoicesSelectionFilterTypes` (4 voices).
   - `NotesInChordSelectionFilterTypes` (TOP, 7th…2nd, BOTTOM).
