@@ -161,7 +161,7 @@ Status: todo | in-progress | pending review | done  -  Depends on: NN, NN  -  Do
 | 43 | [Delete](43-delete.md) | pending review | 11 |
 | 44 | [Selection](44-selection.md) | pending review | 12 |
 | 45 | [Filters](45-filters.md) | todo | 44 |
-| 46 | [Jump bar and Go To Bar](46-jump-bar.md) | todo | 20 (overlay), 10 |
+| 46 | [Jump bar and Go To Bar](done/46-jump-bar.md) | done | 20 (overlay), 10 |
 | 47 | [Explode / Reduce](47-explode-reduce.md) | todo | 41 (lowest priority) |
 | 50 | [UI shell and modes](done/50-ui-shell-and-modes.md) | done | 00, 10 |
 | 51 | [Status bar](done/51-status-bar.md) | done | 50 |

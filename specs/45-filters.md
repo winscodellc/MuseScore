@@ -1,7 +1,7 @@
 <!-- markdownlint-disable -->
 # 45 — Filters (Edit > Filter: Select Only / Deselect Only)
 
-Status: todo · Depends on: [44-selection](44-selection.md), [46-jump-bar](46-jump-bar.md) (discoverability: no default keys), [00-module-skeleton](00-module-skeleton.md)
+Status: todo · Depends on: [44-selection](44-selection.md), [46-jump-bar](done/46-jump-bar.md) (discoverability: no default keys), [00-module-skeleton](00-module-skeleton.md)
 Dorico refs: `B = https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/` →
 `B write_mode/write_mode_selecting/write_mode_filters_r.html`,
 `B …/write_mode_filters_select_deselect_changing_t.html`,

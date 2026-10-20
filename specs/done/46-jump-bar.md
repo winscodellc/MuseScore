@@ -1,12 +1,12 @@
 <!-- markdownlint-disable -->
 # 46 — Jump bar (J) and Go To Bar (Cmd-G)
 
-Status: todo · Depends on: [00-module-skeleton](00-module-skeleton.md), [20-popover-framework](done/20-popover-framework.md) (overlay host in `NotationView.qml`), [10-keymap-preset](10-keymap-preset.md)
+Status: done · Depends on: [00-module-skeleton](00-module-skeleton.md), [20-popover-framework](done/20-popover-framework.md) (overlay host: the paint view, as for the popovers), [10-keymap-preset](10-keymap-preset.md)
 Dorico refs: `B = https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/` →
 `B user_interface/user_interface_jump_bar_r.html`, `B …/user_interface_jump_bar_commands_performing_t.html`,
 `B …/user_interface_jump_bar_going_to_locations_t.html`, `B …/user_interface_jump_bar_aliases_assigning_t.html`, `B …/user_interface_jump_bar_aliases_removing_t.html`,
 `B write_mode/write_mode_navigation/write_mode_navigation_go_to_bar_t.html`, `B user_interface/user_interface_key_commands_searching_t.html`
-Reference digests: [reference/dorico-editing.md](reference/dorico-editing.md) §5 · [reference/musescore-internals.md](reference/musescore-internals.md) §1, §3
+Reference digests: [reference/dorico-editing.md](../reference/dorico-editing.md) §5 · [reference/musescore-internals.md](../reference/musescore-internals.md) §1, §3
 
 ## Goal
 `J` opens a small bar: **Commands** mode (type any command name, run it) and **Go To** mode (jump to bar / rehearsal mark / page / flow). `Cmd-G` is Go To Bar. The jump bar is also the discoverability path for every command in specs 41, 44, 45 that has no key.
@@ -46,44 +46,45 @@ Result: view scrolls, playhead moves to the start of the corresponding bar/flow.
 - Key conflicts (spec 10 unbinds): `J` = `enharmonic-spell-both` (`shortcuts.json:225`; also `enter-fret-8` on TAB staves, `:250`); `Ctrl+G` = `add-figured-bass` (`:227`). Text-field focus swallowing letter shortcuts is already solved by `SearchPopup` (same mechanism is reused).
 - MuseScore has **one score = one flow** (no flows).
 
-## Design
-`src/dorico/internal/jumpbar/` + QML `src/dorico/qml/MuseScore/Dorico/JumpBar.qml` (hosted by the overlay `Loader` that spec 20 adds next to `SearchPopup` at `NotationView.qml:~344`; no second upstream edit).
+## Design (as built)
+`src/dorico/internal/jumpbar/` + `src/dorico/ijumpbarcontroller.h` + QML `JumpBar.qml` / `jumpbarmodel.{h,cpp}` in `src/dorico/qml/MuseScore/Dorico/`. Hosted by a second `Loader` in `DoricoPage.qml` next to the popover's (same parent, the paint view); no upstream edit.
 
-- `commandcatalog.{h,cpp}` — builds the searchable list from `commandInfoList()`, keeps those whose `Availability` includes Dispatch and that are enabled (`commandState(cmd).enabled`), attaches key text via `shortcut(cmd)`. Ranking: exact alias > prefix of title > all query tokens prefix-match some word in title > substring; ties by use count.
-- `usagestore.{h,cpp}` — settings `dorico/jumpbar/usage` (map command-uri → count) and `dorico/jumpbar/aliases` (map alias → command-uri), via `muse::GlobalInject<IConfiguration>`-style settings used elsewhere in the module (spec 00).
-- `gotoparser.{h,cpp}` — **pure** parser for the Go To syntax producing `GoToTarget{flow?, bar?, rehearsal?, page?, relative}`; resolution **translates to the legacy syntax** and reuses upstream: `b32` → `"32"`, `p6` → `"p6"`, `rK` → `"K"`/`"rK"` as `SearchCommandsParser` expects (verify exact rehearsal string form), then `notation->elements()->search(text)` + `interaction->select(...)` + `interaction->showItem(item)` (`notationinteraction.cpp:8450`) + playhead move (`IPlaybackController`). Relative forms (`b+32`, `p+6`) = offset from the current bar/page (**our interpretation**, document in code). Flow: `f1`/`f1b20` accepted, `f≥2`, `fn`, `fp` → invalid (single flow).
-- `jumpbarmodel.{h,cpp}` — QML-exposed (`QML_ELEMENT`, `Q_PROPERTY(mode, text, results, selectedIndex, error)`, `Q_INVOKABLE accept(bool optionKey)`), handles `Ctrl+1/2` mode switch, `Down` on empty → top-5 usage, `\=` alias syntax.
-- Execution: `ICommandDispatcher::dispatch(cmd)`; commands with required parameters are not run directly — `Opt-Return` is documented to open their dialog; if none exists the entry is shown disabled.
-- Error state: invalid Go To text → red field, Return does nothing (undocumented in Dorico; our choice).
+- `commandcatalog.{h,cpp}`: pure. `rankCommands` (exact alias > title prefix > every query word starts a title word > substring; ties by use count, then title), `topUsed` (Down on an empty field), `splitAlias` (`Name\=alias`).
+- `gotoparser.{h,cpp}`: pure `parseGoTo` -> `GoToTarget{bar, barRelative, page, pageRelative, rehearsal}`. `f1`, `f1b20` accepted; `f2`, `fn`, `fp`, `b`, `bx`, `b0`, `b-4` invalid (one flow).
+- `JumpBarController` (`IJumpBarController`, one per window): the four commands; the catalogue is built per keystroke from `ICommandsRegister::commandInfoList()`, keeping commands with `Availability::Dispatch`, no input parameters and `commandState().enabled`; key text from `sequencesToNativeText(shortcut(cmd).sequences)`. Usage counts, aliases and the last command are settings `dorico/jumpbar/{usage,aliases,last}`. One alias per command, one command per alias. A command runs after the bar closed (it may open a popover or need the focus).
+- Go To resolution: bar `n` = the bar the status bar calls `n` (`Measure::measureNumber() + 1`; a pickup bar has none), so it matches `barbeat().displayedBar`; **not** MuseScore Find's measure index. `rK` = `elements()->search("rK")` then `findMeasure()`. `pN` = `pages()[N-1]->firstMeasure()`. Relative forms (`b+4`, `p+2`) count measures / pages on from the bar the selection starts in, or from the first (our reading; the manual does not explain `+`). The result is `select({measure}, SINGLE, 0)` (a range selection of that bar on staff 1) and `showItem`; the range selection moves the playhead (`PlaybackController::onSelectionChanged`).
+- Bar UI: Return runs / goes, Opt-Return assigns the alias only, Esc closes, Up/Down move the highlight (at most 8 rows), Down on an empty field lists the most used. Ctrl-1 / Ctrl-2 (physical Control, Qt `Meta` on macOS) switch mode inside the bar only. An invalid Go To entry turns the field red after Return and nothing happens. J opens in the last-used mode; reopening Commands pre-selects the last command's title.
 
 | Command | Title | Key (mac) | Behaviour |
 |---|---|---|---|
 | `command://dorico/jump-bar` | Jump Bar | `J` | open in last-used mode |
-| `command://dorico/jump-bar-commands` | Jump Bar: Commands | `Ctrl+1` (physical Control = Qt `Meta`) | open/switch to Commands |
-| `command://dorico/jump-bar-goto` | Jump Bar: Go To | `Ctrl+2` | open/switch to Go To |
+| `command://dorico/jump-bar-commands` | Jump Bar: Commands | none (`Ctrl+1` works inside the bar only) | open in Commands |
+| `command://dorico/jump-bar-goto` | Jump Bar: Go To | none (`Ctrl+2` inside the bar only) | open in Go To |
 | `command://dorico/go-to-bar` | Go To Bar | `Cmd+G` | open Go To mode prefilled with `b` (replaces the dialog) |
 
-Upstream edits: only the overlay Loader owned by spec 20.
+Upstream edits: none.
 
 ## Deferred / unsupported
 - In-bar option editing (checkboxes, menus) for parametrised commands; `Opt-Return` opens a dialog only where one exists.
 - Real Go To Bar **dialog** with Flow menu (replaced by Go To mode prefilled `b`).
 - Multiple flows (`fn`, `fp`, `f≥2`); Play-mode behaviour (playhead to start of bar only).
+- The bar is hosted next to the popovers, so it exists in Write mode only (not Setup, Engrave, Play).
 - Key Commands page alias editing (aliases are jump-bar only); direct-open key per mode beyond the three above.
 - Options-dialog search (`Cmd-L`, `Cmd-F`, `Cmd-G` inside Dorico option dialogs).
 - Dorico has no Edit > Find; MuseScore's `Ctrl+F` search popup is unbound (MuseScore-only keys are removed, see README); the Jump bar replaces it.
 
 ## Acceptance criteria
-- [ ] `J` opens the bar (text field focused), `Esc` closes it without running anything; typing letters does not trigger note shortcuts.
-- [ ] Typing `remove rests` lists *Remove Rests* with its key/alias; `Return` runs it, selection state preserved; only enabled commands appear.
-- [ ] `Down` on an empty field lists the 5 most-used commands (after running some); reopening pre-selects the last command.
-- [ ] `Remove Rests\=rr` + `Return` runs and assigns; typing `rr` then ranks it first; `Opt+Return` assigns without running.
-- [ ] Go To: `b32` selects bar 32 and scrolls; `rK`/`rk` jumps to rehearsal mark K; `p6` goes to page 6; `b+4` moves 4 bars on; `f1b3` works; `f2` shows the error state.
-- [ ] `Cmd+G` opens Go To with `b`; `Ctrl+1`/`Ctrl+2` switch modes inside the bar.
-- [ ] `J` no longer triggers enharmonic spelling; `Ctrl+G`/`Cmd+G` no longer adds figured bass.
-- [ ] Bar jump moves the playhead to that bar.
+- [x] `J` opens the bar (text field focused), `Esc` closes it without running anything; typing letters does not trigger note shortcuts.
+- [x] Typing `remove rests` lists *Remove Rests* with its key/alias; `Return` runs it, selection state preserved; only enabled commands appear.
+- [x] `Down` on an empty field lists the 5 most-used commands (after running some); reopening pre-selects the last command.
+- [x] `Remove Rests\=rr` + `Return` runs and assigns; typing `rr` then ranks it first; `Opt+Return` assigns without running.
+- [x] Go To: `b32` selects bar 32 and scrolls; `rK`/`rk` jumps to rehearsal mark K; `p6` goes to page 6; `b+4` moves 4 bars on; `f1b3` works; `f2` shows the error state.
+- [x] `Cmd+G` opens Go To with `b`; `Ctrl+1`/`Ctrl+2` switch modes inside the bar.
+- [x] `J` no longer triggers enharmonic spelling; `Ctrl+G`/`Cmd+G` no longer adds figured bass.
+- [x] Bar jump moves the playhead to that bar.
 
 ## Tests
-- `src/dorico/tests/gotoparser_tests.cpp`: valid (`b32`, `B32`, `r K`?, `rk`, `p6`, `b+32`, `p+6`, `f1b20`) and invalid (`b`, `bx`, `f2`, `fn`, empty) inputs → `GoToTarget`; plus translation to legacy strings fed to `SearchCommandsParser::parse` and asserting `SearchData::type`.
-- `commandcatalog_tests.cpp` with fake `ICommandsRegister`/`ICommandsState`: ranking, enabled-only filter, alias precedence, usage top-5 (follow the mocking style in `muse/framework/rcommand/tests`).
-- Manual: open on a 40-bar score with rehearsal marks A–K across 3 pages.
+- `src/dorico/tests/gotoparser_tests.cpp`: valid (`b32`, ` B 32 `, `b+4`, `p6`, `p+6`, `rK`/`rk`, `f1`, `f1b20`) and invalid (`b`, `bx`, `b0`, `p0`, `r`, `f`, `f2`, `fn`, `fp`, `f1b`, `f1b+3`, `b-4`, overflow, empty).
+- `src/dorico/tests/commandcatalog_tests.cpp`: ranking tiers, all-words rule, exact alias first, usage tie-break, empty query, top-5, `splitAlias`. No fake `ICommandsRegister` is needed: the catalogue is a plain list handed to the pure functions.
+- Manual (UI, on a 40-bar score with rehearsal marks A-K over 2 pages): J / Esc, `remove rests`, Down top list, `\=` alias with Return and Opt-Return, `b5`, `b32`, `rK`/`rk`, `p2`, `b+4`, `f1b3`, `f2` (error), Cmd+G, Ctrl+1/2, J and Cmd+G with a note selected (no enharmonic / figured bass), playhead. All passed.
+- The UI driver (`uictl.sh type`) keeps the modifier of the previous combo: after `key mscore cmd+g`, `type 5` arrives as Cmd+5 and is lost. Use `key mscore 5` after a modifier combo.

@@ -216,6 +216,14 @@ Handlers are registered in `src/notationscene/internal/notationactioncontroller.
 - Insert-mode delete = `pasteShiftStaffTail` (spec 40) via `closeGap` in `doricopastecontroller.cpp`; the `preDispatch` hook on `notation/delete` also covers the menus and keeps note-input Backspace on MuseScore's path (`score->noteEntryMode()` → return false).
 - `dorico_tests` cannot load scores, so engine glue is only checked in the UI.
 
+### Jump bar internals (found in spec 46)
+- `Score::select(measure, SINGLE, staff)` becomes a one-staff range selection of that bar (`selectSingle` -> `doSelect(coveringMMRestOrThis, RANGE)`), which is what moves the playhead (`PlaybackController::onSelectionChanged` -> `seekRangeSelection`); no playback call needed.
+- `NotationElements::measure(i)` / `SearchCommandsParser` bar numbers are **measure indexes**; the status bar and `barbeat().displayedBar` use `Measure::measureNumber() + 1`, which skips a pickup bar. Go To uses the displayed number.
+- `ICommandsState` is a context export (`ContextInject`), `ICommandsRegister` and `ICommandShortcutsRegister` are global. `CommandInfo::inputSchema.args` is empty for parameterless commands; `sequencesToNativeText` (`shortcutstypes.h`) gives the macOS key text.
+- Settings: register defaults with `setDefaultValue` (`Val(ValMap())` for maps); `value(key).toMap()`.
+- A QML overlay `TextInput` that accepts `Keys.onShortcutOverride` keeps every score shortcut out while it has the focus (same trick as `Popover.qml`).
+- Adding `jumpbarmodel.cpp` to `dorico_qml` reshuffled its unity batches and exposed `trackoverviewmodel` using `Score` / `INotation` without including them.
+
 ## 5. Selection
 
 - **SelectionTarget** (`src/notation/notationtypes.h:113`) is handled in `NotationSelection::select` (`src/notation/internal/notationselection.cpp:190-290`) and `addToSelection` (:292). Targets include Similar, SimilarInStaff, SimilarInRange, NotesInChord, All, Section, Top/BottomNoteInChord, TopStaff and others.
