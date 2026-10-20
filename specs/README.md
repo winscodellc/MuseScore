@@ -61,7 +61,7 @@ Shortcut **scopes do not gate anything** (`src/context/internal/shortcutresolver
 Rule: a key whose meaning depends on note-input state (Return, Space, Esc, A-G, F, Q, ...) binds to **one** `dorico/...` command that checks `INotationNoteInput::isNoteInputMode()` and branches inside.
 
 ### 4. The key map is a preset diff
-`src/app/configs/data/shortcuts_dorico.json` is applied on top of `shortcuts.json` (+ `shortcuts_mac.json`). Specs 11-13 and 20-46 each add their own rows to it (each spec lists "Adds to `shortcuts_dorico.json`"). Spec 10 creates the file, the unbinding, and the preset plumbing. Details in [10-keymap-preset.md](10-keymap-preset.md).
+`src/app/configs/data/shortcuts_dorico.json` is applied on top of `shortcuts.json` (+ `shortcuts_mac.json`). Specs 11-13 and 20-46 each add their own rows to it (each spec lists "Adds to `shortcuts_dorico.json`"). Spec 10 creates the file, the unbinding, and the preset plumbing. Details in [10-keymap-preset.md](done/10-keymap-preset.md).
 
 ### 5. Fidelity rule
 Each spec has a **Dorico behaviour** section copied from the reference files, with manual URLs. Anything MuseScore cannot do yet goes under **Deferred / unsupported**. Nothing is silently dropped. When Dorico documents nothing (for example popover error state), the spec says "our choice" and picks the simplest behaviour.
@@ -133,10 +133,10 @@ Status: todo | in-progress | pending review | done  -  Depends on: NN, NN  -  Do
 
 | # | Spec | Status | Depends on |
 |---|---|---|---|
-| 00 | [Module skeleton](00-module-skeleton.md) | done | none |
-| 10 | [Keymap preset](10-keymap-preset.md) | done | 00 |
+| 00 | [Module skeleton](done/00-module-skeleton.md) | done | none |
+| 10 | [Keymap preset](done/10-keymap-preset.md) | done | 00 |
 | 11 | [Note-input modes](done/11-note-input-modes.md) | done | 00, 10 (land with 10) |
-| 12 | [Caret and navigation](12-caret-and-navigation.md) | done | 00, 10, 11 |
+| 12 | [Caret and navigation](done/12-caret-and-navigation.md) | done | 00, 10, 11 |
 | 13 | [Duration and rhythmic moves](done/13-duration-and-rhythmic-moves.md) | done | 00, 10, 12 (for the grid) |
 | 20 | [Popover framework](done/20-popover-framework.md) | done | 00, 10 |
 | 21 | [Popover: dynamics (Shift-D)](done/21-popover-dynamics.md) | done | 20 |
@@ -162,7 +162,7 @@ Status: todo | in-progress | pending review | done  -  Depends on: NN, NN  -  Do
 | 44 | [Selection](done/44-selection.md) | done | 12 |
 | 45 | [Filters](done/45-filters.md) | done | 44 |
 | 46 | [Jump bar and Go To Bar](done/46-jump-bar.md) | done | 20 (overlay), 10 |
-| 47 | [Explode / Reduce](47-explode-reduce.md) | done (greyed state unverified) | 41 |
+| 47 | [Explode / Reduce](done/47-explode-reduce.md) | done | 41 |
 | 50 | [UI shell and modes](done/50-ui-shell-and-modes.md) | done | 00, 10 |
 | 51 | [Status bar](done/51-status-bar.md) | done | 50 |
 | 52 | [Write: Notes toolbox and panel](done/52-write-notes-toolbox-and-panel.md) | done | 50, 11 |

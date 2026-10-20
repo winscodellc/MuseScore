@@ -1,6 +1,6 @@
 <!-- markdownlint-disable -->
 # 10 - Keymap preset (Dorico key commands replace MuseScore's)
-Status: done  -  Depends on: 00  -  Dorico refs: key conventions <https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/introduction/key_command_conventions_c.html>, key commands concept `.../program_concepts/program_concepts_key_commands_in_dorico_r.html`; per-row sources are in [reference/dorico-key-commands.md](reference/dorico-key-commands.md)
+Status: done  -  Depends on: 00  -  Dorico refs: key conventions <https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/introduction/key_command_conventions_c.html>, key commands concept `.../program_concepts/program_concepts_key_commands_in_dorico_r.html`; per-row sources are in [reference/dorico-key-commands.md](../reference/dorico-key-commands.md)
 
 ## Goal
 Ship a built-in shortcut preset `shortcuts_dorico`, selected automatically on first run, that:
@@ -388,7 +388,7 @@ Python 3 standard library only; run as `python3 -I src/dorico/tools/check_keymap
 5. Print a summary: keys bound, keys reserved, keys deferred, conflicts (must be 0), and a list of Dorico keys in `dorico_keys.json` that are still unmapped.
 
 ## Deferred / unsupported
-- `N` / `M` cross-staff move only works between staves of the same instrument (`EditCrossStaff` in `src/engraving/editing/editcrossstaff.cpp` is limited to the part's staves). Checked in an orchestral score on Violins I (one staff): nothing moves, same as the old `Ctrl+Shift+Up/Down`. Re-test on a piano part. Dorico's cross-instrument behaviour would need an engraving change and is not planned.
+- `N` / `M` cross-staff move only works between staves of the same instrument (`EditCrossStaff` in `src/engraving/editing/editcrossstaff.cpp` is limited to the part's staves). Checked in an orchestral score on Violins I (one staff): nothing moves, same as the old `Ctrl+Shift+Up/Down`. Works on a piano part (checked). Dorico's cross-instrument behaviour would need an engraving change and is not planned.
 
 See also the `deferred` rows in the table. Also: Tab / Shift-Tab item cycling, Opt-Space scrubbing, Shift-Space "play from last start", numeric-keypad transport keys, hide-all-zones, per-mode letter meanings, Windows key set, Dorico's per-language key command files (only US English is specced).
 
@@ -398,7 +398,7 @@ See also the `deferred` rows in the table. Also: Tab / Shift-Tab item cycling, O
 - [x] Manual, score open, note selected: `6` makes quarter notes (not half), `5` eighths, `8` whole, `9` double whole, `1` 128th; `0` toggles natural, `=` sharp, `-` flat; `,` rest; `]` staccato, `[` accent, `'` marcato, `\` tenuto.
 - [x] Opt-Up/Down moves a note by a step, Shift-Opt-Up/Down by a semitone, Cmd-Opt-Up/Down by an octave; Opt-Right/Left no longer jumps selection (reserved for 13).
 - [x] Shift-N starts and stops note input; Esc stops it.
-- [ ] `N` / `M` push a note to the staff above / below. Bound and conflict-free (checker), but not observed working: see Deferred.
+- [x] `N` / `M` push a note to the staff above / below. UI-checked on a piano grand staff (Reunion demo): `M` drew the notehead on the lower staff with a linked stem, `N` moved it back up, each undone in one step. Between different instruments it does nothing: see Deferred.
 - [x] `P` plays from the selection; Cmd-Opt-1/2/3 switch page / continuous / float view; Cmd-7/8/9 and F3 toggle panels; Cmd-= / Cmd-- / Z / X zoom.
 - [x] Shift-X opens staff text, Shift-Opt-X system text, Shift-A rehearsal mark.
 - [x] No Shift+letter, bare letter or Space still performs a MuseScore action that Dorico assigns elsewhere (spot-check: Shift-D does nothing yet until spec 21; Space does nothing until spec 11).

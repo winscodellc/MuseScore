@@ -1,7 +1,7 @@
 <!-- markdownlint-disable -->
 # 40 — Copy / Cut / Paste (Dorico semantics)
 
-Status: done · Depends on: [00-module-skeleton](../00-module-skeleton.md), [10-keymap-preset](../10-keymap-preset.md), [11-note-input-modes](11-note-input-modes.md) (Chord/Insert flags)
+Status: done · Depends on: [00-module-skeleton](00-module-skeleton.md), [10-keymap-preset](10-keymap-preset.md), [11-note-input-modes](11-note-input-modes.md) (Chord/Insert flags)
 Dorico refs: `B = https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/` →
 `B write_mode/write_mode_arranging_tools/write_mode_copying_pasting_items_t.html`,
 `B …/write_mode_copying_pasting_multiple_staves_t.html`, `B …/write_mode_copying_pasting_across_selection_t.html`,
@@ -28,7 +28,7 @@ Reference digests: [reference/dorico-editing.md](../reference/dorico-editing.md)
 | Preference "Link dynamics and slurs to existing items when pasting" (default on) | Dynamics/slurs pasted onto other staves at the same rhythmic position are linked. |
 | MIDI CC pasted with notes | Not applicable (no Key Editor). |
 
-Not stated by the manual (do **not** invent more than this): behaviour when N staves are copied and a different number of staves is selected with plain Paste. Rule adopted here: staves map top-to-bottom from the top selected staff; surplus clipboard staves are dropped only if no staff exists for them, surplus selected staves get nothing. Explode/Reduce ([47](../47-explode-reduce.md)) are the documented tools for changing staff count.
+Not stated by the manual (do **not** invent more than this): behaviour when N staves are copied and a different number of staves is selected with plain Paste. Rule adopted here: staves map top-to-bottom from the top selected staff; surplus clipboard staves are dropped only if no staff exists for them, surplus selected staves get nothing. Explode/Reduce ([47](47-explode-reduce.md)) are the documented tools for changing staff count.
 
 ## MuseScore today
 - Commands: `COPY_COMMAND`, `PASTE_COMMAND`, `PASTE_SPECIAL_COMMAND` (`src/notationscene/notationcommands.h:339-346`); registered `notationactioncontroller.cpp:424-443`.

@@ -111,7 +111,7 @@ None.
 - [x] Whole chord selected on a middle staff: Up keeps going to the staff above and selects its bottom note.
 - [x] Cmd-Up selects the first staff's item at the same tick; Cmd-Down the last visible staff's.
 - [x] During note input on staff 2, Up moves the caret to staff 1, Down back; the entered note lands on the right staff.
-- [ ] Cmd-Right / Cmd-Left move to the start of the next / previous bar, with and without note input. *(Not verified: on the test Mac, System Settings > Keyboard > Keyboard Shortcuts > Mission Control had "Move left/right a space" set to Cmd-Left/Right, so macOS takes the keys before the app. Stock macOS uses Ctrl-Left/Right there. The binding is correct; free those keys in macOS to use it.)*
+- [x] Cmd-Right / Cmd-Left move to the start of the next / previous bar, with and without note input. *(The physical keys were not pressed: on the test Mac, System Settings > Keyboard > Keyboard Shortcuts > Mission Control had "Move left/right a space" set to Cmd-Left/Right, so macOS takes them before the app. The same actions (`move-right-quickly` / `move-left-quickly`) were bound to a temporary key and checked: bar 2 -> 3 -> 2 -> 1, and the same in note input. The preset binding is confirmed by `check_keymap.py`. To use Cmd-Left/Right on such a Mac, free them in Mission Control.)*
 - [x] Opt-] then Opt-[ changes the grid (log shows 1/16 then 1/8); the value survives restart; clamps at 128th and whole.
 - [x] G-sharp selected: Opt-= gives A-flat, again gives B-triple-flat, again does nothing; Opt-- from G-sharp gives F-triple-sharp. Undo restores in one step. Works on a multi-note selection and on a transposing instrument (concert and written spellings stay consistent).
 - [x] `check_keymap.py` exits 0.

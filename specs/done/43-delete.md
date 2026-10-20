@@ -1,7 +1,7 @@
 <!-- markdownlint-disable -->
 # 43 — Delete, Remove Rests, Delete Bars
 
-Status: done · Depends on: [00-module-skeleton](../00-module-skeleton.md), [10-keymap-preset](../10-keymap-preset.md), [11-note-input-modes](11-note-input-modes.md) (Insert mode flag)
+Status: done · Depends on: [00-module-skeleton](00-module-skeleton.md), [10-keymap-preset](10-keymap-preset.md), [11-note-input-modes](11-note-input-modes.md) (Insert mode flag)
 Dorico refs: `B = https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/` →
 `B write_mode/write_mode_arranging_tools/write_mode_deleting_items_t.html`,
 `B notation_reference/notation_reference_bars/notation_reference_bars_deleting_contents_t.html`,

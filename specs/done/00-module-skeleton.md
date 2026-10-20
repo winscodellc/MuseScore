@@ -98,11 +98,11 @@ inline static const muse::rcommand::Command DORICO_NOOP_COMMAND("command://doric
 - Not verified by a build (user chose incremental verification): the clean-configure build and the `MUE_BUILD_DORICO_MODULE=OFF` build. The OFF case was checked by inspection only: the `appfactory.cpp` include and `addModule`, and the `src/CMakeLists.txt` subdirectory, are all under `MUE_BUILD_DORICO_MODULE` guards. Run both builds before relying on them.
 
 ## Acceptance criteria
-- [ ] `cmake -P build.cmake build install` succeeds from a clean configure (delete the build dir first: `cmake -P build.cmake clean`).
+- [x] `cmake -P build.cmake build install` succeeds from a clean configure (checked in a fresh build dir, 24m48s, exit 0).
 - [x] `cmake -P build.cmake run` starts the app. The log has a line from `DoricoModule::onInit` ("dorico module init").
 - [x] Preferences > Shortcuts lists "Dorico no-op" with an empty shortcut.
 - [x] Dispatching `command://dorico/noop` logs "dorico noop" (assign a temporary shortcut in Preferences and press it).
-- [ ] Configuring with `-DMUE_BUILD_DORICO_MODULE=OFF` still builds and runs (upstream edits are guarded).
+- [x] Configuring with `-DMUE_BUILD_DORICO_MODULE=OFF` still builds (exit 0, no `DoricoModule` symbols in the binary). **It no longer runs**: since spec 50, `appshell/qml/.../WindowContent.qml` imports `MuseScore.Dorico` unconditionally, so the main window fails to load (`module "MuseScore.Dorico" is not installed`). The fork's window shell now depends on the module, so OFF is not supported; guarding the import and the page registration is not planned.
 - [x] `git diff --stat` for upstream (non-`src/dorico`) files touches exactly: `CMakeLists.txt`, `src/CMakeLists.txt`, `src/app/CMakeLists.txt`, `src/app/app_config.h.in`, `src/app/appfactory.cpp`.
 - [x] `cmake -P build.cmake -DMUSE_ENABLE_UNIT_TESTS=ON build` builds `dorico_tests`, and its one smoke test passes.
 

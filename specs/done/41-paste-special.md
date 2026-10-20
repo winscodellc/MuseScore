@@ -1,7 +1,7 @@
 <!-- markdownlint-disable -->
 # 41 — Paste Special: Paste Into Voice, Duplicate/Move to Staff, Swap, Paste Articulations
 
-Status: done · Depends on: [40-copy-paste](40-copy-paste.md) (paste engine/planner), [10-keymap-preset](../10-keymap-preset.md)
+Status: done · Depends on: [40-copy-paste](40-copy-paste.md) (paste engine/planner), [10-keymap-preset](10-keymap-preset.md)
 Dorico refs: `B = https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/` →
 `B write_mode/write_mode_arranging_tools/write_mode_copying_pasting_notes_into_different_voices_t.html`,
 `B …/write_mode_copying_pasting_items_t.html` (Duplicate to Staff Above/Below),
@@ -10,7 +10,7 @@ Dorico refs: `B = https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/`
 Reference digests: [reference/dorico-editing.md](../reference/dorico-editing.md) §1.2, 1.5, 2.3 · [reference/musescore-internals.md](../reference/musescore-internals.md) §4
 
 ## Goal
-The Dorico **Edit > Paste Special** family: Paste Into Voice, Duplicate to Staff Above/Below, Move to Staff Above/Below (`Opt-N` / `Opt-M`), Swap, Paste Articulations. (Explode/Reduce → [47](../47-explode-reduce.md).)
+The Dorico **Edit > Paste Special** family: Paste Into Voice, Duplicate to Staff Above/Below, Move to Staff Above/Below (`Opt-N` / `Opt-M`), Swap, Paste Articulations. (Explode/Reduce → [47](47-explode-reduce.md).)
 
 ## Dorico behaviour
 

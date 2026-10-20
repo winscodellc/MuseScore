@@ -1,11 +1,11 @@
 <!-- markdownlint-disable -->
 # 47 — Paste Special: Explode and Reduce
 
-Status: done · Depends on: [40-copy-paste](done/40-copy-paste.md), [41-paste-special](done/41-paste-special.md), [46-jump-bar](done/46-jump-bar.md)
+Status: done · Depends on: [40-copy-paste](40-copy-paste.md), [41-paste-special](41-paste-special.md), [46-jump-bar](46-jump-bar.md)
 Dorico refs: `B = https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/` →
 `B write_mode/write_mode_arranging_tools/write_mode_arranging_exploding_t.html`,
 `B write_mode/write_mode_arranging_tools/write_mode_arranging_reducing_t.html`
-Reference digests: [reference/dorico-editing.md](reference/dorico-editing.md) §1.6 · [reference/musescore-internals.md](reference/musescore-internals.md) §4
+Reference digests: [reference/dorico-editing.md](../reference/dorico-editing.md) §1.6 · [reference/musescore-internals.md](../reference/musescore-internals.md) §4
 
 ## Goal
 Edit > Paste Special > **Explode** (spread chords of copied music across several destination staves) and **Reduce** (merge several copied staves onto fewer destination staves), following Dorico's allocation rules.
@@ -35,7 +35,7 @@ Edit > Paste Special > **Explode** (spread chords of copied music across several
 - Gap: Dorico is **clipboard-driven** (copy anywhere, paste into chosen staves) and has the exact "more notes than staves" / "fewer notes" / odd-extras and unison/cue/clef-change rules; MuseScore's functions are in-place and have their own allocation (verify against the rules above before relying on it).
 
 ## Design (as built)
-Both live in `src/dorico/internal/pastespecial.{h,cpp}` next to the other Paste Special commands (no new `explode.cpp`), and run in one `transact` (one undo step). Internals found on the way: [reference/musescore-internals.md](reference/musescore-internals.md) "Explode / Reduce internals".
+Both live in `src/dorico/internal/pastespecial.{h,cpp}` next to the other Paste Special commands (no new `explode.cpp`), and run in one `transact` (one undo step). Internals found on the way: [reference/musescore-internals.md](../reference/musescore-internals.md) "Explode / Reduce internals".
 
 1. **Explode** (`pasteSpecialExplode`): `ImplodeExplode::explode` is **not** used (it keeps one note per staff, so 4 notes onto 3 staves lose a note, and it forces whole bars). The one-staff clip is pasted onto every selected staff at the selection start, then each staff prunes every chord (all voices, grace chords) to its share, `explodeNotes(nNotes, nStaves)`: more notes than staves = contiguous runs with the extras on the upper staves (4/3 = 2,1,1; 5/3 = 2,2,1); fewer notes = a note is shared (2/3 = top, bottom, bottom). Slurs and dynamics are duplicated by the paste itself.
 2. **Reduce, rhythm-matched** (`pasteSpecialReduce`): the clip is split per staff (`staffClipOf`), groups come from `reduceGroups(nSources, nDest)` (5/3 = 2,2,1). Source `j` of a group is pasted into **voice `j`** of its destination staff (`pasteAtInVoice`). If every voice of a group has the same chord rhythm, the group is merged into voice 1 with `ImplodeExplode::implode` on that one staff (same-duration chords stack, unison pitches are skipped), then the clef changes and octave lines in the span are removed.
@@ -67,7 +67,7 @@ Upstream edits: none. `DoricoCommandsState` also refreshes on `QClipboard::dataC
 - [x] Reduce 5→3 groups are 2,2,1 top-down.
 - [x] Reduce with differing rhythms keeps every rhythm (extra voices), no notes lost.
 - [x] Both commands are single undo steps (UI-checked).
-- [ ] Both commands are unavailable (greyed) without a clipboard / destination selection. **Not verified**: the Help-search access the UI tester uses shows no greyed state (a 2-staff clip on a 2-staff range dispatched nothing). Enabling logic: `pasteSpecialCanExplode` / `pasteSpecialCanReduce`, refreshed on selection and clipboard changes.
+- [x] Both commands are unavailable (greyed) without a clipboard / destination selection. UI-checked in Edit > Paste Special (opened from Help search, since uictl cannot click the menu bar): no selection = both greyed; 1-staff clip on 3 staves = Explode only; 3-staff clip on 1 staff = Reduce only; 2-staff clip on 2 staves = both greyed. Logic: `pasteSpecialCanExplode` / `pasteSpecialCanReduce`, refreshed on selection and clipboard changes.
 
 ## Tests
 - `src/dorico/tests/pastespecial_tests.cpp`: table tests for `reduceGroups` (5/3, 4/2, 3/3, 7/3) and `explodeNotes` (3/3, 2/3, 1/3, 4/3, 5/3), and `staffClipOf` (one staff kept, spanners filtered by track, every staff starts at the clip tick, round trip through `pasteClipFrom` / `pasteClipVoices`). The `.mscx` fixtures of the first draft were dropped: `dorico_tests` cannot load scores.

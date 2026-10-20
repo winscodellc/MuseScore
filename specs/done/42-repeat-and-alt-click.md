@@ -1,7 +1,7 @@
 <!-- markdownlint-disable -->
 # 42 — Repeat (R) and Opt-click / Opt-drag copy
 
-Status: done · Depends on: [40-copy-paste](40-copy-paste.md), [10-keymap-preset](../10-keymap-preset.md), [11-note-input-modes](11-note-input-modes.md)
+Status: done · Depends on: [40-copy-paste](40-copy-paste.md), [10-keymap-preset](10-keymap-preset.md), [11-note-input-modes](11-note-input-modes.md)
 Dorico refs: `B = https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/` →
 `B write_mode/write_mode_arranging_tools/write_mode_copying_pasting_items_t.html`;
 forum (pre-release dev statements, treat as unverified): https://forums.steinberg.net/t/note-input-copy-paste-repeat-note/662458 , https://forums.steinberg.net/t/use-of-the-r-shortcut-key/673739
