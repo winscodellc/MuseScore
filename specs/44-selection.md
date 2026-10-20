@@ -1,7 +1,7 @@
 <!-- markdownlint-disable -->
 # 44 — Selection: extend, Select More, deselect, Tab cycling
 
-Status: done · Depends on: [10-keymap-preset](10-keymap-preset.md), [12-caret-and-navigation](12-caret-and-navigation.md) (arrow-key semantics are owned by 12; this spec owns selection *extension*, *Select More*, *deselect*, *Tab*)
+Status: pending review · Depends on: [10-keymap-preset](10-keymap-preset.md), [12-caret-and-navigation](12-caret-and-navigation.md) (arrow-key semantics are owned by 12; this spec owns selection *extension*, *Select More*, *deselect*, *Tab*)
 Dorico refs: `B = https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/` →
 `B write_mode/write_mode_selecting/write_mode_notes_notation_selecting_deselecting_t.html`,
 `B …/write_mode_selections_types_r.html`, `B …/write_mode_selecting_more_t.html`, `B …/write_mode_selections_extending_t.html`,
