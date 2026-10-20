@@ -127,6 +127,8 @@ Status: todo | in-progress | pending review | done  -  Depends on: NN, NN  -  Do
 | [reference/dorico-popovers.md](reference/dorico-popovers.md) | Popover UI behaviour, Return / Opt-Return table, every entry-syntax table |
 | [reference/dorico-editing.md](reference/dorico-editing.md) | Copy/paste/Paste Special, R, moves, delete, selection, Select More, filters, Jump bar, caret, grid, transpose/respell |
 | [reference/dorico-ui.md](reference/dorico-ui.md) | Dorico UI inventory: toolbar, transport, status bar, zones, every toolbox / panel / menu per mode, with manual URLs |
+| `reference/manual/` (gitignored) | Full local mirror of the Dorico Pro 6.2 manual: `index.md` (topic tree), `topics/**.md`, `images/*.png`. Built by `src/dorico/tools/fetch_manual.py` |
+| [ROADMAP.md](ROADMAP.md) | Gap check of Dorico Pro 6 features vs this fork, proposed specs 61+ |
 | [reference/musescore-internals.md](reference/musescore-internals.md) | Shortcuts v2 pipeline, note-input model, popup infrastructure, item-adding APIs, paste/selection/search code locations |
 
 ## Status table
