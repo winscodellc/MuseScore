@@ -178,7 +178,7 @@ Status: todo | in-progress | pending review | done  -  Depends on: NN, NN  -  Do
 | 60 | [Appearance: colors, score canvas, icons](done/60-appearance.md) | done | 50 |
 | 61 | [Guitar bends, techniques, harmonics, string indicators](done/61-guitar-techniques.md) | done | 28, 29 |
 | 62 | [Print panel parity](done/62-print-panel.md) | done | 58 |
-| 63 | [Mixer parity](63-mixer-parity.md) | todo | 57 |
+| 63 | [Mixer parity](63-mixer-parity.md) | pending review | 57 |
 | 65 | [Musical transformations](done/65-musical-transformations.md) | done | 35, 59 |
 
 Specs 20-36 and 40-47 are listed here but written in a later pass. Specs 50-59 (UI shell) are all written; **implement 50 first**, then the rest in any order (58 after 55). Suggested model: Opus for 50, 53, 59; Sonnet is enough for 51, 52, 54-58. A spec file that does not exist yet is just not started.

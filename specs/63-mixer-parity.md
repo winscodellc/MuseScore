@@ -2,7 +2,7 @@
 
 # 63 - Mixer parity
 
-Status: todo - Depends on: 57 - Dorico refs: `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/mixer/mixer_panel_r.html`, `.../mixer_toolbar_r.html`, `.../mixer_channel_strips_r.html`, `.../mixer_channels_types_r.html`, `.../mixer_channels_renaming_t.html`, `.../mixer_volume_tracks_changing_t.html`, `.../mixer_tracks_panning_changing_t.html`, `.../mixer_channels_height_changing_t.html`, `.../mixer_channels_scrolling_t.html`, `.../mixer_channels_hiding_showing_t.html`, `.../mixer_reverb_sound_changing_t.html`, `.../mixer_inserts_enable_bypass_t.html`
+Status: pending review - Depends on: 57 - Dorico refs: `https://www.steinberg.help/r/dorico-pro/6.2/en/dorico/topics/mixer/mixer_panel_r.html`, `.../mixer_toolbar_r.html`, `.../mixer_channel_strips_r.html`, `.../mixer_channels_types_r.html`, `.../mixer_channels_renaming_t.html`, `.../mixer_volume_tracks_changing_t.html`, `.../mixer_tracks_panning_changing_t.html`, `.../mixer_channels_height_changing_t.html`, `.../mixer_channels_scrolling_t.html`, `.../mixer_channels_hiding_showing_t.html`, `.../mixer_reverb_sound_changing_t.html`, `.../mixer_inserts_enable_bypass_t.html`
 
 Local mirror: `reference/manual/topics/mixer/` (`mixer-panel.md`, `mixer-toolbar.md`, `mixer-channels/mixer-channel-strips.md`, `mixer-channels/types-of-mixer-channels.md`, `renaming-channels.md`, `changing-the-volume-of-channels.md`, `panning-channels.md`, `changing-the-height-of-channels.md`, `scrolling-through-channels.md`, `adding-fx-channels.md`, `changing-the-reverb-plug-in.md`, `loading-inserts-into-channels/`). Pictures: `reference/manual/images/mixer_panel_desktop.png` (whole panel), `mixer_height_example.png` (split line), `mixer_inserts*.png`, `mixer_sends.png`, `mixer_button_*.png`, `toolbar_mixer.png`.
 
@@ -107,22 +107,44 @@ All new code goes in `src/dorico/qml/MuseScore/Dorico/`, and new files are added
 | Play > Apply Default Output Level, default-level preference (-6 dB) | Not in our Play menu (spec 59); MuseScore's default is 0 dB. A reset-all is a loop over `volumeLevel = 0` when wanted |
 | Resize Lower Zone toolbar button | The dock edge already resizes the zone; add it if it turns out cheap |
 
+## As built
+
+- **`doricomixermodel.{h,cpp}`** (`DoricoMixerModel`, QML_ELEMENT): `names` (map) / `keyOf(channel)` / `setName(key, text)` keep channel names in the master score's metaTag `doricoMixerNames` (JSON; keys `partId/instrumentId`, `metronome`, `aux:<n>`) and mark the project unsaved. A shared `Notification` reloads every instance (one per channel strip), so the Mixer and the Track Inspector show the same name. `addFxChannel` / `removeFxChannel` / `fxChannelMax` flip `setAuxChannelVisible` + `setAuxSendVisible`.
+- **`mixervalues.js`**: `parseVolume` / `parsePan` (rules above, clamped, `null` = not a value). Checked with an ad-hoc `node` assert run; no qmltestrunner in the module.
+- **`DoricoChannelStripSections.qml`** (new): Inserts header with the dot (colours measured: off `#EEF4FA`, on `#6FADDD`, bypassed `#FAE94F`; clicking the dot enables / bypasses all), four slots; EQ header unavailable with a tooltip; Sends header, then MuseScore's `AuxSendControl` per send (reused unchanged: knob + on/off button with the FX name, not Dorico's power + gain bar). The insert slot is our own small row: `ResourceDropdown` (blue when loaded and enabled), with power and edit buttons on hover.
+- **`DoricoChannelStrip.qml`**: own `DoricoMixerModel` for the name; one inline `TextInputField` over the pan box, the fader value or the name. Pan: press sets the position (the outer 6 px give L100 / R100), drag follows, Opt-click types, Cmd-click / double-click centres. Value: Opt-click types, Cmd-click / double-click 0 dB. Mute lit `#FFD608` with a black m, solo lit `#A32A0A` (measured). Pan and fader `MouseArea`s use `preventStealing` so the row only scrolls on background drags.
+- **`DoricoMixer.qml`**: columns of strip card + channel. The display order is a JS array (`rows`): metronome first, then model order, filtered by the Show buttons; Output pinned right. Split line: a 4 px `MouseArea` (`Qt.SplitVCursor`), channel height 190 by default, clamped to 140 up to the zone height, kept for the session. The strips hide when their three headers do not fit. A `WheelHandler` maps the vertical wheel / swipe to `contentX`; 24 px fades at the edges. Toolbar centred on the whole Mixer width (not the space after the tab buttons), FX+ / FX− enabled by the number of FX channels shown.
+- No upstream edits.
+
+Differences from Dorico: FX channel visibility is MuseScore's app-wide setting, and a fresh setup has none shown (Dorico starts with "Reverb"); FX channels are named by MuseScore ("Reverb" with MuseReverb loaded, else "Aux N") until renamed. The strip sections clip and do not scroll vertically. MuseScore offers only Muse Reverb (plus VST / AU plug-ins if installed) as an insert.
+
+## Deferred / unsupported (found while building)
+
+| Item | Why |
+|---|---|
+| Insert slots of an FX channel added with FX+ stay greyed until the score is reopened | Upstream `MixerPanelModel::addItem` (`mixerpanelmodel.cpp:213`) does not call `updateOutputResourceItemCount()`, so the new channel gets no blank slot; MuseScore's own mixer has the same bug. One-line upstream fix if wanted |
+| Cmd-A in the inline fields | MuseScore's `TextInputField` does not take it while a Dorico shortcut is bound to it |
+
+## Verification status
+
+`ui-tester` runs on temp copies of `demos/Brassed_Up.mscx` and `demos/Dawn.mscx` (window narrowed to 1050 px so the channels overflow). Not checked: the mouse wheel (uictl cannot send wheel events), the sound of a changed insert or send, and the plug-in editor window (Muse Reverb has none; no third-party plug-ins installed).
+
 ## Acceptance criteria
 
-- [ ] With the lower zone tall enough, channel strips show above the channels with Inserts, EQ (disabled) and Sends headers. With the zone short, only the channels show.
-- [ ] Clicking Inserts (or Sends) on any channel expands / collapses that section on every channel.
-- [ ] From an instrument's strip: load an insert, bypass it (indicator turns yellow), enable it (blue), open its editor, remove it (indicator off).
-- [ ] On the FX (Reverb) strip, the insert menu replaces MuseReverb with another effect; playback uses it.
-- [ ] A send's level and on / off change the reverb heard on that instrument.
-- [ ] Dragging the split line changes the strip / channel heights; channels default to about 190 px.
-- [ ] Double-click an instrument name and an FX name, rename, Return: the names show (mixer and Track Inspector), survive save + reopen, and an empty name restores the default.
-- [ ] Opt-click the fader value, type `-6`, Return: the fader moves to -6 dB. `inf` and `-inf` go to the ends. Opt-click pan, type `L30`, then `100`: the pan follows. Cmd-click / double-click the value resets.
-- [ ] Clicking in the pan box sets the pan to that position.
-- [ ] The mouse wheel scrolls the channels sideways; dragging on the background scrolls; the edges fade when more channels exist.
-- [ ] The click (metronome) channel is the first channel; Output stays pinned right.
-- [ ] FX+ adds the second FX channel (and its send slot on each strip), FX− removes it; the buttons disable at the limits.
-- [ ] Mute lit is yellow, solo lit is red; the toolbar is centred icon buttons.
-- [ ] Write, Engrave and Play all show the same Mixer.
+- [x] With the lower zone tall enough, channel strips show above the channels with Inserts, EQ (disabled) and Sends headers. With the zone short, only the channels show.
+- [x] Clicking Inserts (or Sends) on any channel expands / collapses that section on every channel.
+- [ ] From an instrument's strip: load an insert, bypass it (indicator turns yellow), enable it (blue), open its editor, remove it (indicator off). *(All but "open its editor" checked: Muse Reverb has no editor window.)*
+- [ ] On the FX (Reverb) strip, the insert menu replaces MuseReverb with another effect; playback uses it. *(Menu works; only Muse Reverb / No effect available here, sound not checked.)*
+- [ ] A send's level and on / off change the reverb heard on that instrument. *(Controls work; sound not checked.)*
+- [x] Dragging the split line changes the strip / channel heights; channels default to about 190 px.
+- [x] Double-click an instrument name and an FX name, rename, Return: the names show (mixer and Track Inspector), survive save + reopen, and an empty name restores the default.
+- [x] Opt-click the fader value, type `-6`, Return: the fader moves to -6 dB. `inf` and `-inf` go to the ends. Opt-click pan, type `L30`, then `100`: the pan follows. Cmd-click / double-click the value resets.
+- [x] Clicking in the pan box sets the pan to that position.
+- [ ] The mouse wheel scrolls the channels sideways; dragging on the background scrolls; the edges fade when more channels exist. *(Drag and fades checked; wheel not testable with uictl.)*
+- [x] The click (metronome) channel is the first channel; Output stays pinned right.
+- [x] FX+ adds the second FX channel (and its send slot on each strip), FX− removes it; the buttons disable at the limits.
+- [x] Mute lit is yellow, solo lit is red; the toolbar is centred icon buttons.
+- [x] Write, Engrave and Play all show the same Mixer.
 
 ## Tests
 
