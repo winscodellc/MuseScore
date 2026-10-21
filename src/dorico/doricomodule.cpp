@@ -94,12 +94,9 @@ std::string DoricoModule::moduleName() const
 
 void DoricoModule::resolveImports()
 {
-    // Write reuses musescore://notation (registered by appshell); the other modes are ours.
+    // The modes all live in musescore://notation (registered by appshell, spec 95); these are our dialogs.
     auto ir = globalIoc()->resolve<muse::interactive::IInteractiveUriRegister>(mname);
     if (ir) {
-        for (Mode mode : { Mode::Setup, Mode::Engrave, Mode::Play, Mode::Print }) {
-            ir->registerPageUri(modeUri(mode));
-        }
         ir->registerQmlUri(muse::Uri("musescore://dorico/filternotesbypitch"), "MuseScore.Dorico", "FilterNotesByPitchDialog"); // spec 45
         ir->registerQmlUri(muse::Uri("musescore://dorico/transforminvert"), "MuseScore.Dorico", "InvertPitchesDialog"); // spec 65
         ir->registerQmlUri(muse::Uri("musescore://dorico/transformrotate"), "MuseScore.Dorico", "RotateDialog");

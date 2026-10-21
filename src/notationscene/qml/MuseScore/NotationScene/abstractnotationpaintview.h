@@ -73,6 +73,9 @@ class AbstractNotationPaintView : public muse::uicomponents::QuickPaintedView, p
 
     Q_PROPERTY(bool readOnly READ readonly WRITE setReadonly NOTIFY readonlyChanged)
 
+    // Dorico fork (spec 95): a background colour that wins over the configured one (Print mode's grey); transparent = none.
+    Q_PROPERTY(QColor backgroundOverride MEMBER m_backgroundOverride NOTIFY backgroundOverrideChanged)
+
     muse::GlobalInject<INotationConfiguration> notationConfiguration;
     muse::GlobalInject<INotationSceneConfiguration> configuration;
     muse::GlobalInject<engraving::IEngravingConfiguration> engravingConfiguration;
@@ -195,6 +198,7 @@ signals:
     void isMainViewChanged(bool isMainView);
 
     void readonlyChanged();
+    void backgroundOverrideChanged(); // Dorico fork (spec 95)
 
 protected:
     INotationPtr notation() const;
@@ -311,6 +315,7 @@ private:
     qreal m_previousHorizontalScrollPosition = 0;
 
     bool m_readonly = false;
+    QColor m_backgroundOverride; // Dorico fork (spec 95)
     bool m_publishMode = false;
     int m_lastAcceptedKey = -1;
     bool m_isMainView = false;

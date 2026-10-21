@@ -56,16 +56,6 @@ TEST(DoricoShell, ModeChangedFiresOncePerChange)
     EXPECT_EQ(fired, 2);
 }
 
-TEST(DoricoShell, ModeUriRoundTrip)
-{
-    for (int i = 0; i < MODE_COUNT; ++i) {
-        const Mode mode = static_cast<Mode>(i);
-        EXPECT_EQ(modeFromUri(modeUri(mode)), mode);
-    }
-    EXPECT_FALSE(modeFromUri(muse::Uri("musescore://home")).has_value());
-    EXPECT_EQ(modeUri(Mode::Write), muse::Uri("musescore://notation"));
-}
-
 TEST(DoricoShell, WriteZonesHaveDocks)
 {
     for (int i = 0; i < ZONE_COUNT; ++i) {
@@ -73,37 +63,54 @@ TEST(DoricoShell, WriteZonesHaveDocks)
     }
 }
 
-TEST(DoricoShell, WriteLeftZoneIsTheNotesPanel)
+// One page for all modes (spec 95): each zone is the same dock in every mode that has it.
+TEST(DoricoShell, ZonesAreSharedDocks)
 {
-    EXPECT_EQ(zoneDocks(Mode::Write, Zone::Left), std::vector<QString>({ "notesPanel" }));
+    for (int i = 0; i < MODE_COUNT; ++i) {
+        const Mode mode = static_cast<Mode>(i);
+        EXPECT_EQ(zoneDocks(mode, Zone::Left).front(), QString(LEFT_ZONE_PANEL));
+        if (mode != Mode::Play) {
+            EXPECT_EQ(zoneDocks(mode, Zone::Right).front(), QString(RIGHT_ZONE_PANEL));
+        }
+        if (mode != Mode::Print) {
+            EXPECT_EQ(zoneDocks(mode, Zone::Lower), std::vector<QString>({ LOWER_ZONE_PANEL }));
+        }
+    }
 }
 
-TEST(DoricoShell, SetupHasOnePanelPerZone)
+TEST(DoricoShell, MuseScorePanelsOnlyInWrite)
 {
-    EXPECT_EQ(zoneDocks(Mode::Setup, Zone::Left), std::vector<QString>({ "playersPanel" }));
-    EXPECT_EQ(zoneDocks(Mode::Setup, Zone::Right), std::vector<QString>({ "layoutsPanel" }));
-    EXPECT_EQ(zoneDocks(Mode::Setup, Zone::Lower), std::vector<QString>({ "flowsPanel" }));
+    EXPECT_EQ(zoneDocks(Mode::Write, Zone::Right),
+              std::vector<QString>({ RIGHT_ZONE_PANEL, "palettesPanel", "selectionFiltersPanel", "undoHistoryPanel" }));
+    EXPECT_EQ(zoneDocks(Mode::Setup, Zone::Right).size(), 1u);
 }
 
-TEST(DoricoShell, EngraveZones)
+TEST(DoricoShell, PlayHasNoRightZoneAndPrintNoLowerZone)
 {
-    EXPECT_EQ(zoneDocks(Mode::Engrave, Zone::Left), std::vector<QString>({ "engraveLeftPanel" }));
-    EXPECT_EQ(zoneDocks(Mode::Engrave, Zone::Right), std::vector<QString>({ "pagesPanel" }));
-    EXPECT_EQ(zoneDocks(Mode::Engrave, Zone::Lower), std::vector<QString>({ "DoricoEngrave_lowerZonePanel" }));
-}
-
-TEST(DoricoShell, PlayHasNoRightZone)
-{
-    EXPECT_EQ(zoneDocks(Mode::Play, Zone::Left), std::vector<QString>({ "playLeftPanel" }));
-    EXPECT_EQ(zoneDocks(Mode::Play, Zone::Lower), std::vector<QString>({ "DoricoPlay_lowerZonePanel" }));
     EXPECT_TRUE(zoneDocks(Mode::Play, Zone::Right).empty());
+    EXPECT_TRUE(zoneDocks(Mode::Print, Zone::Lower).empty());
 }
 
-TEST(DoricoShell, PrintHasNoLowerZone)
+TEST(DoricoShell, Toolboxes)
 {
-    EXPECT_EQ(zoneDocks(Mode::Print, Zone::Left), std::vector<QString>({ "printLayoutsPanel" }));
-    EXPECT_EQ(zoneDocks(Mode::Print, Zone::Right), std::vector<QString>({ "printOptionsPanel" }));
-    EXPECT_TRUE(zoneDocks(Mode::Print, Zone::Lower).empty());
+    EXPECT_EQ(toolboxDocks(Mode::Write), std::vector<QString>({ "doricoLeftToolbox", "doricoRightToolbox" }));
+    EXPECT_EQ(toolboxDocks(Mode::Engrave), std::vector<QString>({ "doricoLeftToolbox" }));
+    EXPECT_TRUE(toolboxDocks(Mode::Setup).empty());
+    EXPECT_TRUE(toolboxDocks(Mode::Play).empty());
+    EXPECT_TRUE(toolboxDocks(Mode::Print).empty());
+}
+
+TEST(DoricoShell, DefaultZones)
+{
+    for (int z = 0; z < ZONE_COUNT; ++z) {
+        EXPECT_TRUE(zoneOpenByDefault(Mode::Setup, static_cast<Zone>(z)));
+    }
+    EXPECT_TRUE(zoneOpenByDefault(Mode::Write, Zone::Left));
+    EXPECT_FALSE(zoneOpenByDefault(Mode::Write, Zone::Right));
+    EXPECT_FALSE(zoneOpenByDefault(Mode::Write, Zone::Lower));
+    EXPECT_TRUE(zoneOpenByDefault(Mode::Print, Zone::Right));
+    EXPECT_EQ(zoneDefaultSize(Mode::Write, Zone::Left), 132);
+    EXPECT_EQ(zoneDefaultSize(Mode::Setup, Zone::Lower), 130);
 }
 
 TEST(DoricoShell, ExportUnitType)
@@ -129,17 +136,9 @@ TEST(DoricoShell, LowerZoneIsOneDock)
     EXPECT_EQ(docks.front(), QString(LOWER_ZONE_PANEL));
 }
 
-// KDDockWidgets finds docks by name, so docks shared by every mode page must get a distinct name per page.
-TEST(DoricoShell, SharedDocksHaveUniqueNamesPerPage)
+TEST(DoricoShell, ToolbarDocks)
 {
-    std::set<QString> names;
-    for (int i = 0; i < MODE_COUNT; ++i) {
-        for (const QString& name : toolbarDocks(static_cast<Mode>(i))) {
-            EXPECT_TRUE(names.insert(name).second) << name.toStdString();
-        }
-    }
-    EXPECT_EQ(toolbarDocks(Mode::Write).front(), QString("doricoTopBar"));
-    EXPECT_EQ(toolbarDocks(Mode::Play).front(), QString("DoricoPlay_doricoTopBar"));
+    EXPECT_EQ(toolbarDocks(), std::vector<QString>({ "doricoTopBar", "playbackToolBar", "undoRedoToolBar" }));
 }
 
 TEST(DoricoShell, LowerZoneTabDefaultsAndNotifiesOncePerChange)

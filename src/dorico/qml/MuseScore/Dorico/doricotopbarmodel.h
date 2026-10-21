@@ -75,8 +75,14 @@ public:
     Q_INVOKABLE void dispatch(const QString& command);
     Q_INVOKABLE void openPage(const QString& uri);
 
+    // A mode's zone size (spec 95): width of the left/right zone, height of the lower zone (zone: 0 left, 1 lower,
+    // 2 right). The page saves it when a mode is left and puts it back when the mode is shown.
+    Q_INVOKABLE int zoneSize(int mode, int zone) const;
+    Q_INVOKABLE void setZoneSize(int mode, int zone, int size);
+
 signals:
     void currentModeChanged();
+    void modeAboutToChange();
     void layoutsChanged();
 
 private:

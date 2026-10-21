@@ -103,8 +103,7 @@ UiContext UiContextResolver::resolveCurrentUiContext() const
             return context::UiCtxHomeOpened;
         }
 
-        // Dorico fork: the Dorico mode pages (musescore://dorico/*) also show the open project.
-        if (currentUri == NOTATION_PAGE_URI || currentUri.toString().starts_with("musescore://dorico/")) {
+        if (currentUri == NOTATION_PAGE_URI) {
             auto notation = globalContext()->currentNotation();
             if (!notation) {
                 //! NOTE The notation page is open, but the notation itself is not loaded - we consider that the notation is not open.

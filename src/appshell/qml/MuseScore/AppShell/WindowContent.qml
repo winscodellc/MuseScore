@@ -29,7 +29,7 @@ import Muse.Interactive
 import Muse.Ui
 import Muse.UiComponents
 import MuseScore.AppShell
-import MuseScore.Dorico // Dorico fork: mode pages
+import MuseScore.Dorico // Dorico fork: mode page
 
 import "./HomePage"
 import "./NotationPage"
@@ -51,7 +51,7 @@ DockWindow {
 
     // Dorico fork: the Dorico pages carry their own top bar, so the Home/Score/Publish bar is hidden there
     function updateMainToolBar() {
-        var isDoricoPage = root.currentPageUri === "musescore://notation" || root.currentPageUri.startsWith("musescore://dorico/")
+        var isDoricoPage = root.currentPageUri === "musescore://notation"
         if (isDoricoPage && mainToolBar.isOpen()) {
             mainToolBar.close()
         } else if (!isDoricoPage && !mainToolBar.isOpen()) {
@@ -118,24 +118,8 @@ DockWindow {
             window: root.window
         },
 
-        // Dorico fork: WritePage keeps the uri musescore://notation (was NotationPage)
-        WritePage {
-            topToolbarKeyNavSec: topToolbarKeyNavSec
-        },
-
-        SetupPage {
-            topToolbarKeyNavSec: topToolbarKeyNavSec
-        },
-
-        EngravePage {
-            topToolbarKeyNavSec: topToolbarKeyNavSec
-        },
-
-        PlayPage {
-            topToolbarKeyNavSec: topToolbarKeyNavSec
-        },
-
-        PrintPage {
+        // Dorico fork: all Dorico modes in one page, uri musescore://notation (was NotationPage)
+        DoricoShellPage {
             topToolbarKeyNavSec: topToolbarKeyNavSec
         },
 

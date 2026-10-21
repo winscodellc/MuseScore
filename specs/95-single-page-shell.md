@@ -2,7 +2,7 @@
 
 # 95 - Single-page shell (instant mode switching)
 
-Status: todo - Depends on: 50-59, 94 - Dorico refs: `topics/dorico-concepts/modes-in-dorico.md`, `topics/user-interface/project-window.md`
+Status: built, pending review - Depends on: 50-59, 94 - Dorico refs: `topics/dorico-concepts/modes-in-dorico.md`, `topics/user-interface/project-window.md`
 
 ## Goal
 
@@ -87,18 +87,49 @@ Make switching modes (Cmd-1..5, mode tabs) close to instant, as in Dorico. Today
 - Animated transitions between modes. Dorico has none either.
 - Migrating users' saved per-page KDDockWidgets layouts. Spec 95 starts from the default layout once (bump a layout version key).
 
+## As built (2026-10-21)
+
+- `DoricoShellPage.qml` is the one page. Its zone docks are `doricoLeftZone`, `doricoRightZone` and `lowerZonePanel`, and its toolbox docks are `doricoLeftToolbox` and `doricoRightToolbox`. Each zone's content is a `StackLayout` of `LazyPane`s: a mode's panel is built the first time the mode is shown, then kept.
+- The panel contents are moved into their own files:
+  - `SetupPlayersPanel` and `SetupFlowsPanel`
+  - `EngraveToolbox`, `EngraveFormattingPanel` and `EngravePagesPanel`
+  - `PlayInspectorPanel`
+  - `PrintLayoutsPanel` and `PrintOptionsPanel`
+- The zone docks have no dock title bar. The panels that had one draw a `ZoneHeader` instead.
+- `LowerZonePanel` builds its loaders for every tab and only hides the buttons. Setup shows Flows as its single tab, without a tab row.
+- A closed dock destroys its content (`DockPanel`/`DockToolBar` load it only while visible). So the zone and toolbox contents live on the page, parked in an invisible item, and each dock only borrows them through `ZoneHolder.qml`. The lower zone does the same inside `LowerZonePanel` (`zoneBody`). Hiding a zone, or a mode without it, keeps what was built (for example the mixer).
+- `DoricoActionsController` (zone visibility):
+  - Mode commands only call `setMode`.
+  - On `modeChanged`, the old mode's open docks are saved to `dorico/zones/<mode>/<zone>/docks`. Then every managed dock (`managedDocks()`) is opened or closed to match the new mode.
+  - When the page is shown (startup, back from the Hub), only the current mode's zones are applied. Nothing is captured then, because a layout restored after a crash or `pkill` can be stale.
+  - Showing or hiding a zone (`docksOpenStatusChanged`) is saved at once for the current mode.
+- Zone sizes are handled by `DoricoShellPage`, which holds the docks. C++ only sees the KDDockWidgets wrappers, not our `DockBase` items.
+  - `IDoricoModeState::modeAboutToChange` lets the page save the open zones' sizes (`dorico/zones/<mode>/<zone>/size`, via `DoricoTopBarModel::setZoneSize`) before anything moves.
+  - After the switch the page puts the new mode's sizes back, then again 100 ms later. A resize while a toolbox dock opens or closes lands about 42 px short.
+  - The docks' min/max sizes follow `sizeMode`, which changes only after the save, so the new limits cannot clamp the old sizes first.
+- Engrave changes only the painting view mode. Leaving Engrave goes back to `viewState()->viewMode()`, which is never written, so a saved file keeps its Write view mode.
+- Print saves the zoom and scroll (`viewState` matrix and zoom type) on entry and restores them on exit.
+- The `musescore://dorico/<mode>` aliases were dropped: nothing opens them any more. The four upstream page-URI checks were reverted.
+- Mode switch time (`Dorico mode switch: N ms` in the log, from the command to the next frame), on `Dawn.mscx`, 10 rounds of Cmd-1..5:
+  - before: median 1029 ms (min 684, max 1584). By target mode: Setup 783, Write 1246, Engrave 1188, Play 1035, Print 873.
+  - after (5 rounds, zone sizes restored per mode): Setup 89, Write 189, Engrave 160, Play 19, Print 168 ms (medians).
+  - The 100 ms target is met for Setup and Play only. Write, Engrave and Print most likely pay for resizing the score view when the zone widths change (not profiled). Spec 96 profiles these.
+- Not done:
+  - The "NotationView created once" log line: a QML `console.log` does not reach the log file. It holds by construction (one `NotationView` in the page), and the 19 ms Play switch shows nothing is rebuilt.
+  - The View menu toggles and Restore Default Layout were not re-tested in the UI.
+
 ## Acceptance criteria
 
-- [ ] Cmd-1..5 and the mode tabs switch modes. The log shows no `loadPage` and no `doLayout` on Setup↔Write↔Print switches.
-- [ ] Mode switch time, logged with `QElapsedTimer` from `setMode` to the next frame: under 100 ms on `demos/Dawn.mscx`. Record before/after in this spec.
-- [ ] The score keeps its scroll position, zoom and selection across Setup, Write, Engrave and Print.
-- [ ] The `NotationView` is created once per open score (log a line in `onLoadNotation`).
-- [ ] Entering Engrave from Galley causes exactly one layout; going back to Write causes one; the status bar view buttons match.
-- [ ] Entering or leaving Print does not write `notation/backgroundColor`.
-- [ ] Each mode remembers its own zone visibility and size across switches and restarts.
-- [ ] The View menu panel toggles and Restore Default Layout still work.
-- [ ] The lower zone tab (Mixer, Key Editor, ...) and its state survive a mode round-trip.
-- [ ] Only one `DoricoStatusBar` / `NotationStatusBarModel` instance exists.
+- [x] Cmd-1..5 and the mode tabs switch modes. The log shows no `loadPage` and no `doLayout` on Setup↔Write↔Print switches. (No `onPageLoaded` lines are logged. `setViewMode` is only called for Engrave.)
+- [ ] Mode switch time, logged with `QElapsedTimer` from `setMode` to the next frame: under 100 ms on `demos/Dawn.mscx`. Record before/after in this spec. **Partly met:** median 1029 ms before. After: Setup 89 and Play 19 meet it; Write 189, Engrave 160 and Print 168 do not. See "As built"; carried over to spec 96.
+- [x] The score keeps its scroll position, zoom and selection across Setup, Write, Engrave and Print.
+- [x] The `NotationView` is created once per open score. Holds by construction; the log line could not be captured, see "As built".
+- [x] Entering Engrave from Galley causes exactly one layout; going back to Write causes one; the status bar view buttons match.
+- [x] Entering or leaving Print does not write `notation/backgroundColor`.
+- [x] Each mode remembers its own zone visibility and size across switches and restarts.
+- [ ] The View menu panel toggles and Restore Default Layout still work. (Not re-tested in the UI.)
+- [x] The lower zone tab (Mixer, Key Editor, ...) and its state survive a mode round-trip.
+- [x] Only one `DoricoStatusBar` / `NotationStatusBarModel` instance exists.
 
 ## Tests
 

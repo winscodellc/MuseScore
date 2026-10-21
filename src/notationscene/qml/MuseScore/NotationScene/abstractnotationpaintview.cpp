@@ -60,6 +60,7 @@ AbstractNotationPaintView::AbstractNotationPaintView(QQuickItem* parent)
 
     connect(this, &QQuickPaintedItem::widthChanged, this, &AbstractNotationPaintView::onViewSizeChanged);
     connect(this, &QQuickPaintedItem::heightChanged, this, &AbstractNotationPaintView::onViewSizeChanged);
+    connect(this, &AbstractNotationPaintView::backgroundOverrideChanged, this, [this]() { update(); }); // Dorico fork (spec 95)
 
     connect(this, &AbstractNotationPaintView::horizontalScrollChanged, [this]() {
         m_previousHorizontalScrollPosition = startHorizontalScrollPosition();
@@ -837,7 +838,9 @@ void AbstractNotationPaintView::paintBackground(const RectF& rect, muse::draw::P
 
     const QPixmap& wallpaper = notationConfiguration()->backgroundWallpaper();
 
-    if (notationConfiguration()->backgroundUseColor() || wallpaper.isNull()) {
+    if (m_backgroundOverride.isValid() && m_backgroundOverride.alpha() > 0) { // Dorico fork (spec 95)
+        painter->fillRect(rect, m_backgroundOverride);
+    } else if (notationConfiguration()->backgroundUseColor() || wallpaper.isNull()) {
         painter->fillRect(rect, notationConfiguration()->backgroundColor());
     } else {
         painter->drawTiledPixmap(rect, wallpaper, rect.topLeft() - PointF(m_matrix.m31(), m_matrix.m32()));

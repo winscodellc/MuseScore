@@ -39,6 +39,8 @@
 #include "engraving/dom/mscore.h"
 #include "project/inotationproject.h"
 
+#include "settings.h"
+
 #include "../../../doricocommands.h"
 #include "../../../internal/doricoshell.h"
 #include "../../../internal/partlayouts.h"
@@ -55,6 +57,9 @@ void DoricoTopBarModel::load()
 {
     modes()->modeChanged().onNotify(this, [this]() {
         emit currentModeChanged();
+    });
+    modes()->modeAboutToChange().onNotify(this, [this]() {
+        emit modeAboutToChange();
     });
 
     globalContext()->currentNotationChanged().onNotify(this, [this]() {
@@ -110,6 +115,26 @@ void DoricoTopBarModel::dispatch(const QString& command)
 void DoricoTopBarModel::openPage(const QString& uri)
 {
     interactive()->open(uri.toStdString());
+}
+
+int DoricoTopBarModel::zoneSize(int mode, int zone) const
+{
+    if (mode < 0 || mode >= MODE_COUNT || zone < 0 || zone >= ZONE_COUNT) {
+        return 0;
+    }
+    const mu::dorico::Mode m = static_cast<mu::dorico::Mode>(mode);
+    const Zone z = static_cast<Zone>(zone);
+    const muse::Val saved = muse::settings()->value(muse::Settings::Key("dorico", zoneSettingsKey(m, z, "size")));
+    return saved.isNull() ? zoneDefaultSize(m, z) : saved.toInt();
+}
+
+void DoricoTopBarModel::setZoneSize(int mode, int zone, int size)
+{
+    if (mode < 0 || mode >= MODE_COUNT || zone < 0 || zone >= ZONE_COUNT || size <= 0) {
+        return;
+    }
+    const std::string key = zoneSettingsKey(static_cast<mu::dorico::Mode>(mode), static_cast<Zone>(zone), "size");
+    muse::settings()->setSharedValue(muse::Settings::Key("dorico", key), muse::Val(size));
 }
 
 void DoricoTopBarModel::selectLayout(int index)

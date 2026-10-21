@@ -22,7 +22,13 @@
 
 #include "doricoactionscontroller.h"
 
+#include <algorithm>
+
+#include <QQuickWindow>
+
 #include "dockwindow/idockwindow.h"
+#include "async/async.h"
+#include "settings.h"
 #include "notation/inotationparts.h"
 #include "notation/inotationstyle.h"
 
@@ -30,8 +36,22 @@
 
 #include "log.h"
 
-// Dorico 6 Print mode music area (measured)
+// Dorico 6 Print mode music area (measured). Spec 95 paints it as a view override; older builds stored it as the
+// background setting, which init() repairs.
 static const QColor PRINT_BACKGROUND("#AAAAAE");
+
+static const muse::Uri DAC_NOTATION_PAGE_URI("musescore://notation");
+static const muse::rcommand::Command DAC_RESTORE_LAYOUT_COMMAND("command://dock/restore-default-layout");
+
+static muse::Settings::Key dacZoneKey(mu::dorico::Mode mode, mu::dorico::Zone zone, const char* field)
+{
+    return muse::Settings::Key("dorico", mu::dorico::zoneSettingsKey(mode, zone, field));
+}
+
+static bool dacContains(const std::vector<QString>& names, const QString& name)
+{
+    return std::find(names.begin(), names.end(), name) != names.end();
+}
 
 using namespace mu::dorico;
 
@@ -40,26 +60,67 @@ void DoricoActionsController::init()
     auto cd = commandDispatcher();
     cd->onRequest(this, DORICO_NOOP_COMMAND, []() { LOGI() << "dorico noop"; return muse::make_ok(); });
 
-    // Mode = which page is loaded. Commands only open the page; the URI listener below updates the mode state,
-    // so tab clicks, keys, the Score tab and project opening all end up in the same place.
+    // All modes are one page (spec 95): a mode command only changes the mode; the zones follow in modeChanged.
     for (int i = 0; i < MODE_COUNT; ++i) {
         const mu::dorico::Mode mode = static_cast<mu::dorico::Mode>(i);
         cd->onRequest(this, DORICO_MODE_COMMANDS[i], [this, mode]() {
-            interactive()->open(modeUri(mode));
+            m_switchTimer.start();
+            modes()->setMode(mode);
+            if (interactive()->currentUri().val != DAC_NOTATION_PAGE_URI) {
+                interactive()->open(DAC_NOTATION_PAGE_URI);
+            }
             return muse::make_ok();
         });
     }
 
-    interactive()->currentUri().ch.onReceive(this, [this](const muse::Uri& uri) {
-        if (auto mode = modeFromUri(uri)) {
-            const mu::dorico::Mode previous = modes()->mode();
-            modes()->setMode(*mode);
-            applyEngraveViewMode(previous, *mode);
-            applyPrintBackground(previous, *mode);
-        }
+    m_shownMode = modes()->mode();
+    modes()->modeChanged().onNotify(this, [this]() {
+        const mu::dorico::Mode from = m_shownMode;
+        const mu::dorico::Mode to = modes()->mode();
+        m_shownMode = to;
+        switchZones(from, to);
+        applyEngraveViewMode(from, to);
+        applyPrintZoom(from, to);
+        logSwitchTime();
     });
 
-    // The Print-mode grey is a stored setting: if the app quit while in Print, put the normal background back.
+    // The page's restored layout may show another mode's zones (or a stale layout after a crash): show the current
+    // mode's. Later, so currentUri().val is the new page and its layout is restored.
+    interactive()->currentUri().ch.onReceive(this, [this](const muse::Uri& uri) {
+        m_zonesApplied = false;
+        if (uri != DAC_NOTATION_PAGE_URI) {
+            return;
+        }
+        muse::async::Async::call(this, [this]() {
+            applyZones(modes()->mode());
+            m_zonesApplied = isShellShown();
+        });
+    });
+
+    // A zone shown or hidden by the user (Cmd-7/8/9, View menu, toolbox buttons ...) is remembered for this mode.
+    if (muse::dock::IDockWindow* window = dockWindowProvider()->window()) {
+        window->docksOpenStatusChanged().onReceive(this, [this](const QStringList&) { saveOpenZones(); });
+    } else {
+        dockWindowProvider()->windowChanged().onNotify(this, [this]() {
+            if (muse::dock::IDockWindow* window = dockWindowProvider()->window()) {
+                window->docksOpenStatusChanged().onReceive(this, [this](const QStringList&) { saveOpenZones(); });
+            }
+        });
+    }
+
+    // Engrave is always page view: a score opened or switched to while in Engrave gets it too. Later, so it runs
+    // after the score view's own onLoadNotation, which sets the score's saved view mode.
+    globalContext()->currentNotationChanged().onNotify(this, [this]() {
+        muse::async::Async::call(this, [this]() {
+            const notation::INotationPtr notation = globalContext()->currentNotation();
+            // ponytail: one extra layout when a galley score is opened in Engrave
+            if (notation && modes()->mode() == mu::dorico::Mode::Engrave && notation->viewMode() != notation::ViewMode::PAGE) {
+                notation->setViewMode(notation::ViewMode::PAGE);
+            }
+        });
+    });
+
+    // The Print-mode grey was a stored setting before spec 95: if the app quit while in Print, put the normal background back.
     if (notationConfiguration()->backgroundColor() == PRINT_BACKGROUND) {
         notationConfiguration()->setBackgroundColor(QColor("#2C4D6F"));
     }
@@ -71,11 +132,15 @@ void DoricoActionsController::init()
             return muse::make_ok();
         });
     }
-    // MuseScore's panel toggles (F3, F8, View menu, ...) select a lower-zone tab instead of toggling a dock that no longer exists.
     cd->preDispatch().onReceive(this, [this](const muse::rcommand::Command& command, bool* allowDispatch) {
+        // MuseScore's panel toggles (F3, F8, View menu, ...) select a lower-zone tab instead of toggling a dock that no longer exists.
         const auto tab = lowerZoneTabForCommand(command.toString());
         if (tab && selectLowerZoneTab(*tab)) {
             *allowDispatch = false;
+        }
+        // Restore Default Layout: every mode starts again from its default zones.
+        if (command == DAC_RESTORE_LAYOUT_COMMAND) {
+            muse::async::Async::call(this, [this]() { resetZoneSettings(); });
         }
     });
 
@@ -92,19 +157,129 @@ void DoricoActionsController::init()
     cd->onRequest(this, DORICO_OPEN_PUBLISH_COMMAND, [this]() { interactive()->open("musescore://publish"); return muse::make_ok(); });
 }
 
-std::vector<QString> DoricoActionsController::openDocks(Zone zone) const
+bool DoricoActionsController::isShellShown() const
+{
+    return dockWindowProvider()->window() && interactive()->currentUri().val == DAC_NOTATION_PAGE_URI;
+}
+
+std::vector<QString> DoricoActionsController::openDocks(mu::dorico::Mode mode, Zone zone) const
 {
     std::vector<QString> result;
     const muse::dock::IDockWindow* window = dockWindowProvider()->window();
     if (!window) {
         return result;
     }
-    for (const QString& name : zoneDocks(modes()->mode(), zone)) {
+    for (const QString& name : zoneDocks(mode, zone)) {
         if (window->isDockOpen(name)) {
             result.push_back(name);
         }
     }
     return result;
+}
+
+void DoricoActionsController::saveOpenZones() const
+{
+    if (!m_zonesApplied || m_switching || !isShellShown()) {
+        return;
+    }
+    for (int i = 0; i < ZONE_COUNT; ++i) {
+        saveZone(modes()->mode(), static_cast<Zone>(i));
+    }
+}
+
+void DoricoActionsController::saveZone(mu::dorico::Mode mode, Zone zone) const
+{
+    const std::vector<QString> all = zoneDocks(mode, zone);
+    if (all.empty()) {
+        return;
+    }
+
+    const std::vector<QString> open = openDocks(mode, zone);
+    QStringList names(open.begin(), open.end());
+    muse::settings()->setSharedValue(dacZoneKey(mode, zone, "docks"), muse::Val(names.join(',').toStdString()));
+}
+
+std::vector<QString> DoricoActionsController::zoneTarget(mu::dorico::Mode mode, Zone zone) const
+{
+    const std::vector<QString> all = zoneDocks(mode, zone);
+    if (all.empty()) {
+        return {};
+    }
+
+    const muse::Val saved = muse::settings()->value(dacZoneKey(mode, zone, "docks"));
+    if (saved.isNull()) {
+        return zoneOpenByDefault(mode, zone) ? std::vector<QString> { all.front() } : std::vector<QString> {};
+    }
+
+    std::vector<QString> result;
+    for (const QString& name : QString::fromStdString(saved.toString()).split(',', Qt::SkipEmptyParts)) {
+        if (dacContains(all, name)) {
+            result.push_back(name);
+        }
+    }
+    return result;
+}
+
+void DoricoActionsController::switchZones(mu::dorico::Mode from, mu::dorico::Mode to)
+{
+    if (!isShellShown()) {
+        return; // the notation page is not shown: the currentUri listener applies the zones when it comes back
+    }
+
+    // Zone sizes are the page's job (DoricoShellPage: saved on modeAboutToChange, put back after the switch).
+    for (int i = 0; i < ZONE_COUNT; ++i) {
+        saveZone(from, static_cast<Zone>(i));
+    }
+    applyZones(to);
+}
+
+void DoricoActionsController::applyZones(mu::dorico::Mode mode)
+{
+    muse::dock::IDockWindow* window = dockWindowProvider()->window();
+    if (!window || !isShellShown()) {
+        return;
+    }
+
+    std::vector<QString> target = toolboxDocks(mode);
+    for (int i = 0; i < ZONE_COUNT; ++i) {
+        const std::vector<QString> docks = zoneTarget(mode, static_cast<Zone>(i));
+        target.insert(target.end(), docks.begin(), docks.end());
+    }
+
+    // Close first, then open. A dock already in the right state is not touched, so a zone open in both modes keeps
+    // its dock (only its content changes page).
+    const bool wasSwitching = m_switching;
+    m_switching = true;
+    const std::vector<QString> all = managedDocks();
+    for (const QString& name : all) {
+        if (!dacContains(target, name) && window->isDockOpen(name)) {
+            window->setDockOpen(name, false);
+        }
+    }
+    for (const QString& name : target) {
+        if (!window->isDockOpen(name)) {
+            window->setDockOpen(name, true);
+        }
+    }
+    m_switching = wasSwitching;
+}
+
+void DoricoActionsController::resetZoneSettings()
+{
+    for (int m = 0; m < MODE_COUNT; ++m) {
+        const mu::dorico::Mode mode = static_cast<mu::dorico::Mode>(m);
+        for (int z = 0; z < ZONE_COUNT; ++z) {
+            const Zone zone = static_cast<Zone>(z);
+            const std::vector<QString> all = zoneDocks(mode, zone);
+            const QString docks = zoneOpenByDefault(mode, zone) && !all.empty() ? all.front() : QString();
+            muse::settings()->setSharedValue(dacZoneKey(mode, zone, "docks"), muse::Val(docks.toStdString()));
+            muse::settings()->setSharedValue(dacZoneKey(mode, zone, "size"), muse::Val(zoneDefaultSize(mode, zone)));
+        }
+    }
+    m_remembered.clear();
+    m_hiddenByAll.clear();
+
+    applyZones(modes()->mode());
 }
 
 void DoricoActionsController::toggleZone(Zone zone)
@@ -118,7 +293,7 @@ void DoricoActionsController::toggleZone(Zone zone)
     const ZoneKey key { modes()->mode(), zone };
     m_hiddenByAll.erase(key);
 
-    const std::vector<QString> open = openDocks(zone);
+    const std::vector<QString> open = openDocks(modes()->mode(), zone);
     if (!open.empty()) {
         m_remembered[key] = open;
         for (const QString& name : open) {
@@ -136,13 +311,14 @@ void DoricoActionsController::toggleZone(Zone zone)
 
 bool DoricoActionsController::selectLowerZoneTab(const QString& tab)
 {
+    // Setup's lower zone is the Flows panel and Print has none: MuseScore's toggle goes through unchanged there.
     muse::dock::IDockWindow* window = dockWindowProvider()->window();
-    const std::vector<QString> docks = zoneDocks(modes()->mode(), Zone::Lower);
-    if (!window || docks.size() != 1 || docks.front() != pageDockName(modes()->mode(), LOWER_ZONE_PANEL)) {
+    const mu::dorico::Mode mode = modes()->mode();
+    if (!window || mode == mu::dorico::Mode::Setup || zoneDocks(mode, Zone::Lower).empty()) {
         return false;
     }
 
-    const QString dock = docks.front();
+    const QString dock = LOWER_ZONE_PANEL;
     if (window->isDockOpen(dock) && modes()->lowerZoneTab() == tab) {
         window->setDockOpen(dock, false);
     } else {
@@ -165,7 +341,7 @@ void DoricoActionsController::toggleAllZones()
     for (int i = 0; i < ZONE_COUNT; ++i) {
         const Zone zone = static_cast<Zone>(i);
         const ZoneKey key { mode, zone };
-        const std::vector<QString> open = openDocks(zone);
+        const std::vector<QString> open = openDocks(mode, zone);
         if (open.empty()) {
             continue;
         }
@@ -199,7 +375,7 @@ void DoricoActionsController::toggleToolbar()
         return;
     }
 
-    const std::vector<QString> names = toolbarDocks(modes()->mode());
+    const std::vector<QString> names = toolbarDocks();
     bool anyOpen = false;
     for (const QString& name : names) {
         anyOpen = anyOpen || window->isDockOpen(name);
@@ -209,34 +385,48 @@ void DoricoActionsController::toggleToolbar()
     }
 }
 
-void DoricoActionsController::applyPrintBackground(mu::dorico::Mode from, mu::dorico::Mode to)
+void DoricoActionsController::applyPrintZoom(mu::dorico::Mode from, mu::dorico::Mode to)
 {
-    // Dorico shows Print mode's preview on grey (measured #AAAAAE). MuseScore has one background setting, so it is
-    // swapped while Print is open and restored on the way out.
-    if (from == to) {
+    // Print opens on a whole page (DoricoShellPage); the score view is shared, so the zoom and scroll the score had
+    // are put back on the way out.
+    const notation::INotationPtr notation = globalContext()->currentNotation();
+    if (!notation) {
         return;
     }
     if (to == mu::dorico::Mode::Print) {
-        m_backgroundBeforePrint = notationConfiguration()->backgroundColor();
-        notationConfiguration()->setBackgroundColor(PRINT_BACKGROUND);
-    } else if (from == mu::dorico::Mode::Print && m_backgroundBeforePrint) {
-        notationConfiguration()->setBackgroundColor(*m_backgroundBeforePrint);
-        m_backgroundBeforePrint.reset();
+        m_viewBeforePrint = { notation->viewState()->matrix(), notation->viewState()->zoomType().val };
+    } else if (from == mu::dorico::Mode::Print && m_viewBeforePrint) {
+        notation->viewState()->setZoomType(m_viewBeforePrint->second);
+        notation->viewState()->setMatrix(m_viewBeforePrint->first, nullptr);
+        m_viewBeforePrint.reset();
     }
 }
 
 void DoricoActionsController::applyEngraveViewMode(mu::dorico::Mode from, mu::dorico::Mode to)
 {
+    // Engrave is always page view (spec 56). Only the painting changes: the score's own view mode (viewState, saved
+    // in the file) stays, and leaving Engrave goes back to it. setViewMode lays out only when the mode changes.
     const notation::INotationPtr notation = globalContext()->currentNotation();
-    if (!notation || from == to) {
+    if (!notation) {
         return;
     }
 
     if (to == mu::dorico::Mode::Engrave) {
-        m_viewModeBeforeEngrave = notation->viewMode();
         notation->setViewMode(notation::ViewMode::PAGE);
-    } else if (from == mu::dorico::Mode::Engrave && m_viewModeBeforeEngrave) {
-        notation->setViewMode(*m_viewModeBeforeEngrave);
-        m_viewModeBeforeEngrave.reset();
+    } else if (from == mu::dorico::Mode::Engrave) {
+        notation->setViewMode(notation->viewState()->viewMode());
     }
+}
+
+void DoricoActionsController::logSwitchTime()
+{
+    const muse::dock::IDockWindow* window = dockWindowProvider()->window();
+    QQuickWindow* quickWindow = window ? window->asItem().window() : nullptr;
+    if (!quickWindow || !m_switchTimer.isValid()) {
+        return;
+    }
+    QObject::connect(quickWindow, &QQuickWindow::frameSwapped, quickWindow, [this]() {
+        LOGI() << "Dorico mode switch: " << m_switchTimer.elapsed() << " ms";
+        m_switchTimer.invalidate();
+    }, Qt::SingleShotConnection);
 }

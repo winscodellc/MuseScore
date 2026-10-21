@@ -37,14 +37,6 @@ using namespace mu::appshell;
 
 static const muse::Uri PROJECT_PAGE_URI("musescore://notation");
 
-// Dorico fork: the Dorico mode pages (musescore://dorico/*) also show the open project.
-static bool isProjectPageOpened(const muse::IInteractive& interactive)
-{
-    const std::vector<muse::Uri> stack = interactive.stack();
-    return interactive.isOpened(PROJECT_PAGE_URI).val
-           || (!stack.empty() && stack.front().toString().starts_with("musescore://dorico/"));
-}
-
 static const std::vector<Command> PROJECT_PAGE_COMMANDS = {
     DOCK_TOGGLE_PLAYBACK_COMMAND,
     DOCK_TOGGLE_NOTEINPUT_COMMAND,
@@ -176,5 +168,5 @@ bool AppshellCommandsState::isProjectPage() const
         return false;
     }
 
-    return isProjectPageOpened(*interactive());
+    return interactive()->isOpened(PROJECT_PAGE_URI).val;
 }

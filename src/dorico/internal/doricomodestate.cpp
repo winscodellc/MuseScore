@@ -53,6 +53,7 @@ void DoricoModeState::setMode(Mode mode)
     if (m_mode == mode) {
         return;
     }
+    m_modeAboutToChange.notify();
     m_mode = mode;
     m_modeChanged.notify();
 }

@@ -35,7 +35,7 @@
 using namespace mu::dorico;
 using namespace mu::palette;
 
-static const QString NOTATIONS_PANEL_DOCK("notationsPanel");
+static const QString NOTATIONS_PANEL_DOCK("doricoRightZone"); // the right zone dock (spec 95), on Notations in Write
 
 DoricoPanelModel::DoricoPanelModel(QObject* parent)
     : QObject(parent), muse::Contextable(muse::iocCtxForQmlObject(this))

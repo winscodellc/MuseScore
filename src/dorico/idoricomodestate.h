@@ -54,6 +54,8 @@ public:
     virtual Mode mode() const = 0;
     virtual void setMode(Mode mode) = 0;
     virtual muse::async::Notification modeChanged() const = 0;
+    //! Sent by setMode before the mode changes, so the page can save the leaving mode's zone sizes (spec 95).
+    virtual muse::async::Notification modeAboutToChange() const = 0;
 
     //! Selected tab of the Write-mode lower zone (spec 54): properties, keyboard, fretboard, drumPads, mixer, keyEditor, timeline.
     virtual QString lowerZoneTab() const = 0;

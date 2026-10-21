@@ -39,14 +39,14 @@ Namespace `mu::dorico`, commands `command://dorico/<name>`. It is created in spe
 - (no edit) the popover overlay lives in our own `DoricoPage.qml`, parented to `notationView.paintView` (spec 20); the Jump bar (spec 46) can be hosted the same way. The planned `NotationView.qml` Loader was not needed. Return on a selected text item is redirected by a `preDispatch` veto of `screen-edit-text`, not by editing `notationviewinputcontroller.cpp`;
 - `shortcuts.cfg` + `app.qrc` entries for the `dorico` shortcut preset (spec 10).
 - `appshell/qml/MuseScore/AppShell/appmenumodel.{h,cpp}`: one optional `IDoricoMenuArranger` hook in `load()` (spec 59);
-- the "is the score page open" checks, so commands also work on the `musescore://dorico/*` mode pages (fix after spec 50): `notationscene/internal/notationcommandsstate.cpp`, `playback/internal/playbackcommandsstate.cpp`, `appshell/internal/appshellcommandsstate.cpp` (`isProjectPageOpened`) and `context/internal/uicontextresolver.cpp` (legacy shortcut context). Each is marked `// Dorico fork:`.
+- Single-page shell (spec 95): all modes are one page, `musescore://notation` (`DoricoShellPage.qml`), so the "is the score page open" checks need no change any more (the `musescore://dorico/*` checks added after spec 50 were reverted). `notationscene/qml/MuseScore/NotationScene/abstractnotationpaintview.{h,cpp}`: a `backgroundOverride` property that wins over the configured background (Print mode's grey, without writing the setting).
 - Setup-mode layout deletion (spec 55): `notation/internal/masternotation.cpp` (`updatePotentialExcerpts` skips the `deletedPartLayouts` meta tag), `notation/iexcerptnotation.h` + `internal/excerptnotation.{h,cpp}` (`initialPartId()`), and `engraving/dom/excerpt.cpp` (plain-text part names).
 - Note-input articulation latch (spec 11): `engraving/dom/articulation.cpp` `updateArticulations` toggles any articulation, not only accent / marcato / tenuto / staccato.
 - Play mode (spec 57): `playback/qml/MuseScore/Playback/mixerpanelmodel.cpp` applies control / mute / solo changes from other models, so two mixers over the same tracks stay in sync. Spec 63: its `addItem` also calls `updateOutputResourceItemCount()`, so an FX channel shown with FX+ gets its insert slots (an upstream bug).
 - Note-input caret (spec 12): `notationscene/qml/MuseScore/NotationScene/abstractnotationpaintview.{h,cpp}` lets an optional `IDoricoCaret` paint the caret and grid ruler.
 - Appearance (spec 60): `app/configs/dark.cfg` and `light.cfg` hold Dorico's measured colors (values only).
 - Notes panel articulations (spec 52): `notationscene/internal/notationcommandsstate.cpp` also refreshes the articulation toggles on selection change; `engraving/dom/chord.cpp` `updateArticulations` removes any articulation (not only the basic four), `articulation.cpp` knows stress / unstress placements; test in `engraving/tests/note_tests.cpp`.
-- Print zoom (spec 58): `notationscene/qml/MuseScore/NotationScene/abstractnotationpaintview.{h,cpp}` `load()`: the main view being shown takes the view commands (zoom, Whole Page). The Dorico pages stay alive and Print's preview is read-only, so MuseScore's "register editable views once, when created" left zoom on the wrong view.
+- Print zoom (spec 58): `notationscene/qml/MuseScore/NotationScene/abstractnotationpaintview.{h,cpp}` `load()`: the main view being shown takes the view commands (zoom, Whole Page). Print's preview is read-only, so MuseScore's "register editable views once, when created" left zoom on the wrong view.
 - Duration keys (spec 13): `notationscene/qml/MuseScore/NotationScene/notationviewinputcontroller.cpp` `shortcutOverrideEvent` lets (Cmd-)Shift-Opt-Left/Right reach the shortcuts when a line or text is selected.
 - Opt-click / Opt-drag copy (spec 42): `notation/internal/notationinteraction.{h,cpp}` `dropRange` pastes a copy through an optional `IDoricoPaste` (Chord / Insert rules) when one is registered; `notationscene/qml/MuseScore/NotationScene/notationviewinputcontroller.cpp` `mousePress_considerStartPasteRangeOnRelease` turns a selected note / chord into a range first, so Opt-click copies it.
 - Dorico pages hide MuseScore's score/part tabs (spec 50): `notationscene/qml/MuseScore/NotationScene/NotationView.qml` `showNotationTabs`.
@@ -101,7 +101,7 @@ Everything is under `src/dorico/`. The framework is spec 20, and 21-32 are worke
 
 ### 7. UI shell (specs 50-59)
 - One `DockPage` per mode in `src/dorico/qml/MuseScore/Dorico/`. `WritePage` keeps `uri: "musescore://notation"` (so the Score tab and project opening need no change); the other four use `musescore://dorico/<mode>`. Switching mode = loading a page; the dock framework saves each page's layout separately.
-- The only upstream edit for the shell is in `WindowContent.qml` (import `MuseScore.Dorico`, list the five pages, hide the Home/Score/Publish bar on Dorico pages). Spec 59 adds one hook in `appmenumodel.cpp`.
+- The only upstream edit for the shell is in `WindowContent.qml` (import `MuseScore.Dorico`, list `DoricoShellPage` instead of `NotationPage` (spec 95; the five mode pages before), hide the Home/Score/Publish bar on it). Spec 59 adds one hook in `appmenumodel.cpp`.
 - Shared parts (`DoricoTopBar`, `DoricoStatusBar`, toolbox/panel button grid) are reused by all pages; existing MuseScore panels (palettes, instruments, properties, mixer, piano keyboard, timeline, percussion) are embedded, not copied.
 - Dorico panels with no MuseScore backing are **stubs** ("Not available yet", disabled buttons with a tooltip) and are listed under each spec's Deferred section; nothing is silently dropped. Icons are MuseScore's, Bravura glyphs or Lucide (spec 60), never Dorico's.
 
@@ -181,7 +181,7 @@ Status: todo | in-progress | pending review | done  -  Depends on: NN, NN  -  Do
 | 63 | [Mixer parity](63-mixer-parity.md) | pending review | 57 |
 | 65 | [Musical transformations](done/65-musical-transformations.md) | done | 35, 59 |
 | 94 | [Dorico Pro parity audit](done/94-parity-audit.md) | done | 50-63 |
-| 95 | [Single-page shell (instant mode switching)](95-single-page-shell.md) | todo | 94 |
+| 95 | [Single-page shell (instant mode switching)](95-single-page-shell.md) | built, pending review | 94 |
 | 96 | [Runtime performance](96-runtime-performance.md) | todo | 95 |
 | 97 | [Mode gating](97-mode-gating.md) | todo | 95 |
 | 98 | [Context menus](98-context-menus.md) | todo | 97 |

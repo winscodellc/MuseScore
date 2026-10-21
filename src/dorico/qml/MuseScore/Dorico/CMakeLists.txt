@@ -55,11 +55,21 @@ qt_add_qml_module(dorico_qml
         trackoverviewmodel.h
     QML_FILES
         DoricoButton.qml
-        DoricoPage.qml
+        DoricoShellPage.qml
+        EngraveFormattingPanel.qml
+        EngravePagesPanel.qml
+        EngraveToolbox.qml
+        LazyPane.qml
+        PlayInspectorPanel.qml
+        PrintLayoutsPanel.qml
+        PrintOptionsPanel.qml
+        SetupFlowsPanel.qml
+        SetupPlayersPanel.qml
+        ZoneHeader.qml
+        ZoneHolder.qml
         DoricoPlaceholder.qml
         DoricoStatusBar.qml
         DoricoTopBar.qml
-        EngravePage.qml
         LayoutsPanel.qml
         PlayersList.qml
         LowerZonePanel.qml
@@ -68,14 +78,10 @@ qt_add_qml_module(dorico_qml
         NotesPanel.qml
         NotesToolbox.qml
         PaletteSections.qml
-        PlayPage.qml
         Popover.qml
         PrintOptions.qml
-        PrintPage.qml
-        SetupPage.qml
         ToolSection.qml
         TrackOverview.qml
-        WritePage.qml
         DoricoChannelStrip.qml
         DoricoChannelStripSections.qml
         DoricoMixer.qml

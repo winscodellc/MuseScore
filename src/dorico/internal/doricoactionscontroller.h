@@ -27,6 +27,8 @@
 #include <set>
 #include <vector>
 
+#include <QElapsedTimer>
+
 #include "global/async/asyncable.h"
 #include "modularity/ioc.h"
 #include "rcommand/commandable.h"
@@ -36,11 +38,15 @@
 #include "context/iglobalcontext.h"
 #include "notation/inotation.h"
 #include "notation/inotationconfiguration.h"
+#include "notation/inotationviewstate.h"
 
 #include "../idoricomodestate.h"
 #include "doricoshell.h"
 
 namespace mu::dorico {
+//! The Dorico UI shell's commands (specs 50, 95): mode switching, zone toggles (Cmd-7/8/9, Cmd-0), toolbar toggle.
+//! All modes live in one page; a mode switch shows the new mode's zones and toolboxes and puts back the sizes and
+//! visibility the user left that mode with (kept in the settings, so they survive a restart).
 class DoricoActionsController : public muse::async::Asyncable, public muse::Contextable, public muse::rcommand::Commandable
 {
     muse::ContextInject<muse::rcommand::ICommandDispatcher> commandDispatcher = { this };
@@ -59,20 +65,37 @@ public:
 private:
     using ZoneKey = std::pair<mu::dorico::Mode, Zone>;
 
-    std::vector<QString> openDocks(Zone zone) const;
+    std::vector<QString> openDocks(mu::dorico::Mode mode, Zone zone) const;
     void toggleZone(Zone zone);
     bool selectLowerZoneTab(const QString& tab);
     void toggleAllZones();
     void toggleToolbar();
-    void applyEngraveViewMode(mu::dorico::Mode from, mu::dorico::Mode to);
-    void applyPrintBackground(mu::dorico::Mode from, mu::dorico::Mode to);
 
+    bool isShellShown() const;
+    void switchZones(mu::dorico::Mode from, mu::dorico::Mode to);
+    void applyZones(mu::dorico::Mode mode);
+    void saveZone(mu::dorico::Mode mode, Zone zone) const;
+    void saveOpenZones() const;
+    std::vector<QString> zoneTarget(mu::dorico::Mode mode, Zone zone) const;
+    void resetZoneSettings();
+
+    void applyEngraveViewMode(mu::dorico::Mode from, mu::dorico::Mode to);
+    void applyPrintZoom(mu::dorico::Mode from, mu::dorico::Mode to);
+    void logSwitchTime();
+
+    // The mode whose zones are on screen (the previous mode while modeChanged is handled).
+    mu::dorico::Mode m_shownMode = mu::dorico::Mode::Write;
+    // The page shows the current mode's zones, so dock open/close by the user is that mode's state.
+    bool m_zonesApplied = false;
+    // Docks are being opened/closed for a mode switch: their changes are not the user's.
+    bool m_switching = false;
     // Docks that were open when their zone was last hidden, so showing the zone brings back the same panels.
     std::map<ZoneKey, std::vector<QString>> m_remembered;
     // Zones hidden by "Hide Zones", so "Restore Zones" does not reopen zones the user had closed on purpose.
     std::set<ZoneKey> m_hiddenByAll;
-    // Engrave is always page view (spec 56); the view mode the score had before, restored when leaving Engrave.
-    std::optional<notation::ViewMode> m_viewModeBeforeEngrave;
-    std::optional<QColor> m_backgroundBeforePrint;
+    // Print shows a whole page (spec 58); the score's zoom and scroll before Print, put back when leaving it.
+    std::optional<std::pair<muse::draw::Transform, notation::ZoomType> > m_viewBeforePrint;
+    // Mode switch time (spec 95): from the mode command to the next frame on screen.
+    QElapsedTimer m_switchTimer;
 };
 }

@@ -37,7 +37,9 @@ import MuseScore.Playback
 //! Native dock tabs were rejected: the dock library cannot report or set the current tab, so a closed zone
 //! could not come back on the tab the user left. The tab is kept in IDoricoModeState (LowerZoneModel), which
 //! also lets DoricoActionsController redirect MuseScore's own panel toggles (F3, F8, View menu) to a tab.
-//! `tabs` lists the tab ids this mode offers, so Engrave/Play can reuse the panel with fewer tabs.
+//! `tabs` lists the tab ids the current mode offers (spec 95: one lower zone for all modes). The loaders are made
+//! for `allTabs`, so a mode switch only hides tab buttons and keeps the mixer etc. alive. Setup's only tab is "flows",
+//! shown without the tab row.
 DockPanel {
     id: root
 
@@ -45,6 +47,7 @@ DockPanel {
     // Fixed: DockBase hands the title to the dock title bar only once, at creation; the selector row names the tabs.
     title: qsTrc("dorico", "Lower zone")
 
+    readonly property var allTabs: ["properties", "keyboard", "fretboard", "drumPads", "mixer", "keyEditor", "timeline", "flows"]
     property var tabs: ["properties", "keyboard", "fretboard", "drumPads", "mixer", "keyEditor", "timeline"]
     property var notationView: null
     // As Dorico (all modes): icon tabs, with the current tab's toolbar (`headerComponent`) beside them, and Dorico's
@@ -53,14 +56,13 @@ DockPanel {
     property bool doricoMixer: true
 
     // NOTE: DockPanel's default property is ONE lazily loaded Component (contentComponent) with its own id scope:
-    // the body below may contain exactly one object (the content Item), and anything the root-level
-    // bindings/functions use must live on the root, not inside that Item.
+    // the body below may contain exactly one object (the ZoneHolder), and the content lives on the root (zoneBody).
     property LowerZoneModel zoneModel: LowerZoneModel {
         Component.onCompleted: load()
     }
     property var loadersRepeater: null
 
-    readonly property string currentTab: root.tabs.indexOf(root.zoneModel.currentTab) !== -1 ? root.zoneModel.currentTab : root.tabs[0]
+    readonly property string currentTab: root.tabs.indexOf(root.zoneModel.currentTab) !== -1 ? root.zoneModel.currentTab : (root.tabs[0] ?? "")
 
     function tabTitle(id) {
         switch (id) {
@@ -90,7 +92,7 @@ DockPanel {
 
     // Applies the current tab's title-bar extras (mixer/percussion toolbars, keyboard context menu) and size to the dock.
     function syncChrome() {
-        const loader = root.loadersRepeater?.itemAt(root.tabs.indexOf(root.currentTab))
+        const loader = root.loadersRepeater?.itemAt(root.allTabs.indexOf(root.currentTab))
         if (loader) {
             loader.sync()
         }
@@ -114,14 +116,25 @@ DockPanel {
     onPanelShown: root.syncChrome()
     onCurrentTabChanged: root.syncChrome()
 
-    Item {
+    // The dock only borrows the body (ZoneHolder, spec 95): closing the lower zone (Cmd-8, or a mode without one)
+    // keeps the tabs that were built, e.g. the mixer.
+    ZoneHolder {
+        item: root.zoneBody
+    }
+
+    property Item parkingItem: Item {
+        visible: false
+    }
+
+    property Item zoneBody: Item {
         id: content
+
+        parent: root.parkingItem
 
         Component.onCompleted: {
             root.loadersRepeater = tabsRepeater
             root.syncChrome()
         }
-        Component.onDestruction: root.loadersRepeater = null
 
         NavigationPanel {
             name: "LowerZoneTabs"
@@ -141,11 +154,12 @@ DockPanel {
             anchors.right: parent.right
             anchors.margins: 4
 
-            height: 32
+            height: visible ? 32 : 0
+            visible: root.tabs.length > 1
             spacing: 4
 
             Repeater {
-                model: root.tabs
+                model: root.allTabs
 
                 DoricoButton {
                     id: tabButton
@@ -154,6 +168,7 @@ DockPanel {
                     required property int index
 
                     Layout.preferredHeight: 28
+                    visible: root.tabs.indexOf(modelData) !== -1
 
                     doricoIcon: root.iconTabs ? root.tabIcon(modelData) : IconCode.NONE
                     iconBoxSize: 18
@@ -176,7 +191,7 @@ DockPanel {
                 Layout.preferredHeight: 28
 
                 sourceComponent: {
-                    const loader = tabsRepeater.count > 0 ? tabsRepeater.itemAt(root.tabs.indexOf(root.currentTab)) : null
+                    const loader = tabsRepeater.count > 0 ? tabsRepeater.itemAt(root.allTabs.indexOf(root.currentTab)) : null
                     return loader && loader.item ? (loader.item.headerComponent ?? null) : null
                 }
             }
@@ -185,12 +200,13 @@ DockPanel {
         SeparatorLine {
             id: selectorLine
             anchors.top: selector.bottom
+            visible: selector.visible
         }
 
         Item {
             id: body
 
-            anchors.top: selectorLine.bottom
+            anchors.top: selector.visible ? selectorLine.bottom : parent.top
             anchors.bottom: parent.bottom
             anchors.left: parent.left
             anchors.right: parent.right
@@ -198,7 +214,7 @@ DockPanel {
             Repeater {
                 id: tabsRepeater
 
-                model: root.tabs
+                model: root.allTabs
 
                 // Loaded on first visit and kept, so the mixer / keyboard keep their state when switching tabs.
                 Loader {
@@ -256,6 +272,7 @@ DockPanel {
             case "drumPads": return drumPadsTab
             case "mixer": return root.doricoMixer ? doricoMixerTab : mixerTab
             case "timeline": return timelineTab
+            case "flows": return flowsTab
             }
             return stubTab
         }
@@ -362,6 +379,15 @@ DockPanel {
             DoricoMixer {
                 navigationSection: root.navigationSection
                 contentNavigationPanelOrderStart: root.contentNavigationPanelOrderStart + 1
+            }
+        }
+
+        Component {
+            id: flowsTab
+
+            SetupFlowsPanel {
+                navigationSection: root.navigationSection
+                navigationOrderStart: root.contentNavigationPanelOrderStart + 1
             }
         }
 

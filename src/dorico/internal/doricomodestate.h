@@ -37,6 +37,7 @@ public:
     Mode mode() const override { return m_mode; }
     void setMode(Mode mode) override;
     muse::async::Notification modeChanged() const override { return m_modeChanged; }
+    muse::async::Notification modeAboutToChange() const override { return m_modeAboutToChange; }
 
     QString lowerZoneTab() const override { return m_lowerZoneTab; }
     void setLowerZoneTab(const QString& tab) override;
@@ -48,6 +49,7 @@ private:
     muse::async::Notification m_changed;
     Mode m_mode = Mode::Write;
     muse::async::Notification m_modeChanged;
+    muse::async::Notification m_modeAboutToChange;
     QString m_lowerZoneTab = QStringLiteral("properties");
     muse::async::Notification m_lowerZoneTabChanged;
 };

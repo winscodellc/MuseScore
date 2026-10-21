@@ -23,6 +23,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <optional>
 #include <string>
 #include <utility>
@@ -30,13 +31,12 @@
 
 #include <QString>
 
-#include "types/uri.h"
 #include "translation.h"
 #include "project/inotationwriter.h"
 
 #include "../idoricomodestate.h"
 
-//! Pure helpers for the UI shell (spec 50): which page URI belongs to a mode, and which dock names make up a zone.
+//! Pure helpers for the UI shell (specs 50, 95): which dock names make up a zone in each mode, and their defaults.
 //! No UI and no services, so they are unit-tested directly.
 namespace mu::dorico {
 enum class Zone {
@@ -48,48 +48,11 @@ enum class Zone {
 inline constexpr int MODE_COUNT = 5;
 inline constexpr int ZONE_COUNT = 3;
 
-// Write keeps MuseScore's own page URI so the Score tab and project opening need no change.
-inline muse::Uri modeUri(Mode mode)
-{
-    switch (mode) {
-    case Mode::Setup: return muse::Uri("musescore://dorico/setup");
-    case Mode::Write: return muse::Uri("musescore://notation");
-    case Mode::Engrave: return muse::Uri("musescore://dorico/engrave");
-    case Mode::Play: return muse::Uri("musescore://dorico/play");
-    case Mode::Print: return muse::Uri("musescore://dorico/print");
-    }
-    return {};
-}
-
-inline std::optional<Mode> modeFromUri(const muse::Uri& uri)
-{
-    for (int i = 0; i < MODE_COUNT; ++i) {
-        const Mode mode = static_cast<Mode>(i);
-        if (modeUri(mode) == uri) {
-            return mode;
-        }
-    }
-    return std::nullopt;
-}
-
+// The zone docks of the Dorico page (spec 95): one dock per zone, whose content changes with the mode.
+inline constexpr const char* LEFT_ZONE_PANEL = "doricoLeftZone";
+inline constexpr const char* RIGHT_ZONE_PANEL = "doricoRightZone";
 // The single lower-zone dock (spec 54); its tabs are chosen by IDoricoModeState::lowerZoneTab().
 inline constexpr const char* LOWER_ZONE_PANEL = "lowerZonePanel";
-
-// Docks every mode page has (top bars, status bar, lower zone) need a distinct name per page: KDDockWidgets looks docks
-// up by name when it restores a page layout, so a shared name lets one page grab another page's dock (broken layout,
-// crash on mode switch). Write keeps MuseScore's names (the View menu toggles them); the other pages prefix their
-// objectName, like PublishPage does. Must match DoricoPage.qml dockName().
-inline QString pageDockName(Mode mode, const QString& name)
-{
-    switch (mode) {
-    case Mode::Write: return name;
-    case Mode::Setup: return "DoricoSetup_" + name;
-    case Mode::Engrave: return "DoricoEngrave_" + name;
-    case Mode::Play: return "DoricoPlay_" + name;
-    case Mode::Print: return "DoricoPrint_" + name;
-    }
-    return name;
-}
 
 // MuseScore's own panel toggles that now select a lower-zone tab instead (spec 54).
 inline std::optional<QString> lowerZoneTabForCommand(const std::string& uri)
@@ -110,49 +73,89 @@ inline std::optional<QString> lowerZoneTabForCommand(const std::string& uri)
 }
 
 // Dock names are the ones in appshell/appshelltypes.h (not included: that header is upstream QML-module-internal)
-// and the objectNames of the Dorico pages' DockPanels.
+// and the objectNames of DoricoShellPage's docks. The first dock of a zone is the one a closed zone opens with (when
+// nothing was open before). An empty list = the mode has no such zone.
 inline std::vector<QString> zoneDocks(Mode mode, Zone zone)
 {
-    switch (mode) {
-    case Mode::Setup:
-        switch (zone) {
-        case Zone::Left: return { "playersPanel" };
-        case Zone::Right: return { "layoutsPanel" };
-        case Zone::Lower: return { "flowsPanel" };
+    switch (zone) {
+    case Zone::Left:
+        return { LEFT_ZONE_PANEL };
+    case Zone::Right:
+        switch (mode) {
+        case Mode::Write: return { RIGHT_ZONE_PANEL, "palettesPanel", "selectionFiltersPanel", "undoHistoryPanel" };
+        case Mode::Play: return {};
+        default: return { RIGHT_ZONE_PANEL };
         }
-        break;
-    case Mode::Write:
-        // The first dock of a zone is the one a closed zone opens with (when nothing was open before).
-        switch (zone) {
-        case Zone::Left: return { "notesPanel" };
-        case Zone::Right: return { "notationsPanel", "palettesPanel", "selectionFiltersPanel", "undoHistoryPanel" };
-        case Zone::Lower: return { LOWER_ZONE_PANEL };
-        }
-        break;
-    case Mode::Print:
-        switch (zone) {
-        case Zone::Left: return { "printLayoutsPanel" };
-        case Zone::Right: return { "printOptionsPanel" };
-        case Zone::Lower: return {};
-        }
-        break;
-    case Mode::Engrave:
-        switch (zone) {
-        case Zone::Left: return { "engraveLeftPanel" };
-        case Zone::Right: return { "pagesPanel" };
-        case Zone::Lower: return { pageDockName(mode, LOWER_ZONE_PANEL) };
-        }
-        break;
-    case Mode::Play:
-        // No right zone in Play mode.
-        switch (zone) {
-        case Zone::Left: return { "playLeftPanel" };
-        case Zone::Lower: return { pageDockName(mode, LOWER_ZONE_PANEL) };
-        case Zone::Right: return {};
-        }
-        break;
+    case Zone::Lower:
+        return mode == Mode::Print ? std::vector<QString> {} : std::vector<QString> { LOWER_ZONE_PANEL };
     }
     return {};
+}
+
+// The vertical toolboxes at the zone edges: Notes and Notations in Write, Engrave in Engrave.
+inline std::vector<QString> toolboxDocks(Mode mode)
+{
+    switch (mode) {
+    case Mode::Write: return { "doricoLeftToolbox", "doricoRightToolbox" };
+    case Mode::Engrave: return { "doricoLeftToolbox" };
+    default: return {};
+    }
+}
+
+// Every dock whose open state follows the mode: the toolboxes and the zone docks of all modes.
+inline std::vector<QString> managedDocks()
+{
+    std::vector<QString> result;
+    auto add = [&result](const std::vector<QString>& names) {
+        for (const QString& name : names) {
+            if (std::find(result.begin(), result.end(), name) == result.end()) {
+                result.push_back(name);
+            }
+        }
+    };
+    for (int m = 0; m < MODE_COUNT; ++m) {
+        add(toolboxDocks(static_cast<Mode>(m)));
+        for (int z = 0; z < ZONE_COUNT; ++z) {
+            add(zoneDocks(static_cast<Mode>(m), static_cast<Zone>(z)));
+        }
+    }
+    return result;
+}
+
+// Settings key of a mode's zone state: dorico/zones/<mode>/<zone>/<field>, field "docks" (comma-separated open
+// docks, empty = hidden) or "size" (width, or height for the lower zone).
+inline std::string zoneSettingsKey(Mode mode, Zone zone, const char* field)
+{
+    static const char* modeNames[] = { "setup", "write", "engrave", "play", "print" };
+    static const char* zoneNames[] = { "left", "lower", "right" };
+    return std::string("dorico/zones/") + modeNames[static_cast<int>(mode)] + "/" + zoneNames[static_cast<int>(zone)] + "/" + field;
+}
+
+// Whether a zone is shown the first time its mode is shown (as Dorico 6 opens a new project).
+inline bool zoneOpenByDefault(Mode mode, Zone zone)
+{
+    switch (zone) {
+    case Zone::Left: return true;
+    case Zone::Right: return mode == Mode::Setup || mode == Mode::Print;
+    case Zone::Lower: return mode == Mode::Setup;
+    }
+    return false;
+}
+
+// The zone dock's width (left / right) or height (lower) the first time its mode is shown.
+inline int zoneDefaultSize(Mode mode, Zone zone)
+{
+    switch (zone) {
+    case Zone::Left:
+        switch (mode) {
+        case Mode::Write: return 132;
+        case Mode::Play: return 240;
+        default: return 300;
+        }
+    case Zone::Right: return 300;
+    case Zone::Lower: return mode == Mode::Setup ? 130 : 300;
+    }
+    return 0;
 }
 
 // Subtitle of a layout card in Setup/Print (specs 55, 58): page size, orientation and staff space, as Dorico shows them.
@@ -175,9 +178,9 @@ inline project::INotationWriter::UnitType exportUnitType(const QString& suffix, 
     return filePerLayout ? UnitType::PER_PART : UnitType::MULTI_PART;
 }
 
-// Top-level toolbars of every Dorico page (Cmd-6 toggles them).
-inline std::vector<QString> toolbarDocks(Mode mode)
+// Top-level toolbars of the Dorico page (Cmd-6 toggles them).
+inline std::vector<QString> toolbarDocks()
 {
-    return { pageDockName(mode, "doricoTopBar"), pageDockName(mode, "playbackToolBar"), pageDockName(mode, "undoRedoToolBar") };
+    return { "doricoTopBar", "playbackToolBar", "undoRedoToolBar" };
 }
 }
