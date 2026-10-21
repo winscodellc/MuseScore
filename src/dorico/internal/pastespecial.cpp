@@ -21,6 +21,7 @@
  */
 
 #include "pastespecial.h"
+#include "doricoperf.h"
 
 #include <algorithm>
 #include <functional>
@@ -83,6 +84,8 @@ std::optional<PasteClip> mu::dorico::pasteClipFrom(const ByteArray& data)
 
 std::optional<PasteClip> mu::dorico::pasteClipFromClipboard()
 {
+    static int reads = 0;
+    qCInfo(doricoPerf) << "clipboard read" << ++reads;
     const QMimeData* md = QGuiApplication::clipboard()->mimeData();
     const QString format = QString::fromLatin1(mimeStaffListFormat);
     if (!md || !md->hasFormat(format)) {
@@ -806,27 +809,29 @@ bool mu::dorico::pasteSpecialArticulations(const INotationPtr& notation)
     });
 }
 
-bool mu::dorico::pasteSpecialCanExplode(const Score* score)
+bool mu::dorico::pasteSpecialCanExplode(const std::optional<PasteClip>& clip, size_t rangeStaves)
 {
-    const Selection& sel = score->selection();
-    const std::optional<PasteClip> clip = pasteClipFromClipboard();
-    return clip && clip->staves == 1 && sel.isRange() && sel.staffEnd() - sel.staffStart() >= 2;
+    return clip && clip->staves == 1 && rangeStaves >= 2;
 }
 
-bool mu::dorico::pasteSpecialCanReduce(const Score* score)
+bool mu::dorico::pasteSpecialCanReduce(const std::optional<PasteClip>& clip, size_t rangeStaves)
+{
+    return clip && rangeStaves > 0 && clip->staves > rangeStaves;
+}
+
+size_t mu::dorico::pasteSpecialRangeStaves(const Score* score)
 {
     const Selection& sel = score->selection();
-    const std::optional<PasteClip> clip = pasteClipFromClipboard();
-    return clip && sel.isRange() && clip->staves > sel.staffEnd() - sel.staffStart();
+    return sel.isRange() ? sel.staffEnd() - sel.staffStart() : 0;
 }
 
 bool mu::dorico::pasteSpecialExplode(const INotationPtr& notation)
 {
     const Score* constScore = notation->elements()->msScore();
-    if (!pasteSpecialCanExplode(constScore)) {
+    const std::optional<PasteClip> clip = pasteClipFromClipboard();
+    if (!pasteSpecialCanExplode(clip, pasteSpecialRangeStaves(constScore))) {
         return false;
     }
-    const std::optional<PasteClip> clip = pasteClipFromClipboard();
     const Selection& sel = constScore->selection();
     const staff_idx_t top = sel.staffStart();
     const size_t nStaves = sel.staffEnd() - top;
@@ -846,10 +851,10 @@ bool mu::dorico::pasteSpecialExplode(const INotationPtr& notation)
 bool mu::dorico::pasteSpecialReduce(const INotationPtr& notation)
 {
     const Score* constScore = notation->elements()->msScore();
-    if (!pasteSpecialCanReduce(constScore)) {
+    const std::optional<PasteClip> clip = pasteClipFromClipboard();
+    if (!pasteSpecialCanReduce(clip, pasteSpecialRangeStaves(constScore))) {
         return false;
     }
-    const std::optional<PasteClip> clip = pasteClipFromClipboard();
     const Selection& sel = constScore->selection();
     const staff_idx_t top = sel.staffStart();
     const size_t nStaves = sel.staffEnd() - top;

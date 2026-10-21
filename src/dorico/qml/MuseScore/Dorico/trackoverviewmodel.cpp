@@ -32,6 +32,7 @@
 #include "notation/inotationundostack.h"
 
 #include "../../../internal/trackblocks.h"
+#include "../../../internal/doricoperf.h"
 
 using namespace mu::dorico;
 using namespace mu::engraving;
@@ -143,7 +144,8 @@ void TrackOverviewModel::listenToScore()
     }
     m_master = globalContext()->currentMasterNotation();
     if (m_master) {
-        // ponytail: rebuilds the whole overview on every edit; fine while Play mode does not edit notes
+        // ponytail: recomputes every bar on each edit but only tells QML when the overview changed; per-range
+        // recompute (ScoreChanges tickFrom/tickTo) if the "trackOverview rebuild" timing grows on big scores
         m_master->notation()->undoStack()->stackChanged().onNotify(this, [this]() {
             rebuild(m_master->masterScore());
         });
@@ -153,15 +155,16 @@ void TrackOverviewModel::listenToScore()
 
 void TrackOverviewModel::rebuild(const Score* score)
 {
-    m_tracks.clear();
-    m_bars.clear();
-    m_length = 0;
+    PerfTimer perf("trackOverview rebuild (all measures)");
+    QVariantList tracks;
+    QVariantList bars;
+    double length = 0;
 
     if (score) {
         for (const Measure* m = score->firstMeasure(); m; m = m->nextMeasure()) {
-            m_bars << QVariantMap { { "start", quarters(m->tick()) }, { "number", m->measureNumber() + 1 } };
+            bars << QVariantMap { { "start", quarters(m->tick()) }, { "number", m->measureNumber() + 1 } };
         }
-        m_length = quarters(score->endTick());
+        length = quarters(score->endTick());
 
         for (const Part* part : score->parts()) {
             std::vector<TrackBar> trackBars;
@@ -173,13 +176,22 @@ void TrackOverviewModel::rebuild(const Score* score)
                 blocks << QVariantMap { { "start", block.start }, { "end", block.end } };
             }
 
-            m_tracks << QVariantMap {
+            tracks << QVariantMap {
                 { "partId", part->id().toQString() },
                 { "title", part->partName().toQString() },
                 { "blocks", blocks },
             };
         }
     }
+
+    // Most edits (a pitch, a dynamic) leave the overview as it was: then QML keeps its delegates (spec 96)
+    if (tracks == m_tracks && bars == m_bars && length == m_length) {
+        return;
+    }
+    qCInfo(doricoPerf) << "trackOverview changed";
+    m_tracks = tracks;
+    m_bars = bars;
+    m_length = length;
 
     emit contentChanged();
     updateSoloMute(); // parts may have been added or removed

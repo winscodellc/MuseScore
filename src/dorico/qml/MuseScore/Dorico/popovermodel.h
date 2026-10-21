@@ -51,9 +51,10 @@ class PopoverModel : public QObject, public muse::Contextable, public muse::asyn
     // The suggestion menu (tempo, spec 26): Up/Down move the highlight, Return applies the highlighted entry.
     Q_PROPERTY(QStringList suggestions READ suggestions NOTIFY changed)
     Q_PROPERTY(int currentSuggestion READ currentSuggestion NOTIFY changed) // -1 = none, Return applies the text
-    // The paint view's `matrix` (canvas -> view); bound from QML so scroll and zoom move the popover.
-    Q_PROPERTY(QVariant viewMatrix READ viewMatrix WRITE setViewMatrix NOTIFY changed)
-    Q_PROPERTY(QRectF anchorRect READ anchorRect NOTIFY changed)
+    // The paint view's `matrix` (canvas -> view); bound from QML so scroll and zoom move the popover. Its own signal, so
+    // scrolling does not re-run status() and suggestions() (spec 96).
+    Q_PROPERTY(QVariant viewMatrix READ viewMatrix WRITE setViewMatrix NOTIFY geometryChanged)
+    Q_PROPERTY(QRectF anchorRect READ anchorRect NOTIFY geometryChanged)
 
     QML_ELEMENT
 
@@ -84,6 +85,7 @@ public:
 
 signals:
     void changed();
+    void geometryChanged(); // also sent with every changed()
     void opened(); // a popover was opened (or replaced): take keyboard focus
 
 private:

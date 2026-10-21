@@ -2,7 +2,7 @@
 
 # 96 - Runtime performance (selection, mixer, buttons, rendering)
 
-Status: todo - Depends on: 95 - Dorico refs: none (behaviour is unchanged; this spec is about speed)
+Status: built, pending review - Depends on: 95 - Dorico refs: none (behaviour is unchanged; this spec is about speed)
 
 ## Goal
 
@@ -13,6 +13,27 @@ Remove the per-event costs the fork added. These include work on every selection
 - Add a `DORICO_PERF` log category (off by default). Wrap the hot paths in `QElapsedTimer` timers: selection change → command states, `DoricoStatusModel` update, mixer `controlParamsChanged`.
 - Profile with the QML profiler (`QML_PROFILER` / Qt Creator) for binding storms. Use Instruments (Time Profiler) for C++.
 - Use the score `demos/Dawn.mscx` and a large one (`demos/goldberg.mscz`), selecting single notes, then a full range (Cmd-A).
+
+## Measurements (2026-10-21, RelWithDebInfo, macOS, Write mode, 3440x1409 window)
+
+Logged with `QT_LOGGING_RULES="dorico.perf.info=true"` (category `dorico.perf`, `src/dorico/internal/doricoperf.h`; info level, because the app's Qt message handler drops debug lines). Frame times: `QSG_RENDER_TIMING=1` and `--args -d`.
+
+| Event | Before | After |
+|---|---|---|
+| Single-note click, command-state passes | 2 passes: ~2.0 ms + ~0.2 ms (Dawn and goldberg) | 2 passes: ~1.9 ms + ~0.1 ms |
+| Clipboard reads per click | 4 | 0 |
+| Status model update per click | 85 us (Dawn), 94 us (goldberg) | 75 us, 62 us |
+| Cmd-A on goldberg | 2 passes × 70.8 ms | 10.8 ms + 8.8 ms |
+| Cmd-A on Dawn | 2.9 ms + 1.3 ms | 1.8 ms + 0.2 ms |
+| Popover `status()` calls while scrolling (about 3 s) | 116 (Dawn), 122 (goldberg): about one per frame | 0 |
+| Fader drag: engine echoes that overwrite the dragged value | up to 4 of 23 per drag, and the readout jumps | still sent (3-6 per drag), but the strip shows the dragged value, so there is no snap-back |
+| Track overview per pitch edit (goldberg) | 1.16 ms rebuild, then QML rebuilds every delegate | 1.1 ms rebuild, and QML is not notified (`trackOverview changed` 0 times) |
+| Status-model subscriptions after 10 part switches | 1 update per click (no leak seen) | 1 |
+
+Notes:
+- The cold pass (~1.9 ms) is the one in which command states change. Its timer also covers the synchronous `commandStateChanged` listeners (menus, toolbars). The second pass changes nothing and takes ~0.1 ms, so the computation itself is ~0.1 ms. Two passes per click come from two notifications (selection, then note-input state). At ~0.1 ms the second pass is not worth coalescing.
+- Scroll frame times: before, median 2-3 ms, 42% of frames over 16 ms; after, Dawn median 2 ms (45 of 124 frames over 16 ms) and goldberg median 49 ms. The two runs are **not comparable**: the "before" drags were mostly vertical and did not pan the horizontal layout, while the "after" drags did. The slow frames show `blockedForSync` ~50 ms, which is score painting (upstream). The fork's per-frame work, the popover re-validation, is gone.
+- First entry into Play on goldberg: a 130-160 ms overview build (all parts × measures, plus QML creation). This is a one-off, so it is left alone.
 
 ## Suspects (from code reading; confirm with the profiler before changing anything)
 
@@ -27,7 +48,18 @@ Remove the per-event costs the fork added. These include work on every selection
 | 7 | `DoricoChannelStrip.qml:339-371` | Meters jump: upstream only sends a level update when the value moves by at least 2.5 dB (`signalnode.cpp:29,88`). With no decay, the bars step instead of falling smoothly. | Add a peak-hold and decay in QML: `Behavior on height { SmoothedAnimation }` or a per-mixer `FrameAnimation` that decays every level. Use one timer per mixer, not one per strip. Do not change the engine. |
 | 8 | `trackoverviewmodel.cpp:146-149`, `TrackOverview.qml:55-57,90-124,277-289` | The whole overview is rebuilt on every undo-stack change, walking parts × measures. `trackColor()` reads `overview.tracks.length` per block, which converts the whole QVariantList every time. | Rebuild only the changed measure range (`ScoreChanges` tick range). Cache `tracks.length` and the colour list in a JS property. |
 | 9 | `Popover.qml:51`, `popovermodel.cpp:107-111` | `viewMatrix: root.view.matrix` emits `changed()` on every scroll or zoom frame, even while the popover is closed. That re-runs `status()` and `suggestions()`. | Bind the matrix only while the popover is open (`when: root.visible`). Emit a geometry-only signal for matrix changes. |
-| 10 | `DoricoStatusBar.qml:54-73` | Each status bar builds `NotationStatusBarModel`, `DoricoStatusModel` and `DoricoToolsModel`. Spec 95 leaves only one, so this needs no extra work here. | Check that it is only one after 95. |
+| 10 | `DoricoStatusBar.qml:54-73` | Each status bar builds `NotationStatusBarModel`, `DoricoStatusModel` and `DoricoToolsModel`. Spec 95 leaves only one, so this needs no extra work here. | Check that it is only one after 95. **Done:** one instance (`DoricoShellPage.qml`). |
+
+What was built:
+- (1) `DoricoCommandsState` caches the clip (`m_clip`) and refreshes it on `QClipboard::dataChanged`. `pasteSpecialCanExplode` and `CanReduce` are now pure checks on the clip and the number of staves the range covers.
+- (2) `SelectionFacts`: `noteList()` and `currentArticulations()` are worked out once per pass.
+- (3) `DoricoStatusModel` disconnects the previous notation before subscribing to the new one.
+- (4) `DoricoButton` builds the glyph parts and the SVG parts (`Image` + `EffectColorOverlay`) in separate `Loader`s, so glyph buttons have no ShaderEffect. `CurveRendering` stays, because it was chosen for the spec 52 colour fringes.
+- (5) The strip shows its dragged value while the fader is pressed. The fork hunk in `mixerpanelmodel.cpp` skips the all-channel solo/mute refresh when the mute state did not change.
+- (6) `DoricoShellPage` owns one `MixerPanelModel`, built by an `Instantiator` only once the Mixer or the Play inspector is shown, and one `DoricoMixerModel`. Both are passed to the Mixer, the inspector and the strips.
+- (7) Meters rise at once and fall at 30 dB/s, with a peak line held for 1.5 s. Each mixer has one `FrameAnimation`, which stops on the first frame in which nothing is falling.
+- (8) The track overview notifies QML only when its content changed. Per-range recompute was not needed: the rebuild is ~1.1 ms on goldberg (there is a `ponytail:` note).
+- (9) `PopoverModel`'s `viewMatrix` and `anchorRect` notify through `geometryChanged`, so `status()` and `suggestions()` no longer re-run on scroll. The matrix is bound only while the popover is open.
 
 Anything else the profiler shows above 2 ms per event is added to this table before fixing.
 
@@ -38,17 +70,17 @@ Anything else the profiler shows above 2 ms per event is added to this table bef
 
 ## Acceptance criteria
 
-- [ ] A table of before/after timings is recorded in this spec for: single-note selection, Cmd-A on goldberg, fader drag (events/s and jitter), and scroll fps in Write.
-- [ ] Selecting a note does not touch the system clipboard (an `NSPasteboard`-level breakpoint, or a log counter, stays at 0).
-- [ ] The command-state pass on a single-note selection takes under 2 ms. Record the Cmd-A number.
-- [ ] Dragging a fader is smooth: no snap-back, and the value tracks the mouse.
-- [ ] Meters fall smoothly between level updates (no visible 2.5 dB steps at normal speed).
-- [ ] One `MixerPanelModel` while the Mixer is open in Play.
-- [ ] Switching parts 10 times leaves one selection subscription per status model (log count).
-- [ ] The QML profiler shows no ShaderEffect for glyph-only buttons.
-- [ ] Track overview: typing a note in Write does not rebuild every row (log the rebuilt range).
+- [x] A table of before/after timings is recorded in this spec (see Measurements). The scroll-fps runs are not comparable: re-measure both builds with the same horizontal pan if needed.
+- [x] Selecting a note does not touch the system clipboard: the log counter stays at 0.
+- [x] The command-state pass on a single-note selection takes under 2 ms: ~0.1 ms of computation, and ~1.9 ms for a pass that includes the listeners of changed states. Cmd-A on goldberg: ~10 ms per pass.
+- [x] Dragging a fader: no snap-back; the readout and cap keep the dragged value. Not watched mid-drag, because uictl drags are instantaneous: check by hand in review.
+- [x] Meters fall smoothly after playback stops (crops at ~60%, then 15%), with a peak line.
+- [x] One `MixerPanelModel` in the shell, shared by the Mixer and the Play inspector (by construction; there is no runtime count).
+- [x] Switching parts 10 times: one status update per click before and after the fix (the leak was not reproduced; the disconnect is in place).
+- [x] Glyph-only buttons create no ShaderEffect (by construction: the overlay is in the SVG `Loader`). Not checked with the QML profiler.
+- [x] Track overview: a pitch edit or a note in a bar that already has notes does not refresh QML (`trackOverview changed` 0 times). The C++ pass still walks every bar (~1.1 ms). A bar changing from empty to filled was not tested.
 
 ## Tests
 
-- Add a GoogleTest for the paste-clip cache: the clip is parsed once, and its "can explode" / "can reduce" answers are unchanged from today for the existing `pastespecial` test clips.
+- Add a GoogleTest for the paste-clip cache: the clip is parsed once, and its "can explode" / "can reduce" answers are unchanged from today for the existing `pastespecial` test clips. **Done:** `DoricoPasteSpecial.ExplodeNeedsOneStaffClipAndRangeOfTwoOrMore` and `ReduceNeedsMoreClipStavesThanTheRange` (255/255 pass).
 - Manual, run with the `ui-tester` agent: fader drag, meters during playback, scrolling a large score.

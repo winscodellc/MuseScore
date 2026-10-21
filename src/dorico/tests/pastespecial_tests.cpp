@@ -182,3 +182,28 @@ TEST(DoricoPasteSpecial, StaffClipOfStartsEveryStaffAtTheClipTick)
         EXPECT_EQ(text.find("-1/1"), std::string::npos) << i;
     }
 }
+
+// Spec 96: the checks take the cached clip, so a command-state pass never reads the system clipboard
+TEST(DoricoPasteSpecial, ExplodeNeedsOneStaffClipAndRangeOfTwoOrMore)
+{
+    const auto one = pasteClipFrom(clip("<StaffList tick=\"0\" len=\"1/1\" staff=\"0\" staves=\"1\"/>"));
+    const auto two = pasteClipFrom(clip("<StaffList tick=\"0\" len=\"1/1\" staff=\"0\" staves=\"2\"/>"));
+    EXPECT_TRUE(pasteSpecialCanExplode(one, 2));
+    EXPECT_TRUE(pasteSpecialCanExplode(one, 4));
+    EXPECT_FALSE(pasteSpecialCanExplode(one, 1));
+    EXPECT_FALSE(pasteSpecialCanExplode(one, 0)); // not a range
+    EXPECT_FALSE(pasteSpecialCanExplode(two, 3));
+    EXPECT_FALSE(pasteSpecialCanExplode(std::nullopt, 2));
+}
+
+TEST(DoricoPasteSpecial, ReduceNeedsMoreClipStavesThanTheRange)
+{
+    const auto one = pasteClipFrom(clip("<StaffList tick=\"0\" len=\"1/1\" staff=\"0\" staves=\"1\"/>"));
+    const auto three = pasteClipFrom(clip("<StaffList tick=\"0\" len=\"1/1\" staff=\"0\" staves=\"3\"/>"));
+    EXPECT_TRUE(pasteSpecialCanReduce(three, 1));
+    EXPECT_TRUE(pasteSpecialCanReduce(three, 2));
+    EXPECT_FALSE(pasteSpecialCanReduce(three, 3));
+    EXPECT_FALSE(pasteSpecialCanReduce(three, 0)); // not a range
+    EXPECT_FALSE(pasteSpecialCanReduce(one, 1));
+    EXPECT_FALSE(pasteSpecialCanReduce(std::nullopt, 1));
+}

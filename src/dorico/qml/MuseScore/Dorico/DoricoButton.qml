@@ -155,49 +155,61 @@ FlatButton {
             implicitWidth: root.iconBoxSize
             implicitHeight: root.iconBoxSize
 
-            // Glyph ink bounds at 100 px, relative to the baseline origin.
-            TextMetrics {
-                id: metrics
-                font.family: "Bravura Text"
-                font.pixelSize: 100
-                text: box.isSvg ? "" : root.doricoIcon
+            // Spec 96: only the parts the icon needs. A glyph button gets no SVG image and no ColorOverlay (a ShaderEffect
+            // that breaks scene-graph batching); an SVG button gets no text.
+            Loader {
+                anchors.fill: parent
+                active: !box.isSvg
+
+                sourceComponent: Item {
+                    // Glyph ink bounds at 100 px, relative to the baseline origin.
+                    TextMetrics {
+                        id: metrics
+                        font.family: "Bravura Text"
+                        font.pixelSize: 100
+                        text: root.doricoIcon
+                    }
+
+                    Text {
+                        readonly property rect ink: metrics.tightBoundingRect
+                        // Fit the ink into 85% of the box; tiny glyphs (dots, accents) grow to at most 100 px.
+                        readonly property real scale100: ink.width > 0 && ink.height > 0
+                                                         ? Math.min(0.85 * box.width / ink.width, 0.85 * box.height / ink.height, 1.0) : 0
+
+                        text: root.doricoIcon
+                        font.family: "Bravura Text"
+                        font.pixelSize: Math.max(1, scale100 * 100)
+                        // Grayscale antialiasing: native (LCD) rendering gives stems and noteheads blue/orange fringes, and
+                        // QtRendering still falls back to it for Bravura on macOS (seen in the spec 52 review).
+                        renderType: Text.CurveRendering
+                        color: box.tint
+
+                        // Center the ink, not the text box: glyphs sit at very different heights around the baseline.
+                        x: (box.width - ink.width * scale100) / 2 - ink.x * scale100
+                        y: (box.height - ink.height * scale100) / 2 - ink.y * scale100 - baselineOffset
+                    }
+                }
             }
 
-            Text {
-                id: glyph
+            Loader {
+                anchors.fill: parent
+                active: box.isSvg
 
-                readonly property rect ink: metrics.tightBoundingRect
-                // Fit the ink into 85% of the box; tiny glyphs (dots, accents) grow to at most 100 px.
-                readonly property real scale100: ink.width > 0 && ink.height > 0
-                                                 ? Math.min(0.85 * box.width / ink.width, 0.85 * box.height / ink.height, 1.0) : 0
+                sourceComponent: Item {
+                    Image {
+                        id: svgImage
+                        anchors.centerIn: parent
+                        visible: false
+                        source: Qt.resolvedUrl("icons/" + root.doricoIcon.slice(4) + ".svg")
+                        sourceSize: Qt.size(box.width - 2, box.height - 2)
+                    }
 
-                visible: !box.isSvg
-                text: box.isSvg ? "" : root.doricoIcon
-                font.family: "Bravura Text"
-                font.pixelSize: Math.max(1, scale100 * 100)
-                // Grayscale antialiasing: native (LCD) rendering gives stems and noteheads blue/orange fringes, and
-                // QtRendering still falls back to it for Bravura on macOS (seen in the spec 52 review).
-                renderType: Text.CurveRendering
-                color: box.tint
-
-                // Center the ink, not the text box: glyphs sit at very different heights around the baseline.
-                x: (box.width - ink.width * scale100) / 2 - ink.x * scale100
-                y: (box.height - ink.height * scale100) / 2 - ink.y * scale100 - baselineOffset
-            }
-
-            Image {
-                id: svgImage
-                anchors.centerIn: parent
-                visible: false
-                source: box.isSvg ? Qt.resolvedUrl("icons/" + root.doricoIcon.slice(4) + ".svg") : ""
-                sourceSize: Qt.size(box.width - 2, box.height - 2)
-            }
-
-            EffectColorOverlay {
-                anchors.fill: svgImage
-                source: svgImage
-                color: box.tint
-                visible: box.isSvg
+                    EffectColorOverlay {
+                        anchors.fill: svgImage
+                        source: svgImage
+                        color: box.tint
+                    }
+                }
             }
         }
     }

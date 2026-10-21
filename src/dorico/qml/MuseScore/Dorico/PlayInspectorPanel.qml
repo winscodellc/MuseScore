@@ -41,6 +41,9 @@ Item {
     property int navigationOrderStart: 1
     // Emits trackPicked(partId) when the track overview asks for another track (the shell page).
     property var trackSource: null
+    // Shared with the Mixer (spec 96), owned by DoricoShellPage
+    property MixerPanelModel mixerModel: null
+    property DoricoMixerModel mixerNames: null
 
     signal partInspected(string partId)
 
@@ -111,17 +114,24 @@ Item {
         anchors.topMargin: 4
     }
 
-    MixerPanelModel {
-        id: mixerModel
 
-        navigationSection: leftContent.navigationSection
-        navigationOrderStart: leftContent.navigationOrderStart + 1
+    // Meter fall for every strip (spec 96). A meter still falling sets busy; the clock stops on a frame where none did,
+    // so nothing redraws when the levels are still.
+    FrameAnimation {
+        id: meterClock
+        property bool busy: false
+        onTriggered: {
+            if (!meterClock.busy) {
+                meterClock.stop()
+            }
+            meterClock.busy = false
+        }
     }
 
     TrackInspectorModel {
         id: inspector
 
-        sourceModel: mixerModel
+        sourceModel: leftContent.mixerModel
         Component.onCompleted: inspector.load()
         onChannelChanged: leftContent.partInspected(inspector.partId)
     }
@@ -288,6 +298,8 @@ Item {
                     height: 240
                     channelItem: inspectorColumn.channel
                     labelColor: TrackColor.trackColor(inspector.colorIndex, inspector.colorCount)
+                    names: leftContent.mixerNames
+                    meterClock: meterClock
                 }
             }
         }

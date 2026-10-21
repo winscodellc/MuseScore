@@ -182,7 +182,7 @@ Status: todo | in-progress | pending review | done  -  Depends on: NN, NN  -  Do
 | 65 | [Musical transformations](done/65-musical-transformations.md) | done | 35, 59 |
 | 94 | [Dorico Pro parity audit](done/94-parity-audit.md) | done | 50-63 |
 | 95 | [Single-page shell (instant mode switching)](95-single-page-shell.md) | built, pending review | 94 |
-| 96 | [Runtime performance](96-runtime-performance.md) | todo | 95 |
+| 96 | [Runtime performance](96-runtime-performance.md) | built, pending review | 95 |
 | 97 | [Mode gating](97-mode-gating.md) | todo | 95 |
 | 98 | [Context menus](98-context-menus.md) | todo | 97 |
 | 99 | [Popover look and placement](99-popover-look.md) | todo | 94 |

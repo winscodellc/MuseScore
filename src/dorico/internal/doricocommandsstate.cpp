@@ -35,6 +35,7 @@
 #include "../doricocommands.h"
 #include "filtersettings.h"
 #include "pastespecial.h"
+#include "doricoperf.h"
 
 #include "log.h"
 
@@ -95,8 +96,10 @@ void DoricoCommandsState::init()
     // Explode / Reduce are enabled by what is on the clipboard
     if (QGuiApplication::clipboard()) {
         m_clipboardConnection = QObject::connect(QGuiApplication::clipboard(), &QClipboard::dataChanged, QGuiApplication::clipboard(), [this]() {
+            m_clip = pasteClipFromClipboard();
             updateCommandStates();
         });
+        m_clip = pasteClipFromClipboard();
     }
 
     // Edit > Filter > Select Only / Deselect Only show the current mode as checked
@@ -126,8 +129,10 @@ void DoricoCommandsState::updateCommandStates()
         return;
     }
 
+    PerfTimer perf("commandStates");
+    const SelectionFacts facts = selectionFacts();
     for (const auto& command : m_moduleRegister->commandList()) {
-        CommandState newState = commandState(command);
+        CommandState newState = commandState(command, facts);
         if (m_commandStates[command] != newState) {
             m_commandStates[command] = newState;
             m_commandStateChanged.send(command, newState);
@@ -135,7 +140,19 @@ void DoricoCommandsState::updateCommandStates()
     }
 }
 
+DoricoCommandsState::SelectionFacts DoricoCommandsState::selectionFacts() const
+{
+    const notation::INotationPtr notation = globalContext()->currentNotation();
+    const engraving::Score* score = notation ? notation->elements()->msScore() : nullptr;
+    return { score && !score->selection().noteList().empty(), notationController()->currentArticulations() };
+}
+
 CommandState DoricoCommandsState::commandState(const Command& command) const
+{
+    return commandState(command, selectionFacts());
+}
+
+CommandState DoricoCommandsState::commandState(const Command& command, const SelectionFacts& facts) const
 {
     const bool editingText = notationController()->isTextEditing() || notationController()->isLyricsEditing();
     // The Hub opens without a project too (it is where projects are opened)
@@ -155,11 +172,11 @@ CommandState DoricoCommandsState::commandState(const Command& command) const
     } else if (command == DORICO_SWAP_STAVES_COMMAND) {
         pasteSpecialEnabled = score && pasteSpecialCanSwap(score);
     } else if (command == DORICO_EXPLODE_COMMAND) {
-        pasteSpecialEnabled = score && pasteSpecialCanExplode(score);
+        pasteSpecialEnabled = score && pasteSpecialCanExplode(m_clip, pasteSpecialRangeStaves(score));
     } else if (command == DORICO_REDUCE_COMMAND) {
-        pasteSpecialEnabled = score && pasteSpecialCanReduce(score);
+        pasteSpecialEnabled = score && pasteSpecialCanReduce(m_clip, pasteSpecialRangeStaves(score));
     } else if (std::find(DORICO_TRANSFORM_COMMANDS.begin(), DORICO_TRANSFORM_COMMANDS.end(), command) != DORICO_TRANSFORM_COMMANDS.end()) {
-        pasteSpecialEnabled = score && !score->selection().noteList().empty();
+        pasteSpecialEnabled = facts.hasNotes;
     } else if (command == DORICO_PASTE_INTO_NEW_VOICE_COMMAND || command == DORICO_PASTE_ARTICULATIONS_COMMAND
                || std::find(DORICO_PASTE_INTO_VOICE_COMMANDS.begin(), DORICO_PASTE_INTO_VOICE_COMMANDS.end(), command)
                != DORICO_PASTE_INTO_VOICE_COMMANDS.end()) {
@@ -187,8 +204,7 @@ CommandState DoricoCommandsState::commandState(const Command& command) const
     } else if (const auto it = ARTICULATION_SYMS.find(command); it != ARTICULATION_SYMS.end()) {
         // Same rule as MuseScore's toggles: the input articulations, or those on the selected notes. Combined
         // articulations come back split (tenuto-staccato = tenuto + staccato), so every part must be there.
-        const std::set<SymId> current = notationController()->currentArticulations();
-        checked = std::all_of(it->second.begin(), it->second.end(), [&](SymId s) { return current.count(s) > 0; });
+        checked = std::all_of(it->second.begin(), it->second.end(), [&](SymId s) { return facts.articulations.count(s) > 0; });
     }
 
     return CommandState(enabled && pasteSpecialEnabled, checked);

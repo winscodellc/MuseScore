@@ -22,6 +22,8 @@
 
 #include "popovermodel.h"
 
+#include "../../../internal/doricoperf.h"
+
 #include <algorithm>
 
 using namespace mu::dorico;
@@ -29,6 +31,7 @@ using namespace mu::dorico;
 PopoverModel::PopoverModel(QObject* parent)
     : QObject(parent), muse::Contextable(muse::iocCtxForQmlObject(this))
 {
+    connect(this, &PopoverModel::changed, this, &PopoverModel::geometryChanged);
 }
 
 void PopoverModel::load()
@@ -79,6 +82,8 @@ void PopoverModel::setText(const QString& text)
 
 int PopoverModel::status() const
 {
+    static int calls = 0;
+    qCInfo(doricoPerf) << "popover status" << ++calls;
     return static_cast<int>(controller()->validate(m_text.toStdString()));
 }
 
@@ -106,8 +111,11 @@ void PopoverModel::moveSuggestion(int delta)
 
 void PopoverModel::setViewMatrix(const QVariant& matrix)
 {
+    if (m_viewMatrix == matrix) {
+        return;
+    }
     m_viewMatrix = matrix;
-    emit changed();
+    emit geometryChanged();
 }
 
 QRectF PopoverModel::anchorRect() const

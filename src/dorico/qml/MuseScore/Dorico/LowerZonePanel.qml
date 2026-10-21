@@ -54,6 +54,8 @@ DockPanel {
     // own mixer (DoricoMixer) instead of MuseScore's. Off restores text tabs / MuseScore's mixer.
     property bool iconTabs: true
     property bool doricoMixer: true
+    // DoricoShellPage: owns the mixer models (spec 96)
+    property var mixerHost: null
 
     // NOTE: DockPanel's default property is ONE lazily loaded Component (contentComponent) with its own id scope:
     // the body below may contain exactly one object (the ZoneHolder), and the content lives on the root (zoneBody).
@@ -379,6 +381,9 @@ DockPanel {
             DoricoMixer {
                 navigationSection: root.navigationSection
                 contentNavigationPanelOrderStart: root.contentNavigationPanelOrderStart + 1
+                mixerModel: root.mixerHost ? root.mixerHost.mixerModel : null
+                mixerData: root.mixerHost ? root.mixerHost.mixerNames : null
+                Component.onCompleted: if (root.mixerHost) { root.mixerHost.mixerModelWanted = true }
             }
         }
 

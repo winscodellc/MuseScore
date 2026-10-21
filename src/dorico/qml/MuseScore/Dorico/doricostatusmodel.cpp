@@ -36,6 +36,7 @@
 #include "notation/inotationselectionrange.h"
 
 #include "../../../internal/selectionsummary.h"
+#include "../../../internal/doricoperf.h"
 
 using namespace mu::dorico;
 using namespace mu::engraving;
@@ -56,9 +57,13 @@ void DoricoStatusModel::load()
 
 void DoricoStatusModel::subscribeToSelection()
 {
-    notation::INotationPtr notation = globalContext()->currentNotation();
-    if (notation) {
-        notation->interaction()->selectionChanged().onNotify(this, [this]() {
+    // Disconnect from the previous notation first, or switching parts leaves one subscription per part behind (spec 96)
+    if (m_notation) {
+        m_notation->interaction()->selectionChanged().disconnect(this);
+    }
+    m_notation = globalContext()->currentNotation();
+    if (m_notation) {
+        m_notation->interaction()->selectionChanged().onNotify(this, [this]() {
             update();
         });
     }
@@ -73,6 +78,7 @@ static double seconds(const Score* score, const Fraction& tick)
 
 void DoricoStatusModel::update()
 {
+    PerfTimer perf("statusModel update");
     SelectionInfo info;
 
     notation::INotationPtr notation = globalContext()->currentNotation();

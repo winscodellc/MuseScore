@@ -59,5 +59,6 @@ private:
     void update();
 
     QString m_summary;
+    notation::INotationPtr m_notation;
 };
 }

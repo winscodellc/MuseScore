@@ -23,6 +23,8 @@
 #pragma once
 
 #include <map>
+#include <optional>
+#include <set>
 
 #include <QMetaObject>
 
@@ -35,6 +37,7 @@
 #include "notationscene/inotationcommandscontroller.h"
 
 #include "../idoricomodestate.h"
+#include "pastespecial.h"
 
 namespace mu::dorico {
 class DoricoCommandsState : public muse::rcommand::IModuleCommandsState, public muse::Contextable, public muse::async::Asyncable
@@ -57,7 +60,16 @@ public:
     muse::async::Channel<muse::rcommand::Command, muse::rcommand::CommandState> commandStateChanged() const override;
 
 private:
+    // What several commands ask of the selection, worked out once per pass instead of once per command
+    struct SelectionFacts {
+        bool hasNotes = false;
+        std::set<mu::engraving::SymId> articulations;
+    };
+    SelectionFacts selectionFacts() const;
+    muse::rcommand::CommandState commandState(const muse::rcommand::Command& command, const SelectionFacts& facts) const;
     void updateCommandStates();
+
+    std::optional<PasteClip> m_clip; // the clipboard's clip, refreshed when the clipboard changes
 
     QMetaObject::Connection m_clipboardConnection;
     muse::rcommand::IModuleCommandsRegisterPtr m_moduleRegister;

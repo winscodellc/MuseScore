@@ -52,8 +52,11 @@ Rectangle {
     readonly property real fitPxPerQuarter: overview.length > 0 ? Math.max(8, (flick.width - 16) / overview.length) : 8
     readonly property real pxPerQuarter: root.fitPxPerQuarter * root.zoom
 
+    // Read once per change: each `overview.tracks` read converts the whole list (spec 96)
+    readonly property int trackCount: overview.tracks.length
+
     function trackColor(index) {
-        return TrackColor.trackColor(index, overview.tracks.length)
+        return TrackColor.trackColor(index, root.trackCount)
     }
     readonly property real playheadX: overview.playheadPosition * pxPerQuarter
     // Label every n-th bar so numbers do not overlap
@@ -228,7 +231,7 @@ Rectangle {
         anchors.bottom: zoomBar.top
 
         contentWidth: overview.length * root.pxPerQuarter + 16
-        contentHeight: overview.tracks.length * root.trackHeight
+        contentHeight: root.trackCount * root.trackHeight
 
         Column {
             Repeater {

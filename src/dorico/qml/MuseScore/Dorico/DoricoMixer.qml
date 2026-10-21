@@ -44,6 +44,9 @@ Item {
     id: root
 
     property NavigationSection navigationSection: null
+    // Shared with the Play inspector (spec 96), owned by DoricoShellPage
+    property MixerPanelModel mixerModel: null
+    property DoricoMixerModel mixerData: null
     property int contentNavigationPanelOrderStart: 1
 
     property bool showInstruments: true
@@ -71,13 +74,16 @@ Item {
     property MixerChannelItem masterChannel: null
 
     function rebuild() {
+        if (!root.mixerModel) {
+            return
+        }
         const rows = []
         let metronome = null
         let primaries = 0
         let fx = 0
         let master = null
-        for (let i = 0; i < mixerModel.rowCount(); ++i) {
-            const channel = mixerModel.get(i).channelItem
+        for (let i = 0; i < root.mixerModel.rowCount(); ++i) {
+            const channel = root.mixerModel.get(i).channelItem
             const type = channel.type
             if (type === MixerChannelItem.PrimaryInstrument) {
                 ++primaries
@@ -119,8 +125,8 @@ Item {
 
     // Re-evaluated whenever a channel's mute / solo changes (the binding reads every channel's property)
     readonly property bool anyMuted: {
-        for (let i = 0; i < mixerModel.count; ++i) {
-            const channel = mixerModel.get(i).channelItem
+        for (let i = 0; i < root.mixerModel.count; ++i) {
+            const channel = root.mixerModel.get(i).channelItem
             if (channel.muted && !channel.forceMute) {
                 return true
             }
@@ -128,8 +134,8 @@ Item {
         return false
     }
     readonly property bool anySolo: {
-        for (let i = 0; i < mixerModel.count; ++i) {
-            if (mixerModel.get(i).channelItem.solo) {
+        for (let i = 0; i < root.mixerModel.count; ++i) {
+            if (root.mixerModel.get(i).channelItem.solo) {
                 return true
             }
         }
@@ -137,8 +143,8 @@ Item {
     }
 
     function deactivateAll(mute) {
-        for (let i = 0; i < mixerModel.count; ++i) {
-            const channel = mixerModel.get(i).channelItem
+        for (let i = 0; i < root.mixerModel.count; ++i) {
+            const channel = root.mixerModel.get(i).channelItem
             if (mute) {
                 channel.muted = false
             } else {
@@ -147,20 +153,27 @@ Item {
         }
     }
 
-    MixerPanelModel {
-        id: mixerModel
-
-        navigationSection: root.navigationSection
-        navigationOrderStart: root.contentNavigationPanelOrderStart + 1
-
-        onModelReset: Qt.callLater(root.rebuild)
-        onRowCountChanged: Qt.callLater(root.rebuild)
+    Connections {
+        target: root.mixerModel
+        function onModelReset() { Qt.callLater(root.rebuild) }
+        function onRowCountChanged() { Qt.callLater(root.rebuild) }
+    }
+    // Meter fall for every strip (spec 96). A meter still falling sets busy; the clock stops on a frame where none did,
+    // so nothing redraws when the levels are still.
+    FrameAnimation {
+        id: meterClock
+        property bool busy: false
+        onTriggered: {
+            if (!meterClock.busy) {
+                meterClock.stop()
+            }
+            meterClock.busy = false
+        }
     }
 
-    DoricoMixerModel {
-        id: mixerData
-        Component.onCompleted: mixerData.load()
-    }
+    // The shared model arrives after this view, or already holds its channels
+    onMixerModelChanged: Qt.callLater(root.rebuild)
+    Component.onCompleted: Qt.callLater(root.rebuild)
 
     NavigationPanel {
         id: toolbarNav
@@ -274,11 +287,11 @@ Item {
                 text: "FX+"
                 textFont.bold: true
                 transparent: true
-                enabled: root.fxCount < mixerData.fxChannelMax
+                enabled: root.fxCount < root.mixerData.fxChannelMax
                 toolTipTitle: qsTrc("dorico", "Add Effects Channel")
                 navigation.panel: toolbarNav
                 navigation.order: 20
-                onClicked: mixerData.addFxChannel()
+                onClicked: root.mixerData.addFxChannel()
             }
 
             FlatButton {
@@ -292,7 +305,7 @@ Item {
                 toolTipTitle: qsTrc("dorico", "Remove Effects Channel")
                 navigation.panel: toolbarNav
                 navigation.order: 21
-                onClicked: mixerData.removeFxChannel()
+                onClicked: root.mixerData.removeFxChannel()
             }
 
             Item { width: 12; height: 1 }
@@ -349,6 +362,8 @@ Item {
 
             channelItem: column.channelItem
             labelColor: column.labelColor
+            names: root.mixerData
+            meterClock: meterClock
         }
     }
 

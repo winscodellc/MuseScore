@@ -48,7 +48,8 @@ Item {
     PopoverModel {
         id: popoverModel
 
-        viewMatrix: root.view ? root.view.matrix : undefined
+        // Only while open: the matrix changes on every scroll and zoom frame (spec 96)
+        viewMatrix: root.view && popoverModel.isOpen ? root.view.matrix : undefined
     }
 
     Component.onCompleted: popoverModel.load()

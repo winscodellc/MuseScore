@@ -72,9 +72,12 @@ bool pasteSpecialCanMove(const mu::engraving::Score* score, int dir);
 bool pasteSpecialCanSwap(const mu::engraving::Score* score);
 //! Paste Into Voice and Paste Articulations need something selected to say where to paste
 bool pasteSpecialHasTarget(const mu::engraving::Score* score);
-//! Explode needs a one-staff clip and a range over two or more staves; Reduce a clip with more staves than the range has
-bool pasteSpecialCanExplode(const mu::engraving::Score* score);
-bool pasteSpecialCanReduce(const mu::engraving::Score* score);
+//! Explode needs a one-staff clip and a range over two or more staves; Reduce a clip with more staves than the range has.
+//! `clip` is the clipboard's clip, passed in so that command-state passes do not read the system clipboard.
+//! `rangeStaves` is the number of staves the range selection covers, 0 when the selection is not a range.
+bool pasteSpecialCanExplode(const std::optional<PasteClip>& clip, size_t rangeStaves);
+bool pasteSpecialCanReduce(const std::optional<PasteClip>& clip, size_t rangeStaves);
+size_t pasteSpecialRangeStaves(const mu::engraving::Score* score);
 
 //! Each returns true when it changed the score (one undo step). The system clipboard is only read, never written.
 bool pasteSpecialDuplicate(const mu::notation::INotationPtr& notation, int dir);

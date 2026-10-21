@@ -297,10 +297,16 @@ void MixerPanelModel::setupConnections()
 
     // Volume, pan and mute changed elsewhere (e.g. another mixer view of the same tracks)
     playback()->controlParamsChanged().onReceive(this, [this](const TrackId trackId, const ControlParams& params) {
-        if (MixerChannelItem* item = findChannelItem(trackId)) {
-            AudioOutputParams outParams = item->outputParams();
+        MixerChannelItem* changed = findChannelItem(trackId);
+        // Volume and pan (a fader drag sends many) leave every track's mute/solo state as it was
+        const bool muteChanged = !changed || changed->outputParams().muted != params.muted;
+        if (changed) {
+            AudioOutputParams outParams = changed->outputParams();
             outParams.setControl(params);
-            loadOutputParams(item, outParams);
+            loadOutputParams(changed, outParams);
+        }
+        if (!muteChanged) {
+            return;
         }
         // params.muted includes the force-mute caused by a solo, and soloing a track changes the others' params,
         // not its own: show every track's own mute/solo state

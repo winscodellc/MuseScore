@@ -75,6 +75,20 @@ DockPage {
 
     property PrintModel printModel: PrintModel {}
 
+    // One mixer model and one channel-names model for the Mixer tab and the Play inspector (spec 96). The mixer model
+    // subscribes to every track, so it is only built once one of them is shown (they set mixerModelWanted).
+    property bool mixerModelWanted: false
+    readonly property MixerPanelModel mixerModel: root.mixerModelInstantiator.object as MixerPanelModel
+    property Instantiator mixerModelInstantiator: Instantiator {
+        active: root.mixerModelWanted
+        delegate: MixerPanelModel {
+            navigationSection: root.keynavBottomPanelSec
+        }
+    }
+    property DoricoMixerModel mixerNames: DoricoMixerModel {
+        Component.onCompleted: root.mixerNames.load()
+    }
+
     property var notationView: null
 
     onInited: {
@@ -315,6 +329,9 @@ DockPage {
                     navigationSection: leftZone.navigationSection
                     navigationOrderStart: leftZone.contentNavigationPanelOrderStart
                     trackSource: root
+                    mixerModel: root.mixerModel
+                    mixerNames: root.mixerNames
+                    Component.onCompleted: root.mixerModelWanted = true
                     onPartInspected: function(partId) { root.inspectedPartId = partId }
                 }
             }
@@ -668,6 +685,7 @@ DockPage {
             tabs: root.lowerZoneTabs[root.mode]
             maximumHeight: root.sizeMode === root.modeSetup ? 300 : 520
             notationView: root.notationView
+            mixerHost: root
 
             navigationSection: root.navigationPanelSec(lowerZonePanel.location)
 

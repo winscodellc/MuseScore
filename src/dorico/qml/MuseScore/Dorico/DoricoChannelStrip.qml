@@ -40,10 +40,17 @@ Rectangle {
 
     property MixerChannelItem channelItem: null
     property color labelColor: ui.theme.strokeColor
-    property string label: !root.channelItem ? "" : (names.names[names.keyOf(root.channelItem)] ?? root.channelItem.title)
+    // Renamed channels, one model per mixer instead of one per strip (spec 96)
+    property DoricoMixerModel names: null
+    // Drives the meters' fall, one per mixer (spec 96); without it the bars just follow the reported level
+    property FrameAnimation meterClock: null
+    property string label: !root.channelItem ? "" : !root.names ? root.channelItem.title
+                                                                 : (root.names.names[root.names.keyOf(root.channelItem)] ?? root.channelItem.title)
 
     readonly property bool isFx: root.channelItem && root.channelItem.type === MixerChannelItem.Aux
     readonly property bool isOutput: root.channelItem && root.channelItem.type === MixerChannelItem.Master
+    // While the fader is dragged it shows the dragged value: the engine's echoes arrive late and would pull it back
+    readonly property real shownLevel: faderMouse.pressed ? faderMouse.lastSet : (root.channelItem ? root.channelItem.volumeLevel : 0)
 
     // Sizes and colours measured on Dorico 6's mixer (80 px strips, blue readouts in dark boxes)
     readonly property color readoutColor: "#5AAEEA"
@@ -80,9 +87,10 @@ Rectangle {
         return balance === 0 ? "C" : (balance < 0 ? "L" + (-balance) : "R" + balance)
     }
 
-    DoricoMixerModel {
-        id: names
-        Component.onCompleted: names.load()
+    LoggingCategory {
+        id: perfLog
+        name: "dorico.perf"
+        defaultLogLevel: LoggingCategory.Warning
     }
 
     // The inline field over the pan box, the fader value or the name: "pan", "volume" or "name" while typing
@@ -113,7 +121,7 @@ Rectangle {
                 root.channelItem.volumeLevel = value
             }
         } else if (root.editTarget === "name") {
-            names.setName(names.keyOf(root.channelItem), text)
+            root.names.setName(root.names.keyOf(root.channelItem), text)
         }
     }
 
@@ -194,7 +202,7 @@ Rectangle {
             anchors.right: parent.right
             anchors.rightMargin: 4
             anchors.verticalCenter: parent.verticalCenter
-            text: root.channelItem ? root.channelItem.volumeLevel.toFixed(2) : ""
+            text: root.channelItem ? root.shownLevel.toFixed(2) : ""
             font.family: ui.theme.bodyFont.family
             font.pixelSize: 11
             color: root.readoutColor
@@ -277,7 +285,7 @@ Rectangle {
 
             readonly property real travel: height - cap.height
             readonly property real position: root.channelItem
-                                             ? (fader.toLocal(root.channelItem.volumeLevel) - fader.from) / (fader.to - fader.from) : 0
+                                             ? (fader.toLocal(root.shownLevel) - fader.from) / (fader.to - fader.from) : 0
 
             Rectangle {
                 anchors.horizontalCenter: parent.horizontalCenter
@@ -320,14 +328,29 @@ Rectangle {
             }
 
             MouseArea {
+                id: faderMouse
+
                 anchors.fill: parent
                 preventStealing: true // the mixer scrolls on background drags
                 enabled: root.channelItem && !root.channelItem.hasVolumeAutomation
 
+                property real lastSet: 0
+
                 function setFromY(y) {
                     const position = 1 - Math.max(0, Math.min(1, (y - cap.height / 2) / faderArea.travel))
                     const level = fader.fromLocal(fader.from + position * (fader.to - fader.from))
-                    root.channelItem.volumeLevel = Math.round(level * 10) / 10
+                    faderMouse.lastSet = Math.round(level * 10) / 10
+                    root.channelItem.volumeLevel = faderMouse.lastSet
+                }
+
+                // Spec 96: counts engine echoes that overwrite the level being dragged (dorico.perf.info=true)
+                Connections {
+                    target: faderMouse.pressed ? root.channelItem : null
+                    function onVolumeLevelChanged() {
+                        if (Math.abs(root.channelItem.volumeLevel - faderMouse.lastSet) > 0.05) {
+                            console.info(perfLog, "fader echo overrode drag", root.channelItem.volumeLevel, "!=", faderMouse.lastSet)
+                        }
+                    }
                 }
 
                 onPressed: function(mouse) { setFromY(mouse.y) }
@@ -356,6 +379,49 @@ Rectangle {
                                                      : (meter.index === 0 ? root.channelItem.leftChannelPressure
                                                                           : root.channelItem.rightChannelPressure)
 
+                    // Spec 96: the engine reports a level only when it moves by 2.5 dB, so the bar rises at once and
+                    // falls smoothly towards the last report, and a peak line is held for 1.5 s before it falls too.
+                    readonly property real fallRate: 30 // dB per second
+                    property real shown: -60
+                    property real peak: -60
+                    property real peakHold: 0 // seconds left
+
+                    function fraction(level) {
+                        return Math.max(0, Math.min(1, (level + 60) / 60))
+                    }
+
+                    onPressureChanged: {
+                        if (!root.meterClock) {
+                            meter.shown = meter.pressure
+                            meter.peak = meter.pressure
+                            return
+                        }
+                        if (meter.pressure > meter.shown) {
+                            meter.shown = meter.pressure
+                        }
+                        if (meter.pressure >= meter.peak) {
+                            meter.peak = meter.pressure
+                            meter.peakHold = 1.5
+                        }
+                        root.meterClock.start()
+                    }
+
+                    Connections {
+                        target: root.meterClock
+                        function onTriggered() {
+                            const dt = root.meterClock.frameTime
+                            meter.shown = Math.max(meter.pressure, meter.shown - meter.fallRate * dt)
+                            if (meter.peakHold > 0) {
+                                meter.peakHold -= dt
+                            } else {
+                                meter.peak = Math.max(meter.shown, meter.peak - meter.fallRate * dt)
+                            }
+                            if (meter.shown > meter.pressure || meter.peak > meter.shown) {
+                                root.meterClock.busy = true
+                            }
+                        }
+                    }
+
                     width: 4
                     height: body.height
                     color: "#0E1114"
@@ -363,8 +429,17 @@ Rectangle {
                     Rectangle {
                         anchors.bottom: parent.bottom
                         width: parent.width
-                        height: parent.height * Math.max(0, Math.min(1, (meter.pressure + 60) / 60))
-                        color: meter.pressure >= 0 ? "#E0605A" : "#4CC36A"
+                        height: parent.height * meter.fraction(meter.shown)
+                        color: meter.shown >= 0 ? "#E0605A" : "#4CC36A"
+                    }
+
+                    // Peak line
+                    Rectangle {
+                        width: parent.width
+                        height: 1
+                        y: parent.height * (1 - meter.fraction(meter.peak))
+                        visible: meter.peak > meter.shown
+                        color: meter.peak >= 0 ? "#E0605A" : "#4CC36A"
                     }
                 }
             }
