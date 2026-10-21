@@ -69,7 +69,7 @@ Paths: PB = `src/playback/qml/MuseScore/Playback`.
 
 ## Design
 
-All new code goes in `src/dorico/qml/MuseScore/Dorico/`, and new files are added to its CMake list. There are no upstream edits.
+All new code goes in `src/dorico/qml/MuseScore/Dorico/`, and new files are added to its CMake list. Upstream edits: one line in `mixerpanelmodel.cpp` (see "As built").
 
 1. **Channel strips** - `DoricoChannelStripSections.qml`, one per channel, above its `DoricoChannelStrip` in the same delegate (and above the pinned Output strip).
    - **Inserts**: header button with the indicator (none / blue / yellow from `outputResourceItemList`; click toggles `isActive` on all loaded items), then the slots as `AudioResourceControl`s (wiring copied from `MixerFxSection.qml:53-82`).
@@ -114,7 +114,7 @@ All new code goes in `src/dorico/qml/MuseScore/Dorico/`, and new files are added
 - **`DoricoChannelStripSections.qml`** (new): Inserts header with the dot (colours measured: off `#EEF4FA`, on `#6FADDD`, bypassed `#FAE94F`; clicking the dot enables / bypasses all), four slots; EQ header unavailable with a tooltip; Sends header, then MuseScore's `AuxSendControl` per send (reused unchanged: knob + on/off button with the FX name, not Dorico's power + gain bar). The insert slot is our own small row: `ResourceDropdown` (blue when loaded and enabled), with power and edit buttons on hover.
 - **`DoricoChannelStrip.qml`**: own `DoricoMixerModel` for the name; one inline `TextInputField` over the pan box, the fader value or the name. Pan: press sets the position (the outer 6 px give L100 / R100), drag follows, Opt-click types, Cmd-click / double-click centres. Value: Opt-click types, Cmd-click / double-click 0 dB. Mute lit `#FFD608` with a black m, solo lit `#A32A0A` (measured). Pan and fader `MouseArea`s use `preventStealing` so the row only scrolls on background drags.
 - **`DoricoMixer.qml`**: columns of strip card + channel. The display order is a JS array (`rows`): metronome first, then model order, filtered by the Show buttons; Output pinned right. Split line: a 4 px `MouseArea` (`Qt.SplitVCursor`), channel height 190 by default, clamped to 140 up to the zone height, kept for the session. The strips hide when their three headers do not fit. A `WheelHandler` maps the vertical wheel / swipe to `contentX`; 24 px fades at the edges. Toolbar centred on the whole Mixer width (not the space after the tab buttons), FX+ / FX− enabled by the number of FX channels shown.
-- No upstream edits.
+- One upstream edit, asked for after the build: `MixerPanelModel::addItem` (`src/playback/qml/MuseScore/Playback/mixerpanelmodel.cpp`) now calls `updateOutputResourceItemCount()`, as `removeItem` already did. Without it an FX channel shown with FX+ had no insert slots until the score was reopened (MuseScore's own mixer had the same bug).
 
 Differences from Dorico: FX channel visibility is MuseScore's app-wide setting, and a fresh setup has none shown (Dorico starts with "Reverb"); FX channels are named by MuseScore ("Reverb" with MuseReverb loaded, else "Aux N") until renamed. The strip sections clip and do not scroll vertically. MuseScore offers only Muse Reverb (plus VST / AU plug-ins if installed) as an insert.
 
@@ -122,7 +122,6 @@ Differences from Dorico: FX channel visibility is MuseScore's app-wide setting, 
 
 | Item | Why |
 |---|---|
-| Insert slots of an FX channel added with FX+ stay greyed until the score is reopened | Upstream `MixerPanelModel::addItem` (`mixerpanelmodel.cpp:213`) does not call `updateOutputResourceItemCount()`, so the new channel gets no blank slot; MuseScore's own mixer has the same bug. One-line upstream fix if wanted |
 | Cmd-A in the inline fields | MuseScore's `TextInputField` does not take it while a Dorico shortcut is bound to it |
 
 ## Verification status

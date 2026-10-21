@@ -223,6 +223,9 @@ void MixerPanelModel::addItem(MixerChannelItem* item, int index)
     updateItemsPanelsOrder();
     endInsertRows();
 
+    // Dorico fork: a channel shown later (an aux made visible) needs its insert slots too, as in removeItem
+    updateOutputResourceItemCount();
+
     emit rowCountChanged();
 }
 
