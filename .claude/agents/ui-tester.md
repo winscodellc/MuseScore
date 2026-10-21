@@ -31,6 +31,11 @@ Every turn re-sends your whole context, so you want few turns and small images.
 - Launch with `open -a "<absolute path>/install/mscore.app"`, then `open -a` the score again once the window is up. Use one score per launch, quit with Cmd-Q, and click Cancel / "Don't save" only on your own temp copies. **Never answer a save dialog for the user's own scores.**
 - These need the user's decision: a macOS "access files in your Documents folder" prompt after a rebuild, or anything outside the two apps. Stop and report it as BLOCKED.
 - Click **Not now** on a "MuseSounds needs an update" dialog.
+- **Dorico must run as Dorico Pro**, never SE / Elements. A modifier that looks held at launch (Qt reads Cmd as "Ctrl") starts SE. `uictl key ... cmd+q` leaves Cmd "down", because its last event still carries the Cmd flag. So, every launch:
+  1. `uictl.sh front mscore ";" move 600 600` (posts an event without flags).
+  2. Check `osascript -l JavaScript -e 'ObjC.import("AppKit"); $.NSEvent.modifierFlags'` prints 0.
+  3. `open -a "/Applications/Dorico 6.app" <file>`, then send nothing until the window is up.
+  4. Check that `grep -n 'Running as' ~/Library/Application\ Support/Steinberg/Dorico\ 6/application.log | tail -1` has no new SE line (no line at all means Pro), and that the Engrave tab exists. Otherwise quit and redo; report BLOCKED after two failures.
 - In note input mode, clicks enter notes, and Escape does not leave note input mode (Shift-N toggles it).
 - If a result surprises you, grep the log's `command://` lines before you blame the code.
 

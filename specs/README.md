@@ -180,6 +180,17 @@ Status: todo | in-progress | pending review | done  -  Depends on: NN, NN  -  Do
 | 62 | [Print panel parity](done/62-print-panel.md) | done | 58 |
 | 63 | [Mixer parity](63-mixer-parity.md) | pending review | 57 |
 | 65 | [Musical transformations](done/65-musical-transformations.md) | done | 35, 59 |
+| 94 | [Dorico Pro parity audit](done/94-parity-audit.md) | done | 50-63 |
+| 95 | [Single-page shell (instant mode switching)](95-single-page-shell.md) | todo | 94 |
+| 96 | [Runtime performance](96-runtime-performance.md) | todo | 95 |
+| 97 | [Mode gating](97-mode-gating.md) | todo | 95 |
+| 98 | [Context menus](98-context-menus.md) | todo | 97 |
+| 99 | [Popover look and placement](99-popover-look.md) | todo | 94 |
+| 100 | [Preferences dialog](100-preferences-dialog.md) | todo | 94 |
+| 101 | [Visual parity sweep](101-visual-parity-sweep.md) | todo | 95 |
+| 102 | [Menu bar parity](102-menu-bar-parity.md) | todo | 95, 97 |
+
+**Parity pass first (decided 2026-10-21):** specs 94-102 refine what exists against the real Dorico Pro 6, the bar being "exactly the same", and are done **before** any Roadmap spec (64+). Order: 95 -> 96 -> 97 -> 98 / 102, while 99, 100 and 101 can go in any order after 95. Ground truth is in `reference/dorico-shots/` (notes and dumps committed, screenshots gitignored). When a spec needs Dorico, launch **Dorico Pro**, never SE: follow `.claude/agents/ui-tester.md`.
 
 Specs 20-36 and 40-47 are listed here but written in a later pass. Specs 50-59 (UI shell) are all written; **implement 50 first**, then the rest in any order (58 after 55). Suggested model: Opus for 50, 53, 59; Sonnet is enough for 51, 52, 54-58. A spec file that does not exist yet is just not started.
 
@@ -196,6 +207,11 @@ Specs 20-36 and 40-47 are listed here but written in a later pass. Specs 50-59 (
        \-> 20 -> 46
 
 00 -> 10 -> 50 -> 51, 52 (needs 11), 53 (needs 20), 54, 55 -> 58, 56, 57, 59
+
+50-63 -> 94 -> 95 -> 96
+                95 -> 97 -> 98, 102
+                95 -> 101
+          94 -> 99, 100
 ```
 
 Land **10 and 11 back to back**: spec 10 unbinds MuseScore's Shift+letter "add note to chord" keys and bare-letter behaviour; spec 11 gives them back as Chord mode (Q).

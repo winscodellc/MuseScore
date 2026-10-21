@@ -1,0 +1,438 @@
+## MuseScore Studio
+About MuseScore Studio
+About Qt…	
+---
+Preferences...  [Cmd+,]
+---
+Services >
+    Activity Monitor
+    Allocations & Leaks
+    File Activity
+    System Trace
+    Services Settings…
+---
+Hide MuseScore Studio  [Cmd+H]
+Hide Others  [Opt+Cmd+H]
+Show All  (disabled)
+---
+Quit MuseScore Studio  [Cmd+Q]
+## File
+New…  [Cmd+N]
+Open…  [Cmd+O]
+Open recent >
+    <41 recent files, removed>
+    Clear list of recent files
+Close  [Cmd+W]
+---
+Save  [Cmd+S]
+Save as…  [Shift+Cmd+S]
+Save a copy…
+Save selection…
+Save to cloud…
+---
+Project properties…
+Export…
+Dorico: Publish
+---
+Print…  [Cmd+P]
+---
+## Edit
+Undo  [Cmd+Z]  (disabled)
+Redo (⇧⌘Z, ⌘Y)  (disabled)
+History
+---
+Cut  [Cmd+X]
+Copy  [Cmd+C]
+Paste  [Cmd+V]
+Paste Special >
+    Paste half duration
+    Paste double duration
+    Swap with clipboard
+    ---
+    Paste Into Voice >
+        Voice 1
+        Voice 2
+        Voice 3
+        Voice 4
+        New Voice
+    Duplicate to Staff Above
+    Duplicate to Staff Below
+    Move to Staff Above  [Opt+N]
+    Move to Staff Below  [Opt+M]
+    Swap  (disabled)
+    Explode  (disabled)
+    Reduce  (disabled)
+    Paste Articulations
+Delete (⌦, ⌫)
+Delete Bars
+Remove Rests
+---
+Select all  [Cmd+A]
+Select None  [Cmd+D]
+Select More  [Shift+Cmd+A]
+Select To >
+    Select to end of system
+    Select to beginning of system
+    Select to end of score
+    Select to beginning of score
+Select section
+Filter >
+    Select Only  ✓
+    Deselect Only
+    ---
+    Notes >
+        Notes
+        Grace Notes
+        Chords
+        Top Notes Or Single Notes
+        Bottom Notes Or Single Notes
+        Rests
+        Notes by Pitch…
+    Voices >
+        Voice 1
+        Voice 2
+        Voice 3
+        Voice 4
+        Stem Up
+        Stem Down
+    Dynamics >
+        All Dynamics
+        Gradual
+        Immediate
+    Tempo >
+        All Tempos
+        Gradual
+    Lyrics >
+        All Lyrics
+        Line 1
+        Line 2
+        Line 3
+        Line 4
+    Text
+    Chord Symbols
+    Figured Bass
+    Slurs
+    Ties
+    Ornaments
+    Arpeggio Signs
+    Glissandi
+    Octave Lines
+    Pedal Lines
+    Other Lines
+    Tuplets
+    Holds and Pauses
+    Rehearsal Marks
+    Playing Techniques
+    Clefs
+Selection filter
+Show search
+---
+Reset shapes and positions
+Reset text style overrides
+---
+---
+AutoFill >
+    Contact…  (disabled)
+    Passwords…  (disabled)
+    Credit Card…  (disabled)
+## Setup
+Dorico: Setup mode  [Cmd+1]
+---
+Add/remove instruments…
+Parts…
+## Write
+Dorico: Write mode  [Cmd+2]  ✓
+Note input  [Shift+N]
+---
+Notes >
+    Note input  [Shift+N]
+    ---
+    C
+    D
+    E
+    F
+    G
+    A
+    B
+    ---
+    Add C to chord
+    Add D to chord
+    Add E to chord
+    Add F to chord
+    Add G to chord
+    Add A to chord
+    Add B to chord
+Intervals >
+    Unison
+    Second above
+    Third above
+    Fourth above
+    Fifth above
+    Sixth above
+    Seventh above
+    Octave above
+    Ninth above
+    Tenth above
+    ---
+    Second below
+    Third below
+    Fourth below
+    Fifth below
+    Sixth below
+    Seventh below
+    Octave below
+    Ninth below
+    Tenth below
+Tuplets >
+    Duplet
+    Triplet
+    Quadruplet
+    Quintuplet
+    Sextuplet
+    Septuplet
+    Octuplet
+    Nonuplet
+    Other…
+Measures >
+    Insert one measure before selection
+    Insert one measure at end of score
+    ---
+    Insert before selection…
+    Insert after selection…
+    ---
+    Insert at start of score…
+    Insert at end of score…
+Text >
+    Title
+    Subtitle
+    Composer
+    Lyricist
+    Part name
+    ---
+    System text  [Opt+Shift+X]
+    Staff text  [Shift+X]
+    Dynamic
+    Expression text
+    Rehearsal mark  [Shift+A]
+    Instrument change
+    Fingering
+    ---
+    Sticking
+    Chord symbol
+    Roman numeral analysis
+    Nashville number
+    Lyrics
+    Figured bass
+    Tempo marking
+Lines >
+    Slur  [S]
+    Crescendo  [Shift+,]
+    Diminuendo  [Shift+.]
+    Ottava 8va alta
+    Ottava 8va bassa
+    Note-anchored line
+Chords and fretboard diagrams >
+    Chord symbol
+    Add fretboard diagram
+    ---
+    Fretboard diagram legend
+---
+Transpose…
+Respell >
+    Respell pitches with sharps
+    Respell pitches with flats
+    Enharmonic spelling >
+        Change enharmonic spelling (concert and transposed pitch)
+        Change enharmonic spelling (current pitch mode only)
+        Optimize enharmonic spelling
+Transform >
+    Pitches >
+        Invert Pitches...
+        Reverse Pitches
+        Reverse and Invert Pitches...
+        Rotate Pitches...
+    Rhythm >
+        Reverse Rhythms
+        Rotate Rhythms...
+    All >
+        Reverse Pitches and Rhythms
+        Reverse and Invert Pitches and Reverse Rhythms...
+        Rotate Pitches and Rhythms...
+Voices >
+    Exchange voice 1-2
+    Exchange voice 1-3
+    Exchange voice 1-4
+    Exchange voice 2-3
+    Exchange voice 2-4
+    Exchange voice 3-4
+Measures >
+    Insert one measure before selection
+    Insert one measure at end of score
+    ---
+    Insert before selection…
+    Insert after selection…
+    ---
+    Insert at start of score…
+    Insert at end of score…
+---
+Implode
+Realize chord symbols
+Fill with slashes
+Toggle rhythmic slash notation
+Regroup rhythms
+Resequence rehearsal marks
+Copy lyrics to clipboard
+Remove empty trailing measures
+## Engrave
+Dorico: Engrave mode  [Cmd+3]
+---
+Page settings…  [Shift+Cmd+L]
+Measures per system…
+Stretch >
+    Increase layout stretch
+    Decrease layout stretch
+    Reset layout stretch
+Frames >
+    Insert horizontal frame
+    Insert vertical frame
+    Insert text frame
+    Insert fretboard diagram legend
+    ---
+    Insert at end of score >
+        Horizontal frame
+        Vertical frame
+        Text frame
+        Fretboard diagram legend
+---
+Reset beams
+Reset entire score to default layout
+## Play
+Dorico: Play mode  [Cmd+4]
+---
+Play
+Rewind  [.]
+Loop toggle
+Metronome toggle  ✓
+---
+Playback setup
+Mixer  []
+Reload playback cache
+## Library
+Style… (⇧⌘N, ⇧⌘E)
+Load style…
+Save style…
+---
+Master palette…
+Palettes
+## View
+Full screen
+---
+Show >
+    Show invisible  ✓
+    Show formatting  ✓
+    Show frames  ✓
+    Show page margins
+    Mark irregular measures  ✓
+    Show sound flags  ✓
+---
+Navigator
+Braille
+Enter Full Screen  [F]
+## Window
+Dorico: Hub
+---
+Dorico: Setup mode  [Cmd+1]
+Dorico: Write mode  [Cmd+2]  ✓
+Dorico: Engrave mode  [Cmd+3]
+Dorico: Play mode  [Cmd+4]
+Dorico: Print mode  [Cmd+5]
+---
+Dorico: toggle toolbar  [Cmd+6]
+Dorico: toggle left zone  [Cmd+7]
+Dorico: toggle right zone  [Cmd+9]
+Dorico: toggle lower zone  [Cmd+8]
+Dorico: hide/restore zones
+---
+Mixer  []
+Properties
+Timeline
+Piano keyboard
+Percussion
+---
+Workspaces >
+    Default  ✓
+    ---
+    Edit workspaces…
+    Create new workspace
+Restore default layout
+---
+Extensions >
+    Manage extensions
+---
+More MuseScore Commands >
+    File >
+        Convert file…
+    View >
+        Layout
+        ---
+        Toolbars >
+            Playback controls  ✓
+            Note input
+            Status bar  ✓
+    Tools >
+        Explode
+        Remove selected range
+## Help
+Online handbook
+Ask for help
+Check for update
+---
+About MusicXML…
+Accessibility statement
+---
+Clear online sounds cache
+Revert to factory settings
+Diagnostics >
+    Save diagnostic files
+    Reload playback cache
+    System >
+        Show paths…
+        Show graphics info…
+        Show profiler…
+    MuseSampler >
+        Check
+        Reload
+    Actions >
+        Show actions list
+        Show commands list
+    Accessibility >
+        Show navigation tree…
+        Show accessibility tree…
+        Dump accessibility tree to console
+    Engraving >
+        Show engraving elements
+        Show engraving undo stack
+        Show engraving style options list
+        ---
+        Show element bounding rects
+        Color element shapes
+        Show segment shapes
+        Color segment shapes
+        Show Skylines
+        Show system bounding rects
+        Show element masks
+        Show gap rests
+        Show line attach points
+        Mark empty staff
+        Show origin and combined
+        Mark corrupted measures  ✓
+        Check for score corruptions
+    Extensions >
+        Show API dump  ✓
+    Testflow >
+        Show scripts
+    Audio >
+        Use Driver Mode
+        Use Hybrid Mode  ✓
+    Multiinstances
+

@@ -98,3 +98,4 @@ compile_commands.json
 
 # Local copy of the Dorico manual (Steinberg copyright), see src/dorico/tools/fetch_manual.py
 specs/reference/manual/
+specs/reference/dorico-shots/**/*.png
