@@ -43,6 +43,9 @@ struct MenuSpec {
 //! The ten top-level menus in Dorico's order: File, Edit, Setup, Write, Engrave, Play, Library, View, Window, Help.
 const std::vector<MenuSpec>& doricoMenus();
 
+//! Edit > Filter (spec 45); the score context menu (spec 98) shares it.
+MenuSpec filterMenu();
+
 //! Id of the Window submenu that collects every MuseScore menu item the table does not place, so nothing is lost.
 inline const QString MORE_MUSESCORE_MENU_ID("dorico-menu-more-musescore");
 

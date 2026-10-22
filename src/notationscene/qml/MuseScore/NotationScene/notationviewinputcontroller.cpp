@@ -857,7 +857,7 @@ void NotationViewInputController::mousePress_considerSelect(const ClickContext& 
             }
         }
     } else if (ctx.event->button() == Qt::RightButton) {
-        if (ctx.hitElement->selected()) {
+        if (ctx.hitElement->selected() || (m_interactionCaps & INTERACTION_DORICO_RIGHT_CLICK)) { // Dorico fork (spec 98)
             return;
         }
     }

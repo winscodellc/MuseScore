@@ -70,6 +70,9 @@ FocusScope {
         id: contextMenuModel
     }
 
+    // Dorico fork (spec 98): a model with popup(view, pos) replaces MuseScore's context menu
+    property var contextMenuModelOverride: null
+
     Component.onCompleted: {
         notationView.load()
     }
@@ -164,6 +167,10 @@ FocusScope {
                     }
 
                     onShowContextMenuRequested: function (elementType, viewPos) {
+                        if (root.contextMenuModelOverride) { // Dorico fork (spec 98)
+                            root.contextMenuModelOverride.popup(notationView, viewPos)
+                            return
+                        }
                         contextMenuModel.loadItems(elementType)
                         contextMenuLoader.show(viewPos, contextMenuModel.items)
                     }

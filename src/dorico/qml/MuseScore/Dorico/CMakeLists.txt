@@ -39,6 +39,8 @@ qt_add_qml_module(dorico_qml
         doricostatusmodel.h
         doricotoolsmodel.cpp
         doricotoolsmodel.h
+        doricocontextmenumodel.cpp
+        doricocontextmenumodel.h
         doricoviewmenumodel.cpp
         doricoviewmenumodel.h
         jumpbarmodel.cpp
@@ -112,7 +114,7 @@ qt_add_qml_module(dorico_qml
 target_include_directories(dorico_qml PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../../../../palette)
 target_link_libraries(dorico_qml PRIVATE palette)
 # DoricoPrinter (spec 62) prints without the system dialog.
-target_link_libraries(dorico_qml PRIVATE Qt::PrintSupport)
+target_link_libraries(dorico_qml PRIVATE Qt::PrintSupport Qt::Widgets)
 # TrackInspectorModel (spec 57) reads the mixer's channel items; their header includes playback headers without a path.
 target_include_directories(dorico_qml PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../../../../playback
                                               ${CMAKE_CURRENT_LIST_DIR}/../../../../playback/qml/MuseScore/Playback)

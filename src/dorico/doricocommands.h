@@ -131,6 +131,20 @@ inline static const muse::rcommand::Command DORICO_PASTE_ARTICULATIONS_COMMAND("
 inline static const muse::rcommand::Command DORICO_EXPLODE_COMMAND("command://dorico/explode");
 inline static const muse::rcommand::Command DORICO_REDUCE_COMMAND("command://dorico/reduce");
 
+// Score context menu (spec 98): stems and noteheads of the selected notes
+inline static const muse::rcommand::Command DORICO_STEM_UP_COMMAND("command://dorico/stem-up");
+inline static const muse::rcommand::Command DORICO_STEM_DOWN_COMMAND("command://dorico/stem-down");
+inline static const muse::rcommand::Command DORICO_STEM_AUTO_COMMAND("command://dorico/stem-auto");
+inline static const muse::rcommand::Command DORICO_NOTEHEAD_DEFAULT_COMMAND("command://dorico/notehead-default");
+inline static const muse::rcommand::Command DORICO_NOTEHEAD_CROSS_COMMAND("command://dorico/notehead-cross");
+inline static const muse::rcommand::Command DORICO_NOTEHEAD_TRIANGLE_COMMAND("command://dorico/notehead-triangle");
+inline static const muse::rcommand::Command DORICO_NOTEHEAD_DIAMOND_COMMAND("command://dorico/notehead-diamond");
+inline static const muse::rcommand::Command DORICO_NOTEHEAD_SLASH_COMMAND("command://dorico/notehead-slash");
+inline static const muse::rcommand::Command DORICO_NOTEHEAD_SLASHED1_COMMAND("command://dorico/notehead-slashed1");
+inline static const muse::rcommand::Command DORICO_NOTEHEAD_SLASHED2_COMMAND("command://dorico/notehead-slashed2");
+inline static const muse::rcommand::Command DORICO_NOTEHEAD_CIRCLED_COMMAND("command://dorico/notehead-circled");
+inline static const muse::rcommand::Command DORICO_NOTEHEAD_CIRCLED_LARGE_COMMAND("command://dorico/notehead-circled-large");
+
 // Write > Transform (spec 65), in the order of the menu: Pitches, Rhythm, All
 inline static const std::array<muse::rcommand::Command, 9> DORICO_TRANSFORM_COMMANDS = {
     muse::rcommand::Command("command://dorico/transform/invert-pitches"),

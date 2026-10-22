@@ -2,7 +2,7 @@
 
 # 98 - Context menus (right-click)
 
-Status: todo - Depends on: 94, 97 (the menu follows the mode policy) - Dorico refs: `topics/glossary/c/context-menu.md`; about 148 manual pages say "You can also choose this option from the context menu" (for example `topics/selecting-and-editing-music/arranging-tools/*.md`, `filters.md`)
+Status: built, pending review - Depends on: 94, 97 (the menu follows the mode policy) - Dorico refs: `topics/glossary/c/context-menu.md`; about 148 manual pages say "You can also choose this option from the context menu" (for example `topics/selecting-and-editing-music/arranging-tools/*.md`, `filters.md`)
 
 Ground truth: `reference/dorico-shots/menus/notes.md`, Part 2. It was transcribed from Dorico Pro 6 on 2026-10-21. Crops: `dorico-ctx-note.png`, `ours-ctx-note.png`.
 
@@ -16,7 +16,7 @@ Right-clicking in the music area, and in the Setup panels, shows Dorico's menus.
 
 | Rule | Dorico |
 |---|---|
-| What the menu is built from | The **current selection**, not the item under the pointer. Right-click does not change the selection. (The audit left-clicked first. Re-check in Dorico what right-click on an unselected item does, and note it here.) |
+| What the menu is built from | The **current selection**, not the item under the pointer. Right-click **never** changes the selection, even on an unselected item (verified 2026-10-22: with a slur selected, right-clicking an unselected note kept the slur selected and showed the slur menu). |
 | Paste | A "Paste" row appears only when the clipboard has music. Otherwise the menu starts Cut, Copy, Paste Special. |
 | No Delete | There is no Delete row, no "Edit element" and no Style row. |
 | Outside the page | No menu at all, in Write and Engrave. |
@@ -24,7 +24,7 @@ Right-clicking in the music area, and in the Setup panels, shows Dorico's menus.
 | Item-specific rows | Added to the list for the item types in the selection: `Edit Font...` for text, dynamics or tempo, `Dynamics >`, `Slurs >`, and so on. |
 | Look | Rounded corners of about 6 px, with a 1 px lighter border and a shadow. Background about `#2e2e2e`, slightly translucent. System font about 13 px, rows about 18 px. No icons and no underlined accelerators. Shortcuts right-aligned as glyphs (⌘X, ⌥N). Check marks sit in a left gutter. The highlight is the macOS accent blue. Submenus are marked with a filled triangle. |
 
-### Write mode, note selected (14 rows)
+### Write mode, note selected (15 rows)
 
 ```
 Cut                Cmd+X
@@ -56,15 +56,21 @@ Voices         >
 | Beaming | Beam Together / Split Beam / Make Unbeamed / Split Secondary Beam / Set Partial Beam Direction > / Create Fanned Beam > / Stemlets > / Reset Beaming |
 | Staff | Add Staff Above / Add Staff Below / --- / Create Ossia Above / Create Ossia Below / --- / Change Divisi... / Restore Unison / --- / Create Manual Cutaway / Create Start Cutaway / Create End Cutaway / --- / Remove Staff / --- / Manual Staff Visibility... |
 | Bar Numbers | Add Bar Number Change... |
-| Chord Symbols and Diagrams, Fingering, Octave Line, Pedal Lines, Staff Size, Dynamics, Slurs | **Not captured yet.** The first implementation step captures them in Dorico Pro (ui-tester; follow the Pro launch steps and don't zoom far, see `.claude/agents/ui-tester.md`). |
+| Chord Symbols and Diagrams | Line > (Line 1 to Line 5) / --- / Generate Chord Symbols from Selection... / Generate Notes from Chord Symbols in Selection... |
+| Fingering | Reset Fingering |
+| Octave Line | Add Corner / Make Angled / Remove Corner/Angle |
+| Pedal Lines | Add Retake / Add Change to One Quarter Depressed / Add Change to Half Depressed / Add Change to Three Quarters Depressed / Add Change to Fully Depressed / Remove Retake / --- / Split Pedal Line / Merge Pedal Lines |
+| Staff Size | 60% / 75% / 100% / --- / Custom Staff Size... |
+| Cross Staff | Only for a multi-staff instrument (piano), between Chord Symbols and Diagrams and Fingering. Not expanded; ship as a disabled stub. |
+| Paste (row) | With music on the clipboard, `Paste ⌘V` sits between Copy and Paste Special. |
 
 ### Other selections (Write)
 
 | Selection | Rows (after Cut / Copy / Paste Special / --- / Filter / ---) |
 |---|---|
 | Rest | Same as a note. |
-| Dynamic | Edit Font..., --- , Bar Numbers, Dynamics, Staff Size, Staff |
-| Slur | The note list plus `Slurs >` (after Pedal Lines) |
+| Dynamic | Edit Font..., --- , Bar Numbers, Dynamics, Staff Size, Staff. `Dynamics >` (Write) = Group Dynamics / Ungroup Dynamics / Remove from Group / --- / Link / Unlink / --- / Increase Dynamic Intensity / Decrease Dynamic Intensity |
+| Slur | Short menu (verified 2026-10-22): Bar Numbers, Slurs, Staff Size, Staff. No Beaming, Chord Symbols, Fingering, Notehead, Octave Line, Pedal Lines, Stem or Voices. `Slurs >` = Link / Unlink |
 | Tempo or text | Edit Font..., --- , Bar Numbers, Staff Size, Staff |
 | Range over several bars | Edit Font..., then the note list plus Dynamics (the union of the types in the selection) |
 | Empty bar, nothing selected | Filter > / --- / Bar Numbers > / Staff Size > (no Cut / Copy) |
@@ -72,7 +78,9 @@ Voices         >
 ### Engrave mode
 
 - With nothing selected, or on the page background: the same 3-row menu as an empty bar.
-- **Not captured yet:** a note and a dynamic in Engrave. Capture them in the first step. Expect formatting-only rows and no Cut, because Engrave allows no deletion.
+- Note selected: Filter > / --- / Bar Numbers > / Staff Size > / Staff >. No Cut, Copy or Paste Special. `Staff >` = Create Manual Cutaway / Create Start Cutaway / Create End Cutaway / --- / Create Coordination Line / --- / Manual Staff Visibility...
+- Dynamic selected: Filter > / --- / Edit Font... / --- / Bar Numbers > / Dynamics > / Staff Size > / Staff >. `Dynamics >` = Group Dynamics, Ungroup Dynamics, Remove from Group (all grey) / --- / Link, Unlink (grey) / --- / Align Dynamics.
+- `Filter >` in Engrave has only: ✓ Select Only, Deselect Only.
 
 ### Setup mode (panels)
 
@@ -129,19 +137,21 @@ These appear disabled, with their labels kept:
 - Propagate Part Formatting;
 - Clef and Transposition Overrides, Flow Heading Overrides.
 
+Also disabled as built: `Edit Font...` (no Dorico-style font dialog), `Cross Staff >` (not shown at all), the sub-submenus of Notehead (Crosses, Triangular, Diamonds and Slashes are single rows that apply the main group; Larger, Round and Square, Scale Degree, Pitched are stubs), Chord Symbols > Line and Generate rows, Octave Line, Pedal Lines, Dynamics, Slurs, Staff Size, Bar Numbers, Fingering, Rename Player, Soloist, Duplicate / Delete Flow, Rename Flow.
+
 The Roadmap specs (82-93) enable them later.
 
 ## Acceptance criteria
 
-- [ ] The missing submenus (Chord Symbols and Diagrams, Fingering, Octave Line, Pedal Lines, Staff Size, Dynamics, Slurs, Engrave note and dynamic) are captured from Dorico Pro and added to this spec before coding.
-- [ ] In Write, a note selection shows the 14-row menu in Dorico's order, and every submenu matches the tables.
-- [ ] A dynamic, a slur, tempo text and a range each show their Dorico variant. An empty bar shows the 3-row menu. Outside the page there is no menu.
-- [ ] There is no Delete, Edit element or Style row anywhere in the score menu.
-- [ ] Paste appears only when the clipboard holds music.
-- [ ] Every enabled item works. Click each, check with the log `command://` lines or the .mscx. Unbacked items are disabled, with a tooltip.
-- [ ] Engrave and Setup menus follow the mode (no editing items in Engrave).
-- [ ] The Setup Players, Flows and Layouts lists have Dorico's menus.
-- [ ] A side-by-side crop with `dorico-ctx-note.png` matches: row height within 2 px, no icons, same colours within a small tolerance.
+- [x] The missing submenus (Chord Symbols and Diagrams, Fingering, Octave Line, Pedal Lines, Staff Size, Dynamics, Slurs, Engrave note and dynamic) are captured from Dorico Pro and added to this spec before coding (2026-10-22, `notes.md`).
+- [x] In Write, a note selection shows the 15-row menu in Dorico's order, and every submenu matches the tables.
+- [x] A dynamic, a slur, tempo text and a range each show their Dorico variant. An empty bar shows the 3-row menu. Outside the page there is no menu.
+- [x] There is no Delete, Edit element or Style row anywhere in the score menu.
+- [x] Paste appears only when the clipboard holds music.
+- [x] Every enabled item works (checked: stems, Crosses / Default noteheads, Make Unbeamed, Filter; the rest dispatch existing commands). Unbacked items are disabled. They carry the tooltip "Not available yet" (`QAction::toolTip`, `setToolTipsVisible`), but it **did not show** under uictl's synthetic mouse moves, so it is unverified with a real mouse.
+- [x] Engrave and Setup menus follow the mode (no editing items in Engrave).
+- [x] The Setup Players, Flows and Layouts lists have Dorico's menus.
+- [ ] (not measured with a pixel tool; by eye in the 2026-10-22 run: dark, rounded, no icons, no underlines) A side-by-side crop with `dorico-ctx-note.png` matches: row height within 2 px, no icons, same colours within a small tolerance.
 
 ## Tests
 

@@ -63,6 +63,19 @@ ColumnLayout {
             radius: 3
             color: "#30678B"
 
+            // Dorico's flow menu (spec 98): MuseScore has one flow, so only its two settings rows work
+            DoricoContextMenuModel {
+                id: flowMenu
+            }
+
+            MouseArea {
+                id: flowMouse
+
+                anchors.fill: parent
+                acceptedButtons: Qt.RightButton
+                onClicked: function(mouse) { flowMenu.popupSetup("flow", flowMouse, Qt.point(mouse.x, mouse.y)) }
+            }
+
             Text {
                 anchors.left: parent.left
                 anchors.top: parent.top

@@ -711,6 +711,8 @@ DockPage {
                 // Print mode shows the score as a non-editable preview.
                 readOnly: root.mode === root.modePrint
                 showNotationTabs: false
+                // Right-click shows Dorico's menu (spec 98)
+                contextMenuModelOverride: DoricoContextMenuModel {}
 
                 Component.onCompleted: {
                     root.notationView = notationView.paintView

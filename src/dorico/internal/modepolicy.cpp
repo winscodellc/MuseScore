@@ -104,9 +104,10 @@ bool isCommandAllowed(Mode mode, const std::string& command)
 int interactionCaps(Mode mode)
 {
     switch (mode) {
-    case Mode::Write: return notation::INTERACTION_ALL & ~(notation::INTERACTION_DRAG_ITEMS | notation::INTERACTION_GRIPS);
+    case Mode::Write: return (notation::INTERACTION_ALL & ~(notation::INTERACTION_DRAG_ITEMS | notation::INTERACTION_GRIPS))
+               | notation::INTERACTION_DORICO_RIGHT_CLICK;
     case Mode::Engrave: return notation::INTERACTION_SELECT | notation::INTERACTION_DRAG_NOTES | notation::INTERACTION_DRAG_ITEMS
-               | notation::INTERACTION_GRIPS | notation::INTERACTION_EDIT_TEXT;
+               | notation::INTERACTION_GRIPS | notation::INTERACTION_EDIT_TEXT | notation::INTERACTION_DORICO_RIGHT_CLICK;
     case Mode::Setup:
     case Mode::Play:
     case Mode::Print: return 0;

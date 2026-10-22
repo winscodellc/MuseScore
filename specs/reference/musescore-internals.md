@@ -367,3 +367,10 @@ No hook. Pages are QML children in `WindowContent.qml:100-118`; `pageByUri()` (`
 - `NoteInput::cursorRect()` reaches above the staff's top line, so a box anchored to it sits higher than one anchored to a note. Anchor to `System::staffCanvasYpage(staff)` at `score->inputState().tick()` instead.
 - macOS: every rebuild re-signs `mscore.app`, and the first launch after it may stop on the "access files in your Documents folder" prompt before any window exists. UI tests block until the user answers it.
 - uictl cannot send `;` (it is the command separator, and the key name `semicolon` zooms). Use `osascript -e 'tell application "System Events" to key code 41'`.
+
+### Context menus (found while writing spec 98)
+- Right-click path: `NotationViewInputController::mousePress` runs `mousePress_considerSelect` (a right-click selects an unselected hit item), then `handleRightClick`. From Qt 6.9 the menu comes from the `QEvent::ContextMenu` branch of `AbstractNotationPaintView::event` -> `showContextMenu(selectionType(), pos)` -> `showContextMenuRequested` -> `NotationView.qml`. `selectionType()` prefers the hit element over the selection.
+- Dorico fork hooks: the `INTERACTION_DORICO_RIGHT_CLICK` caps bit (outside `INTERACTION_ALL`) stops the right-click selecting and makes `showContextMenu` ignore points where `Score::searchPage` finds no page. `NotationView.contextMenuModelOverride` replaces `NotationContextMenuModel`.
+- `DoricoContextMenuModel` builds `MenuItemList` from the `MenuSpec` tables (`internal/contextmenu.cpp`) with `AbstractMenuModel::makeMenuItem` and shows them as a styled `QMenu` (`QApplication` exists, `dorico_qml` links `Qt::Widgets`). `makeMenuItem` asserts on an unregistered command, so test `commandsRegister()->commandInfo(cmd).isValid()` first.
+- Unity build: the helpers in `contextmenu.cpp` are prefixed `ctx` because `doricomenu.cpp` already has `sep()`.
+- `Selection::uniqueNotes()` gives each selected note once for both list and range selections; `Chord`'s `Pid::STEM_DIRECTION` takes `DirectionV`, `Note`'s `Pid::HEAD_GROUP` takes `NoteHeadGroup` (`PropertyValue::fromValue`).

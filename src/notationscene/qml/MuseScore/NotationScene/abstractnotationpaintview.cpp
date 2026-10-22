@@ -30,6 +30,7 @@
 #include "log.h"
 
 #include "actions/actiontypes.h"
+#include "engraving/dom/score.h"
 #include "engraving/dom/shadownote.h"
 
 #include "notation/imasternotation.h" // IWYU pragma: keep
@@ -664,6 +665,12 @@ void AbstractNotationPaintView::showContextMenu(const ElementType& elementType, 
     QPointF _pos = pos;
     if (_pos.isNull()) {
         _pos = QPointF(width() / 2, height() / 2);
+    }
+
+    // Dorico fork (spec 98): no menu on the dark area around the pages
+    if ((m_interactionCaps & INTERACTION_DORICO_RIGHT_CLICK) && m_notation
+        && !m_notation->elements()->msScore()->searchPage(toLogical(_pos))) {
+        return;
     }
 
     emit showContextMenuRequested(static_cast<int>(elementType), _pos);

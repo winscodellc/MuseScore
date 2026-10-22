@@ -35,9 +35,10 @@ MenuSpec item(const char* id) { return { id, {}, {} }; }
 MenuSpec sep() { return { "-", {}, {} }; }
 MenuSpec menu(const char* id, const char* title, std::vector<MenuSpec> children) { return { id, title, std::move(children) }; }
 MenuSpec titled(const std::string& id, const std::string& title) { return { QString::fromStdString(id), QString::fromStdString(title), {} }; }
+}
 
 //! Edit > Filter (spec 45): the two modes, a submenu per group of filters, then the single-category filters
-MenuSpec filterMenu()
+MenuSpec mu::dorico::filterMenu()
 {
     std::vector<MenuSpec> children = { item("command://dorico/filter-select-only"), item("command://dorico/filter-deselect-only"), sep() };
     std::vector<std::string> groups;
@@ -66,7 +67,6 @@ MenuSpec filterMenu()
         }
     }
     return { "dorico-menu-filter", "Filter", std::move(children) };
-}
 }
 
 const std::vector<MenuSpec>& mu::dorico::doricoMenus()

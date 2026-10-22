@@ -40,5 +40,7 @@ enum InteractionCaps : int {
     INTERACTION_SELECT = 1 << 6,        // click to select, context menus
     INTERACTION_REANCHOR = 1 << 7,      // a drag may move an item to another beat (else it changes offsets only)
     INTERACTION_ALL = (1 << 8) - 1,
+    // Dorico fork (spec 98): not in INTERACTION_ALL. Right-click keeps the selection, and shows no menu off the page.
+    INTERACTION_DORICO_RIGHT_CLICK = 1 << 8,
 };
 }

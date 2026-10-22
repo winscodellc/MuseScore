@@ -89,25 +89,6 @@ FocusScope {
         }
     }
 
-    function menuItems(item) {
-        const items = []
-        if (item.type !== LayoutPanelItemType.SYSTEM_OBJECTS_LAYER) {
-            items.push({ "id": "visibility", "title": item.isVisible ? qsTrc("dorico", "Hide") : qsTrc("dorico", "Show") })
-        }
-        if (item.type === LayoutPanelItemType.SHARED_PART) {
-            items.push({ "id": "enabled", "title": qsTrc("dorico", "Enabled"), "checkable": true, "checked": item.isEnabled,
-                         "enabled": tree.isStaveSharingEnabled })
-        }
-        if (item.settingsAvailable) {
-            items.push({ "id": "settings", "title": qsTrc("dorico", "Settings…"), "enabled": item.settingsEnabled })
-        }
-        if (item.isRemovable) {
-            items.push({ "id": "", "title": "" }) // separator
-            items.push({ "id": "remove", "title": qsTrc("dorico", "Remove") })
-        }
-        return items
-    }
-
     function openSettings(item, anchor) {
         let comp = null
         const params = {}
@@ -254,6 +235,7 @@ FocusScope {
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
                         text: cell.item ? cell.item.title : ""
+                        textFormat: Text.StyledText // instrument names arrive HTML-escaped ("Oboes 1 &amp; 2")
                         font: ui.theme.bodyFont
                         color: content.textColor
                         elide: Text.ElideRight
@@ -275,9 +257,17 @@ FocusScope {
                             if (!cell.item.isSelected) {
                                 tree.selectRow(tree.index(cell.index, 0))
                             }
-                            menuLoader.toggleOpened(root.menuItems(cell.item))
+                            playerMenu.popupSetup("player", rowMouse, Qt.point(mouse.x, mouse.y),
+                                                  cell.item.isRemovable ? [] : ["dorico-setup-delete"])
                         } else {
                             tree.selectRow(tree.index(cell.index, 0))
+                        }
+                    }
+
+                    // Dorico's player menu has no Settings row, so the instrument settings open on double-click
+                    onDoubleClicked: function(mouse) {
+                        if (mouse.button === Qt.LeftButton && cell.item.settingsAvailable && cell.item.settingsEnabled) {
+                            root.openSettings(cell.item, content)
                         }
                     }
 
@@ -291,23 +281,12 @@ FocusScope {
                     }
                 }
 
-                StyledMenuLoader {
-                    id: menuLoader
+                DoricoContextMenuModel {
+                    id: playerMenu
 
-                    onHandleMenuItem: function(itemId) {
-                        switch (itemId) {
-                        case "visibility":
-                            tree.changeVisibilityOfSelectedRows(!cell.item.isVisible)
-                            break
-                        case "enabled":
-                            tree.changeEnabledOfSelectedRows(!cell.item.isEnabled)
-                            break
-                        case "settings":
-                            root.openSettings(cell.item, content)
-                            break
-                        case "remove":
+                    onSetupItemChosen: function(kind, itemId) {
+                        if (itemId === "dorico-setup-delete") {
                             tree.removeSelectedRows()
-                            break
                         }
                     }
                 }

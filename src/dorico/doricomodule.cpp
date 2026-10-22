@@ -41,6 +41,7 @@
 #include "internal/doricoshell.h"
 #include "internal/doriconoteinputcontroller.h"
 #include "internal/doricopastecontroller.h"
+#include "internal/formatcontroller.h"
 #include "internal/doricoselectioncontroller.h"
 #include "internal/jumpbar/jumpbarcontroller.h"
 #include "internal/modepolicy.h"
@@ -143,6 +144,7 @@ void DoricoContext::registerExports()
     m_durationsController = std::make_shared<DoricoDurationsController>(iocContext());
     m_modeState = std::make_shared<DoricoModeState>();
     m_noteInputController = std::make_shared<DoricoNoteInputController>(iocContext());
+    m_formatController = std::make_shared<DoricoFormatController>(iocContext());
     m_pasteController = std::make_shared<DoricoPasteController>(iocContext());
     m_selectionController = std::make_shared<DoricoSelectionController>(iocContext());
     m_transformController = std::make_shared<DoricoTransformController>(iocContext());
@@ -174,6 +176,7 @@ void DoricoContext::onInit(const IApplication::RunMode&)
     m_caret->init();
     m_durationsController->init();
     m_noteInputController->init();
+    m_formatController->init();
     m_pasteController->init();
     m_selectionController->init();
     m_transformController->init();

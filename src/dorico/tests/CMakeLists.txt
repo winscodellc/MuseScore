@@ -30,6 +30,7 @@ set(MODULE_TEST_SRC
     ${CMAKE_CURRENT_LIST_DIR}/clefparser_tests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/doricomodule_tests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/doricoshell_tests.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/contextmenu_tests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/doricomenu_tests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/dynamicsparser_tests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/gotoparser_tests.cpp

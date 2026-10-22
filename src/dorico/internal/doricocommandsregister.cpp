@@ -192,6 +192,19 @@ static std::vector<CommandInfo> makeCommandInfos()
     v.push_back(info(DORICO_LYRICS_NEXT_LINE_COMMAND, "Dorico: next lyric line", "Lyrics entry: goes to the next line, adding it if needed"));
     v.push_back(info(DORICO_LYRICS_ABOVE_COMMAND, "Dorico: lyrics above", "Lyrics entry: puts the lyric above the staff"));
     v.push_back(info(DORICO_LYRICS_BELOW_COMMAND, "Dorico: lyrics below", "Lyrics entry: puts the lyric below the staff"));
+
+    v.push_back(info(DORICO_STEM_UP_COMMAND, "Force Stem Up", "Forces the stems of the selected notes up"));
+    v.push_back(info(DORICO_STEM_DOWN_COMMAND, "Force Stem Down", "Forces the stems of the selected notes down"));
+    v.push_back(info(DORICO_STEM_AUTO_COMMAND, "Remove Forced Stem", "Gives the selected notes' stems their automatic direction"));
+    v.push_back(info(DORICO_NOTEHEAD_DEFAULT_COMMAND, "Default Noteheads", "Gives the selected notes the default notehead"));
+    v.push_back(info(DORICO_NOTEHEAD_CROSS_COMMAND, "Crosses", "Gives the selected notes cross noteheads"));
+    v.push_back(info(DORICO_NOTEHEAD_TRIANGLE_COMMAND, "Triangular", "Gives the selected notes triangle noteheads"));
+    v.push_back(info(DORICO_NOTEHEAD_DIAMOND_COMMAND, "Diamonds", "Gives the selected notes diamond noteheads"));
+    v.push_back(info(DORICO_NOTEHEAD_SLASH_COMMAND, "Slashes", "Gives the selected notes slash noteheads"));
+    v.push_back(info(DORICO_NOTEHEAD_SLASHED1_COMMAND, "Slashed Noteheads (Bottom Left to Top Right)", "Gives the selected notes slashed noteheads"));
+    v.push_back(info(DORICO_NOTEHEAD_SLASHED2_COMMAND, "Slashed Noteheads (Top Left to Bottom Right)", "Gives the selected notes slashed noteheads"));
+    v.push_back(info(DORICO_NOTEHEAD_CIRCLED_COMMAND, "Circled Noteheads", "Gives the selected notes circled noteheads"));
+    v.push_back(info(DORICO_NOTEHEAD_CIRCLED_LARGE_COMMAND, "Large Circled Noteheads", "Gives the selected notes large circled noteheads"));
     return v;
 }
 

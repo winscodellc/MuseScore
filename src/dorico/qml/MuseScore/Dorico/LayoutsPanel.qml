@@ -52,6 +52,19 @@ Item {
 
     property PartListModel parts: null
 
+    // Right-click menu of a layout (spec 98)
+    DoricoContextMenuModel {
+        id: layoutMenu
+
+        onSetupItemChosen: function(kind, itemId) {
+            switch (itemId) {
+            case "dorico-setup-rename": root.editingIndex = root.selectedIndex; break
+            case "dorico-setup-delete": layouts.deleteLayout(root.selectedIndex); break
+            case "dorico-setup-duplicate": root.parts.copyPart(root.selectedIndex - 1); break
+            }
+        }
+    }
+
     Component {
         id: partsComponent
         PartListModel {}
@@ -104,9 +117,19 @@ Item {
             color: isSelected ? "#45A6F5" : (ui.theme.isDark ? "#3D4A58" : "#DDE2E7")
 
             MouseArea {
+                id: cardMouse
+
                 anchors.fill: parent
                 hoverEnabled: true
-                onClicked: root.selectedIndex = card.index
+                acceptedButtons: Qt.LeftButton | Qt.RightButton
+                onClicked: function(mouse) {
+                    root.selectedIndex = card.index
+                    if (mouse.button === Qt.RightButton) {
+                        // The full score is named after the project and cannot be deleted or duplicated
+                        layoutMenu.popupSetup("layout", cardMouse, Qt.point(mouse.x, mouse.y),
+                                              card.index === 0 ? ["dorico-setup-rename", "dorico-setup-delete", "dorico-setup-duplicate"] : [])
+                    }
+                }
                 // Double-click shows the layout in the music area, like choosing it in the layout selector.
                 onDoubleClicked: layouts.selectLayout(card.index)
                 onContainsMouseChanged: {

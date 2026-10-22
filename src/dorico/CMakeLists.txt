@@ -42,6 +42,10 @@ target_sources(dorico PRIVATE
     internal/modepolicy.h
     internal/doriconoteinputcontroller.cpp
     internal/doriconoteinputcontroller.h
+    internal/contextmenu.cpp
+    internal/contextmenu.h
+    internal/formatcontroller.cpp
+    internal/formatcontroller.h
     internal/doricomenu.cpp
     internal/doricomenu.h
     internal/doricomenuarranger.cpp

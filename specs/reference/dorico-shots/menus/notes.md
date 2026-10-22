@@ -127,6 +127,18 @@ Selection note for Dorico: right-click does NOT change the selection in Dorico; 
 - Dorico: right-click at (a) (my click missed the note, so empty selection) and (h) blank page area: Filter >, ---, Bar Numbers >, Staff Size >. Same 3-row menu as Write empty-space. (d) not captured: no dynamic visible on the page in view.
 - Ours: dynamic: note menu (Cut .. Style...), identical to Write; note click missed -> page menu (Style..., Page settings..., Load style...); blank (h): page menu. Ours has no Engrave-specific context items.
 
+### Capture 2026-10-22 (Dorico Pro 6, Liszt example project, light theme)
+Corrections to the above: **(e) slur** is NOT the note menu plus Slurs. **Right-click never moves the selection**, even onto an unselected item. Submenus open on click, at the parent row's height.
+- Slur selected: Cut ⌘X | Copy ⌘C | Paste Special > | --- | Filter > | --- | Bar Numbers > | Slurs > | Staff Size > | Staff >. Slurs >: Link | Unlink.
+- Right-click on an unselected bass note while a slur was selected: selection stayed on the slur, the menu was the slur menu.
+- Piano (two-staff) notes also get `Cross Staff >` between `Chord Symbols and Diagrams` and `Fingering` (not expanded). A one-staff instrument does not show it.
+- Clipboard non-empty: `Paste ⌘V` sits between Copy and Paste Special. No Paste row when the clipboard is empty.
+- Write, note: Chord Symbols and Diagrams > : `Line >` (Line 1 to Line 5) | --- | Generate Chord Symbols from Selection... | Generate Notes from Chord Symbols in Selection... ; Fingering > : Reset Fingering ; Octave Line > : Add Corner | Make Angled | Remove Corner/Angle ; Pedal Lines > : Add Retake | Add Change to One Quarter Depressed | Add Change to Half Depressed | Add Change to Three Quarters Depressed | Add Change to Fully Depressed | Remove Retake | --- | Split Pedal Line | Merge Pedal Lines ; Staff Size > : 60% | 75% | 100% | --- | Custom Staff Size... (no check mark).
+- Write, dynamic: Cut | Copy | Paste Special > | --- | Filter > | --- | Edit Font... | --- | Bar Numbers > | Dynamics > | Staff Size > | Staff >. Dynamics > (Write): Group Dynamics | Ungroup Dynamics | Remove from Group | --- | Link | Unlink | --- | Increase Dynamic Intensity | Decrease Dynamic Intensity.
+- **Engrave, note**: Filter > | --- | Bar Numbers > | Staff Size > | Staff >. No Cut, Copy, Paste Special, Beaming, Stem, Voices or Notehead.
+- **Engrave, dynamic**: Filter > | --- | Edit Font... | --- | Bar Numbers > | Dynamics > | Staff Size > | Staff >. Dynamics > (Engrave): Group Dynamics (grey) | Ungroup Dynamics (grey) | Remove from Group (grey) | --- | Link (grey) | Unlink (grey) | --- | Align Dynamics.
+- Engrave Filter >: ✓ Select Only | Deselect Only (two rows). Engrave Staff > (note): Create Manual Cutaway | Create Start Cutaway | Create End Cutaway | --- | Create Coordination Line | --- | Manual Staff Visibility.... In Engrave, Staff Size > (note) and Staff > (dynamic) did not open when clicked (empty, or a timing miss; not retried). Engrave Bar Numbers > not expanded.
+
 ### Setup mode (Cmd-1)
 - Dorico player (Glockenspiel): Soloist | --- | Rename Player... | Add Instrument to Player... (Shift+I-ish glyph shown) | Add Player to Group > | --- | Flows > | Layouts > | --- | Duplicate Player | Delete Player | --- | Chord Symbols > | Chord Diagrams > | --- | Combine Instruments Into Kit | Create Empty Kit | Import Kit...
 - Dorico flow (Flow 1): Rename | Notation Options... Shift+Cmd+N | Project Info... Cmd+I | --- | Layouts > | Players > | --- | Video > | --- | Duplicate Flow | Delete Flow
