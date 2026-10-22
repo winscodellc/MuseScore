@@ -148,11 +148,11 @@ inline int zoneDefaultSize(Mode mode, Zone zone)
     switch (zone) {
     case Zone::Left:
         switch (mode) {
-        case Mode::Write: return 132;
+        case Mode::Write: return 92;
         case Mode::Play: return 240;
         default: return 300;
         }
-    case Zone::Right: return 300;
+    case Zone::Right: return mode == Mode::Write ? 230 : 300;
     case Zone::Lower: return mode == Mode::Setup ? 130 : 300;
     }
     return 0;

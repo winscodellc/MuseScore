@@ -48,6 +48,11 @@ FocusScope {
         id: tree
     }
 
+    // Dispatches Add Single Player from the selected row's "+"
+    DoricoTopBarModel {
+        id: dispatcher
+    }
+
     onVisibleChanged: tree.setLayoutPanelVisible(root.visible)
     Component.onCompleted: tree.setLayoutPanelVisible(root.visible)
 
@@ -149,7 +154,7 @@ FocusScope {
 
         anchors.fill: parent
         anchors.margins: 8
-        spacing: 4
+        spacing: 0
         clip: true
         boundsBehavior: Flickable.StopAtBounds
         model: tree
@@ -160,8 +165,12 @@ FocusScope {
             required property var item
             required property int index
 
+            // Dorico has no Tempos row in Players (tempo is a system track): hide MuseScore's system-markings layer
+            readonly property bool hidden: Boolean(item) && item.type === LayoutPanelItemType.SYSTEM_OBJECTS_LAYER
+
             width: ListView.view.width
-            height: 26
+            height: hidden ? 0 : 30 // 26 row + 4 gap
+            visible: !hidden
             keys: ["doricoPlayer"]
 
             // Move the dragged row here. Also on every pointer move, not only on enter: after a move the rows shift
@@ -191,11 +200,11 @@ FocusScope {
                 readonly property color textColor: selected ? "#0C0C0C" : ui.theme.fontPrimaryColor
 
                 width: cell.width
-                height: cell.height
+                height: 26
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.horizontalCenter: parent.horizontalCenter
                 radius: 3
-                color: selected ? "#45A6F5" : (ui.theme.isDark ? "#3D4A58" : "#DDE2E7")
+                color: selected ? "#40ACFF" : (ui.theme.isDark ? "#36414D" : "#DDE2E7")
                 opacity: dimmed ? 0.55 : 1.0
 
                 Drag.keys: ["doricoPlayer"]
@@ -223,6 +232,16 @@ FocusScope {
                     anchors.rightMargin: 8
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: 6
+
+                    // Expand chevron (Dorico's rows expand to show the player's instruments; ours are flat)
+                    DoricoButton {
+                        anchors.verticalCenter: parent.verticalCenter
+                        doricoIcon: "svg:chevron-down"
+                        rotation: -90
+                        iconBoxSize: 12
+                        transparent: true
+                        iconColor: content.textColor
+                    }
 
                     DoricoButton {
                         anchors.verticalCenter: parent.verticalCenter
@@ -279,6 +298,22 @@ FocusScope {
                             tree.endActiveDrag()
                         }
                     }
+                }
+
+                // Add Single Player, on the selected row only (as Dorico)
+                DoricoButton {
+                    anchors.right: parent.right
+                    anchors.rightMargin: 4
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    visible: content.selected
+                    doricoIcon: "svg:plus"
+                    iconBoxSize: 14
+                    iconColor: content.textColor
+                    transparent: true
+                    toolTipTitle: qsTrc("dorico", "Add Single Player")
+
+                    onClicked: dispatcher.dispatch("command://instruments/select")
                 }
 
                 DoricoContextMenuModel {

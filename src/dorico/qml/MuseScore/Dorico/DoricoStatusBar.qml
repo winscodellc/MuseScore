@@ -86,6 +86,8 @@ Item {
         Layout.alignment: Qt.AlignVCenter
         Layout.preferredHeight: 28
 
+        minWidth: 0
+        margins: 8
         transparent: true
         enabled: false
         toolTipDescription: root.notAvailable
@@ -98,6 +100,8 @@ Item {
         Layout.alignment: Qt.AlignVCenter
         Layout.preferredHeight: 28
 
+        minWidth: 0
+        margins: 8
         transparent: !active
         accentButton: active
     }
@@ -122,30 +126,46 @@ Item {
 
         SeparatorLine { orientation: Qt.Vertical; visible: root.shows("grid") }
 
-        ToggleButton {
+        // Concert / Transposed Pitch: compact pills in one dark strip (spec 101, S1)
+        Rectangle {
+            Layout.alignment: Qt.AlignVCenter
+            Layout.preferredWidth: pitchRow.implicitWidth + 4
+            Layout.preferredHeight: 26
 
             visible: root.shows("pitch")
-            active: model.concertPitchItem.checked
-            enabled: model.concertPitchItem.enabled
-            text: qsTrc("dorico", "Concert")
+            radius: 4
+            color: ui.theme.strokeColor
 
-            navigation.panel: navPanel
-            navigation.order: 1
+            Row {
+                id: pitchRow
 
-            onClicked: if (!active) model.toggleConcertPitch()
-        }
+                anchors.centerIn: parent
+                spacing: 0
 
-        ToggleButton {
+                ToggleButton {
 
-            visible: root.shows("pitch")
-            active: !model.concertPitchItem.checked
-            enabled: model.concertPitchItem.enabled
-            text: qsTrc("dorico", "Transposed")
+                    active: model.concertPitchItem.checked
+                    enabled: model.concertPitchItem.enabled
+                    text: qsTrc("dorico", "Concert")
 
-            navigation.panel: navPanel
-            navigation.order: 2
+                    navigation.panel: navPanel
+                    navigation.order: 1
 
-            onClicked: if (!active) model.toggleConcertPitch()
+                    onClicked: if (!active) model.toggleConcertPitch()
+                }
+
+                ToggleButton {
+
+                    active: !model.concertPitchItem.checked
+                    enabled: model.concertPitchItem.enabled
+                    text: qsTrc("dorico", "Transposed")
+
+                    navigation.panel: navPanel
+                    navigation.order: 2
+
+                    onClicked: if (!active) model.toggleConcertPitch()
+                }
+            }
         }
 
         SeparatorLine { orientation: Qt.Vertical; visible: root.shows("pitch") }
@@ -188,21 +208,6 @@ Item {
         }
 
         // ---- right group ----
-
-        FlatButton {
-            Layout.alignment: Qt.AlignVCenter
-            Layout.preferredHeight: 28
-
-            visible: root.shows("zoneArrow")
-            transparent: true
-            icon: IconCode.SMALL_ARROW_UP
-            toolTipTitle: qsTrc("dorico", "Show/hide lower zone")
-
-            navigation.panel: navPanel
-            navigation.order: 4
-
-            onClicked: tools.handleMenuItem(tools.items[0].id)
-        }
 
         ToggleButton {
 
@@ -332,5 +337,22 @@ Item {
                 }
             }
         }
+    }
+
+    // Lower zone toggle: a chevron at the bottom centre of the bar, as in Dorico (spec 101, S3)
+    FlatButton {
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.verticalCenter: parent.verticalCenter
+        height: 28
+
+        visible: root.shows("zoneArrow")
+        transparent: true
+        icon: IconCode.SMALL_ARROW_UP
+        toolTipTitle: qsTrc("dorico", "Show/hide lower zone")
+
+        navigation.panel: navPanel
+        navigation.order: 4
+
+        onClicked: tools.handleMenuItem(tools.items[0].id)
     }
 }

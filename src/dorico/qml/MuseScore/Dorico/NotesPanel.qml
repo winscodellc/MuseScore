@@ -68,9 +68,9 @@ Item {
         Column {
             id: content
 
-            x: 8
+            x: 4
             y: 8
-            width: parent.width - 16
+            width: parent.width - 8
             spacing: 12
 
             // Show/Hide All Notes: one toggle with a disclosure arrow above and below the durations, as in Dorico.
@@ -88,7 +88,7 @@ Item {
 
             ToolSection {
                 width: parent.width
-                iconSize: 34
+                iconSize: 30
                 navigationPanel: navPanel
                 navigationOrderStart: 1
                 // "maxima" has no command, so ToolSection shows it as a "Not available yet" placeholder.
@@ -113,7 +113,7 @@ Item {
 
             ToolSection {
                 width: parent.width
-                iconSize: 34
+                iconSize: 30
                 navigationPanel: navPanel
                 navigationOrderStart: 20
                 codes: [
@@ -140,7 +140,7 @@ Item {
                     id: articulations
 
                     width: parent.width
-                    iconSize: 34
+                    iconSize: 30
                     navigationPanel: navPanel
                     navigationOrderStart: 30
                     codes: [

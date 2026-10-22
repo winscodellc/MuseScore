@@ -148,6 +148,7 @@ Item {
                     width: parent.width
                     panelModel: bracketing
                     showTitles: false
+                    rows: 2
                     navigationPanel: leftNav
                     navigationRowStart: 50
                 }

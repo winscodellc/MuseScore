@@ -81,7 +81,7 @@ Item {
             x: 8
             height: 26
             radius: 3
-            color: card.checked ? "#45A6F5" : (ui.theme.isDark ? "#3D4A58" : "#DDE2E7")
+            color: card.checked ? "#40ACFF" : (ui.theme.isDark ? "#36414D" : "#DDE2E7")
 
             Row {
                 anchors.left: parent.left

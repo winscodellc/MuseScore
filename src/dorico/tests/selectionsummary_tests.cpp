@@ -29,7 +29,7 @@ using namespace mu::dorico;
 
 TEST(DoricoSelectionSummary, NothingSelectedIsEmpty)
 {
-    EXPECT_TRUE(summarise({}).isEmpty());
+    EXPECT_EQ(summarise({}), "No selection");
 }
 
 TEST(DoricoSelectionSummary, SingleNote)

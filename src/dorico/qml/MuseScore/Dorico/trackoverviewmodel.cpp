@@ -26,6 +26,7 @@
 #include "engraving/dom/measure.h"
 #include "engraving/dom/part.h"
 #include "engraving/dom/segment.h"
+#include "engraving/dom/textbase.h"
 #include "engraving/types/constants.h"
 #include "notation/inotation.h"
 #include "notation/inotationplayback.h"
@@ -178,7 +179,7 @@ void TrackOverviewModel::rebuild(const Score* score)
 
             tracks << QVariantMap {
                 { "partId", part->id().toQString() },
-                { "title", part->partName().toQString() },
+                { "title", TextBase::unEscape(part->partName()).toQString() }, // plain text: partName() is rich text
                 { "blocks", blocks },
             };
         }

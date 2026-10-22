@@ -248,7 +248,7 @@ void DoricoTopBarModel::updateLayouts()
     if (master) {
         m_layouts.push_back(master->notation());
         m_excerpts.push_back(nullptr);
-        m_titles << QString("Score");
+        m_titles << muse::qtrc("dorico", "Full score");
 
         ExcerptNotationList excerpts = master->excerpts();
         const ExcerptNotationList potential = master->potentialExcerpts();

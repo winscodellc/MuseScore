@@ -50,7 +50,7 @@ QString mu::dorico::summarise(const SelectionInfo& info)
 
     switch (info.kind) {
     case SelectionInfo::Kind::None:
-        return {};
+        return QStringLiteral("No selection");
     case SelectionInfo::Kind::Multiple:
         return QStringLiteral("Multiple selection");
     case SelectionInfo::Kind::Single: {

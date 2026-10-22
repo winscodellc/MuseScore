@@ -39,6 +39,11 @@ Column {
     property int navigationRowStart: 0
     // Off when a single section already sits under its own header (Engrave's Bracketing)
     property bool showTitles: true
+    // > 0: that many equal-width cells per row, cellHeight tall (Dorico's Notations panel: 2 large cells per row)
+    property int fixedColumns: 0
+    property int fixedCellHeight: 0
+    // > 0: the grid is that many rows tall and as wide as it needs (Engrave's Bracketing: 2 rows)
+    property int rows: 0
 
     spacing: 12
 
@@ -51,7 +56,10 @@ Column {
             required property int index
             required property string modelData
 
-            readonly property size cell: root.panelModel.cellSize(index)
+            readonly property size cell: root.fixedColumns > 0
+                                         ? Qt.size(Math.floor(root.width / root.fixedColumns),
+                                                   root.fixedCellHeight > 0 ? root.fixedCellHeight : root.panelModel.cellSize(index).height)
+                                         : root.panelModel.cellSize(index)
 
             width: root.width
             spacing: 4
@@ -63,9 +71,10 @@ Column {
             }
 
             PaletteGridView {
-                readonly property int columns: Math.max(1, Math.floor(width / section.cell.width))
+                readonly property int columns: root.rows > 0 ? Math.ceil(ncells / root.rows)
+                                                             : Math.max(1, Math.floor(width / section.cell.width))
 
-                width: parent.width
+                width: root.rows > 0 ? columns * section.cell.width : parent.width
                 height: Math.ceil(ncells / columns) * section.cell.height
 
                 cellSize: section.cell

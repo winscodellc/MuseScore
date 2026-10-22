@@ -48,10 +48,10 @@ Item {
     ]
     readonly property int printMode: 4
 
-    readonly property color stripColor: ui.theme.isDark ? "#3D4A58" : "#DDE2E7"
+    readonly property color stripColor: ui.theme.isDark ? ui.theme.strokeColor : "#DDE2E7"
 
     implicitWidth: row.implicitWidth
-    implicitHeight: 36
+    implicitHeight: 37
     width: implicitWidth
     height: implicitHeight
 
@@ -78,7 +78,7 @@ Item {
         Rectangle {
             anchors.verticalCenter: parent.verticalCenter
             width: modeRow.width + 4
-            height: 30
+            height: 33
             radius: 4
             color: root.stripColor
 
@@ -98,14 +98,13 @@ Item {
 
                         readonly property bool current: topBar.currentMode === index
 
-                        height: 26
+                        height: 29
                         minWidth: 0
-                        margins: 10
+                        margins: 12
                         text: modelData
                         textFont: ui.theme.bodyBoldFont
-                        transparent: !current
+                        transparent: false
                         accentButton: current
-                        accentColor: "#2C678F"
 
                         navigation.name: modelData
                         navigation.panel: root.navigationPanel
@@ -137,7 +136,7 @@ Item {
         Rectangle {
             anchors.verticalCenter: parent.verticalCenter
             width: viewRow.width + 4
-            height: 30
+            height: 33
             radius: 4
             color: root.stripColor
 

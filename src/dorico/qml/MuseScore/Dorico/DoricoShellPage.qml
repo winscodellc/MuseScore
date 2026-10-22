@@ -237,11 +237,11 @@ DockPage {
     readonly property var statusItemsByMode: [
         ["order", "summary", "zoom", "midi"],
         ["grid", "pitch", "summary", "zoneArrow", "follow", "tools", "viewType", "arrangement", "zoom", "midi"],
-        ["grid", "pitch", "summary", "zoneArrow", "tools", "arrangement", "zoom", "midi"], // Engrave: always page view
-        ["pitch", "summary", "zoneArrow", "zoom", "midi"],
+        ["grid", "pitch", "summary", "zoneArrow", "follow", "tools", "arrangement", "zoom", "midi"], // Engrave: always page view
+        ["pitch", "summary", "zoneArrow", "follow", "zoom", "midi"],
         ["summary", "zoomFit", "zoom"]
     ]
-    readonly property var leftZoneMinWidth: [300, 100, 200, 200, 300]
+    readonly property var leftZoneMinWidth: [300, 88, 200, 200, 300]
     readonly property var leftZoneMaxWidth: [600, 300, 600, 600, 600]
     readonly property var rightZoneMinWidth: [300, 200, 200, 200, 300]
     readonly property var lowerZoneTabs: [
@@ -263,6 +263,12 @@ DockPage {
 
             implicitWidth: root.mode === root.modeEngrave ? engraveTools.implicitWidth : notesTools.implicitWidth
             implicitHeight: root.mode === root.modeEngrave ? engraveTools.implicitHeight : notesTools.implicitHeight
+
+            // Toolbox strips are one shade lighter than the panels (spec 101, P1)
+            Rectangle {
+                anchors.fill: parent
+                color: ui.theme.backgroundSecondaryColor
+            }
 
             NotesToolbox {
                 id: notesTools
@@ -288,6 +294,12 @@ DockPage {
             availableHeight: notationsToolbox.height
             navigationPanel.section: notationsToolbox.navigationSection
             navigationPanel.order: 2
+
+            Rectangle {
+                anchors.fill: parent
+                z: -1
+                color: ui.theme.backgroundSecondaryColor
+            }
 
             // Highlight only while the zone shows it (a DockPanel's visible follows its open state).
             currentPanelId: rightZone.visible && root.mode === root.modeWrite ? root.notationsModel.panelId : ""
@@ -400,6 +412,7 @@ DockPage {
             id: doricoTopBar
 
             objectName: "doricoTopBar"
+            thickness: 37
             title: qsTrc("dorico", "Top bar")
 
             floatable: false
@@ -408,13 +421,24 @@ DockPage {
             separatorsVisible: false
 
             alignment: DockToolBarAlignment.Left
-            contentBottomPadding: 2
+            contentBottomPadding: 0
 
             navigationSection: root.topToolbarKeyNavSec
 
-            DoricoTopBar {
-                navigationPanel.section: doricoTopBar.navigationSection
-                navigationPanel.order: 2
+            // Dorico's toolbar is one shade lighter than the panels (spec 101, T2); DockFrame paints the panel colour
+            Rectangle {
+                color: ui.theme.backgroundSecondaryColor
+                implicitWidth: topBarContent.implicitWidth
+                implicitHeight: 37
+
+                DoricoTopBar {
+                    id: topBarContent
+
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    navigationPanel.section: doricoTopBar.navigationSection
+                    navigationPanel.order: 2
+                }
             }
         },
 
@@ -422,22 +446,33 @@ DockPage {
             id: playbackToolBar
 
             objectName: "playbackToolBar"
+            thickness: 37
             title: qsTrc("appshell", "Playback controls")
 
             separatorsVisible: false
             alignment: DockToolBarAlignment.Center
             resizable: !floating
 
-            contentBottomPadding: floating ? 8 : 2
+            contentBottomPadding: floating ? 8 : 0
             contentTopPadding: floating ? 8 : 0
 
             navigationSection: root.topToolbarKeyNavSec
 
-            PlaybackToolBar {
-                navigationPanelSection: playbackToolBar.navigationSection
-                navigationPanelOrder: 3
+            Rectangle {
+                color: playbackToolBar.floating ? "transparent" : ui.theme.backgroundSecondaryColor
+                implicitWidth: playbackContent.implicitWidth
+                implicitHeight: playbackToolBar.floating ? playbackContent.implicitHeight : 37
 
-                floating: playbackToolBar.floating
+                PlaybackToolBar {
+                    id: playbackContent
+
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    navigationPanelSection: playbackToolBar.navigationSection
+                    navigationPanelOrder: 3
+
+                    floating: playbackToolBar.floating
+                }
             }
         },
 
@@ -445,6 +480,7 @@ DockPage {
             id: undoRedoToolBar
 
             objectName: "undoRedoToolBar"
+            thickness: 37
             title: qsTrc("appshell", "Undo/redo")
 
             floatable: false
@@ -453,34 +489,43 @@ DockPage {
             separatorsVisible: false
 
             alignment: DockToolBarAlignment.Right
-            contentBottomPadding: 2
+            contentBottomPadding: 0
 
             navigationSection: root.topToolbarKeyNavSec
 
-            Row {
-                spacing: 4
+            Rectangle {
+                color: ui.theme.backgroundSecondaryColor
+                implicitWidth: undoRedoRow.implicitWidth
+                implicitHeight: 37
 
-                UndoRedoToolBar {
+                Row {
+                    id: undoRedoRow
+
                     anchors.verticalCenter: parent.verticalCenter
+                    spacing: 4
 
-                    navigationPanel.section: undoRedoToolBar.navigationSection
-                    navigationPanel.order: 5
-                }
+                    UndoRedoToolBar {
+                        anchors.verticalCenter: parent.verticalCenter
 
-                DoricoButton {
-                    anchors.verticalCenter: parent.verticalCenter
-
-                    doricoIcon: "svg:circle-help"
-                    toolTipTitle: qsTrc("dorico", "Help")
-
-                    navigation.panel: NavigationPanel {
-                        name: "DoricoHelp"
-                        section: undoRedoToolBar.navigationSection
-                        order: 6
-                        accessible.name: qsTrc("dorico", "Help")
+                        navigationPanel.section: undoRedoToolBar.navigationSection
+                        navigationPanel.order: 5
                     }
 
-                    onClicked: root.shellModel.dispatch("command://app/online-handbook")
+                    DoricoButton {
+                        anchors.verticalCenter: parent.verticalCenter
+
+                        doricoIcon: "svg:circle-help"
+                        toolTipTitle: qsTrc("dorico", "Help")
+
+                        navigation.panel: NavigationPanel {
+                            name: "DoricoHelp"
+                            section: undoRedoToolBar.navigationSection
+                            order: 6
+                            accessible.name: qsTrc("dorico", "Help")
+                        }
+
+                        onClicked: root.shellModel.dispatch("command://app/online-handbook")
+                    }
                 }
             }
         }

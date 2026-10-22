@@ -122,6 +122,7 @@ Column {
 
                 Layout.fillWidth: true
                 text: modelData.text
+                doricoIcon: modelData.icon ?? IconCode.NONE
                 available: modelData.available !== false
                 enabled: seg.segEnabled
                 accentButton: seg.current === modelData.value
@@ -319,8 +320,8 @@ Column {
 
         Segmented {
             items: [
-                { "text": qsTrc("dorico", "Portrait"), "value": 1 },
-                { "text": qsTrc("dorico", "Landscape"), "value": 2 }
+                { "text": "", "icon": "svg:rectangle-vertical", "value": 1 },
+                { "text": "", "icon": "svg:rectangle-horizontal", "value": 2 }
             ]
             current: root.shownOrientation
             navOrder: 21
@@ -340,7 +341,8 @@ Column {
 
         RowLayout {
             width: parent.width
-            visible: root.toPrinter && root.s.fitToPaper === false
+            visible: root.toPrinter
+            enabled: root.s.fitToPaper === false
             spacing: 8
 
             StyledTextLabel {
@@ -365,7 +367,8 @@ Column {
         // Spreads and 2-up: the unpaired last page can go on other paper
         CheckBox {
             width: parent.width
-            visible: root.toPrinter && (root.s.jobType === 1 || root.s.jobType === 2)
+            visible: root.toPrinter
+            enabled: root.s.jobType === 1 || root.s.jobType === 2
             text: qsTrc("dorico", "Print odd final page on")
             checked: root.s.oddFinalOn === true
             navigation.panel: root.nav
@@ -386,8 +389,8 @@ Column {
         Segmented {
             visible: root.toPrinter && root.s.oddFinalOn === true && (root.s.jobType === 1 || root.s.jobType === 2)
             items: [
-                { "text": qsTrc("dorico", "Portrait"), "value": 1 },
-                { "text": qsTrc("dorico", "Landscape"), "value": 2 }
+                { "text": "", "icon": "svg:rectangle-vertical", "value": 1 },
+                { "text": "", "icon": "svg:rectangle-horizontal", "value": 2 }
             ]
             current: root.shownOddOrientation
             navOrder: 28

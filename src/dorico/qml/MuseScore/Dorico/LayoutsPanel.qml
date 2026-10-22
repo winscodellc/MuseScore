@@ -114,7 +114,7 @@ Item {
             width: ListView.view.width
             height: 26
             radius: 3
-            color: isSelected ? "#45A6F5" : (ui.theme.isDark ? "#3D4A58" : "#DDE2E7")
+            color: isSelected ? "#40ACFF" : (ui.theme.isDark ? "#36414D" : "#DDE2E7")
 
             MouseArea {
                 id: cardMouse

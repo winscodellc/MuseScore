@@ -72,7 +72,6 @@ Item {
 
         StyledDropdown {
             Layout.fillWidth: true
-            enabled: false
             model: [{ "text": qsTrc("dorico", "Flow 1"), "value": 0 }]
             currentIndex: 0
         }

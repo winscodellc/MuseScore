@@ -67,6 +67,8 @@ Item {
             width: parent.width - 16
 
             panelModel: root.panelModel
+            fixedColumns: 2
+            fixedCellHeight: 70
             navigationPanel: navPanel
         }
     }

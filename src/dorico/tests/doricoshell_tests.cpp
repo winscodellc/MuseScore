@@ -109,7 +109,8 @@ TEST(DoricoShell, DefaultZones)
     EXPECT_FALSE(zoneOpenByDefault(Mode::Write, Zone::Right));
     EXPECT_FALSE(zoneOpenByDefault(Mode::Write, Zone::Lower));
     EXPECT_TRUE(zoneOpenByDefault(Mode::Print, Zone::Right));
-    EXPECT_EQ(zoneDefaultSize(Mode::Write, Zone::Left), 132);
+    EXPECT_EQ(zoneDefaultSize(Mode::Write, Zone::Left), 92);
+    EXPECT_EQ(zoneDefaultSize(Mode::Write, Zone::Right), 230);
     EXPECT_EQ(zoneDefaultSize(Mode::Setup, Zone::Lower), 130);
 }
 

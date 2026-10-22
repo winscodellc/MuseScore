@@ -43,7 +43,7 @@ struct PrintSettings {
     bool graphics = false; //!< destination: false = Printer, true = Graphics
     QString printerName;   //!< empty = the system default
     int copies = 1;
-    bool collate = false;
+    bool collate = true;
 
     JobType jobType = JobType::Normal;
     RangeKind range = RangeKind::All;

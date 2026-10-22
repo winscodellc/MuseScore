@@ -53,8 +53,8 @@ Item {
     property bool showFx: true
 
     // Strip sections open on every channel at once, as in Dorico
-    property bool insertsOpen: true
-    property bool sendsOpen: true
+    property bool insertsOpen: false
+    property bool sendsOpen: false
 
     // Channel height below the split line; Dorico's channels are about 190 px
     property real channelHeight: 190
