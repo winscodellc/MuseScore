@@ -88,6 +88,7 @@ Item {
 
         menuInfo.subitemsChanged.connect(function(subitems, menuId) {
             if (menu.id === menuId) {
+                menu.title = menuInfo.title // Dorico fork (spec 102): the mode menu changes its title
                 menu.subitems = subitems
                 menu.load()
             }

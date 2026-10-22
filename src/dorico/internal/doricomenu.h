@@ -27,6 +27,8 @@
 #include <QString>
 #include <QStringList>
 
+#include "../idoricomodestate.h"
+
 //! Spec 59: Dorico's menu bar as a table of MuseScore menu item ids (command URIs and MuseScore submenu ids such as
 //! "menu-file-open"), Dorico commands, separators and new submenus. Pure data, unit-tested; DoricoMenuArranger turns
 //! it into MenuItems.
@@ -40,8 +42,22 @@ struct MenuSpec {
     bool isSubmenu() const { return !children.empty(); }
 };
 
-//! The ten top-level menus in Dorico's order: File, Edit, Setup, Write, Engrave, Play, Library, View, Window, Help.
+//! Spec 102: the menu bar in Dorico's order: File, Edit, View, <mode menu>, Play, Library, Window, Help, Script.
+//! The mode menu is the one entry with id MODE_MENU_ID and no children: DoricoMenuArranger fills it with `modeMenu()` of
+//! the current mode and swaps it when the mode changes.
 const std::vector<MenuSpec>& doricoMenus();
+
+//! Dorico shows only the menu of the current mode: Setup, Write or Engrave. Play mode has none (the Play menu is always
+//! there) and neither has Print mode; both return nullptr.
+const MenuSpec* modeMenu(Mode mode);
+inline const QString MODE_MENU_ID("dorico-menu-mode");
+
+//! Edit > Notations (spec 102), the same submenus as the score context menu (spec 98).
+MenuSpec notationsMenu();
+
+//! A stub has no behaviour yet: the arranger shows it disabled with a "Not available yet" tooltip.
+inline const QString STUB_ID_PREFIX("dorico-menu-stub-");
+inline bool isStubId(const QString& id) { return id.startsWith(STUB_ID_PREFIX) || id.startsWith("dorico-ctx-"); }
 
 //! Edit > Filter (spec 45); the score context menu (spec 98) shares it.
 MenuSpec filterMenu();

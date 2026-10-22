@@ -1,0 +1,724 @@
+## Dorico
+About Dorico
+---
+Preferences...  [Cmd+,]
+---
+Services >
+    Activity Monitor
+    Allocations & Leaks
+    File Activity
+    System Trace
+    Services Settings…
+---
+Hide Dorico  [Cmd+H]
+Hide Others  [Opt+Cmd+H]
+Show All  (disabled)
+---
+Quit Dorico  [Cmd+Q]
+## File
+New  [Cmd+N]
+New From Project Template >
+    Band >
+        Brass band
+        Concert band
+        Pit band
+    Chamber >
+        Brass quartet
+        Brass quintet
+        Brass trio
+        Piano trio
+        Saxophone quartet
+        Solo violin and piano
+        String quartet
+        String trio
+        Wind quartet
+        Wind quintet
+        Woodwind trio
+    Choral and Vocal >
+        Barbershop quartet
+        Choir SAB with piano
+        Choir SATB with organ
+        Choir SATB with piano
+        Choir SATB, unaccompanied
+        Choir SSA with organ
+        Choir SSA with piano
+        Choir SSA, unaccompanied
+        Choir TTBB with organ
+        Choir TTBB with piano
+        Choir TTBB, unaccompanied
+        Solo voice and piano
+    Jazz >
+        Big band
+        Jazz quartet
+        Jazz trio
+    Orchestral >
+        Classical orchestra
+        Concert orchestra
+        Film orchestra
+        Modern orchestra
+        Romantic orchestra
+        String orchestra
+    Solo >
+        Guitar
+        Guitar with tablature
+        Lead sheet
+        Solo organ
+        Solo piano
+Open...  [Cmd+O]
+Open Recent >
+    liszt.dorico
+    gate-test.dorico
+    f.dorico
+    audit.dorico
+    b.musicxml
+    Final Project.dorico
+    Orchestral_Tools_Template.dorico
+    L10 Workshop.mid
+    Princess Leia's Theme.dorico
+    strings_arragment.dorico
+    Exercise 10.1.dorico
+    Assignment 8.dorico
+    Assignment 7.dorico
+    Exercise 6.1 Harmonic Support.dorico
+    Assignment 5.dorico
+    Assignment 4.dorico
+    Exercise 4.2- Harmonic Arrangement.dorico
+    Assignment 3.dorico
+    Exercise 3.2- String Bowings.dorico
+    ---
+    Clear Menu
+---
+Close Project  [Shift+Cmd+W]
+Save  [Cmd+S]
+Save As...  [Shift+Cmd+S]
+Revert
+---
+Close All
+Save All
+Save As Project Template...
+---
+Import >
+    Flows...
+    MIDI...
+    MusicXML...  [Shift+Cmd+O]
+    Tempo Track...
+Export >
+    Flows...
+    Audio...
+    MIDI...
+    MusicXML...
+    Tempo Track...
+    Lyrics...
+    Text...
+---
+Print...
+---
+Project Info...  [Cmd+I]
+Project Statistics...
+---
+Export User Settings...
+Import User Settings...
+---
+## Edit
+Undo Select  [Cmd+Z]
+Redo  [Shift+Cmd+Z]  (disabled)
+History...
+---
+Cut  [Cmd+X]  (disabled)
+Copy  [Cmd+C]  (disabled)
+Paste  [Cmd+V]  (disabled)
+Paste Special >
+    Paste Into Voice >
+    ---
+    Reduce  (disabled)
+    Explode  (disabled)
+    ---
+    Move to Staff Above  [Opt+N]  (disabled)
+    Move to Staff Below  [Opt+M]  (disabled)
+    ---
+    Duplicate to Staff Above  (disabled)
+    Duplicate to Staff Below  (disabled)
+    ---
+    Swap  (disabled)
+    ---
+    Paste Articulations  (disabled)
+Delete  (disabled)
+Delete Bars  (disabled)
+---
+Remove Rests  (disabled)
+---
+Requantize...  (disabled)
+---
+Select All  [Cmd+A]  (disabled)
+Select More  [Shift+Cmd+A]  (disabled)
+Select To Start Of System  (disabled)
+Select To End Of System  (disabled)
+Select To Start Of Flow  (disabled)
+Select To End Of Flow  (disabled)
+Select None  [Cmd+D]
+Filter >
+    Select Only  ✓
+    Deselect Only
+    ---
+    Notes and Chords
+    Grace Notes
+    Notes by Pitch >
+        Specific Pitches...
+        ---
+        All Triple Sharp Notes
+        All Double Sharp Notes
+        All Sharp Notes
+        All Flat Notes
+        All Double Flat Notes
+        All Triple Flat Notes
+    Voices >
+        All Up-stem Voices
+        All Down-stem Voices
+        All Slash Voices
+    Notes in Chords >
+        Top Note or Single Notes
+        Second Note or Single Notes
+        Third Note or Single Notes
+        Fourth Note or Single Notes
+        Bottom Note or Single Notes
+    Rests
+    ---
+    All Dynamics
+    Gradual Dynamics
+    Immediate Dynamics
+    ---
+    All Tempos
+    Absolute Tempos
+    Relative Tempos
+    Gradual Tempos
+    ---
+    Lyrics >
+        All Lyrics
+        ---
+        Line 1
+        Line 2
+        Line 3
+        Line 4
+        Line 5
+        ---
+        Above Staff
+        Below Staff
+        ---
+        Chorus
+        Translations
+    ---
+    Arpeggio Signs
+    Bar Repeat Regions
+    Chord Symbols
+    Chord Symbol Regions
+    Clefs
+    Comments
+    Condensing Changes
+    Coordination Lines
+    Cues
+    Cutaways
+    Figured Bass
+    Glissando Lines
+    Guitar Bends
+    Harp Pedals
+    Horizontal and Note-attached Lines
+    Holds and Pauses
+    Key Signatures
+    Markers
+    Note Spacing Changes
+    Octave Lines
+    Ornaments and Trills
+    Pedal Lines
+    Playing Techniques
+    Rehearsal Marks
+    Repeat Endings
+    Repeat Markers
+    Slash Regions
+    Slurs
+    Text
+    Text Using Paragraph Style...
+    Time Signatures
+    Tuplets
+    Vertical Lines
+    ---
+    All Breaks
+    Frame Breaks
+    System Breaks
+    ---
+    Suppressed Playback
+---
+Go To >
+    Go To Bar...  [Cmd+G]
+    Go To Page...
+    Go To Rehearsal Mark...
+    ---
+    Go To Previous Flow
+    Go To Next Flow
+---
+Concert Pitch  ✓  (disabled)
+Transposed Pitch  (disabled)
+---
+Condensing  (disabled)
+---
+Flip  (disabled)
+Notations >
+    Bar Numbers >
+        Add Bar Number Change...  (disabled)
+    Beaming >
+        Beam Together  (disabled)
+        Split Beam  (disabled)
+        Make Unbeamed  (disabled)
+        Split Secondary Beam  (disabled)
+        Set Partial Beam Direction >
+        Create Fanned Beam >
+        Stemlets >
+        Reset Beaming  (disabled)
+    Chord Symbols and Diagrams >
+        Line >
+        Cycle Chord Diagram  (disabled)
+        Show All Variants of Chord Diagram...  (disabled)
+        ---
+        Copy Shape to Matching Chord Symbols  (disabled)
+        ---
+        Reset Chord Diagram Finger Numbering  (disabled)
+        ---
+        Clear Chord Symbol Played Pitches  (disabled)
+        ---
+        Chord Symbol Kerning Pairs...
+        Chord Symbol Appearance...  (disabled)
+        ---
+        Generate Chord Symbols from Selection...  (disabled)
+        Generate Notes from Chord Symbols in Selection...  (disabled)
+        Paste Chord Symbols as Notes  (disabled)
+    Clef >
+        Concert Pitch >
+        Transposed Pitch >
+        ---
+        Reset Clef Position  (disabled)
+        After Grace Notes  (disabled)
+    Cross Staff >
+        Cross to Staff Above  [N]  (disabled)
+        Cross to Staff Below  [M]  (disabled)
+        Reset to Original Staff  (disabled)
+    Dynamics >
+        Group Dynamics  (disabled)
+        Ungroup Dynamics  (disabled)
+        Remove from Group  (disabled)
+        ---
+        Link  (disabled)
+        Unlink  (disabled)
+        ---
+        Align Dynamics  (disabled)
+        ---
+        Increase Dynamic Intensity  (disabled)
+        Decrease Dynamic Intensity  (disabled)
+    Figured Bass >
+        Reset Figured Bass  (disabled)
+        Force Current Appearance  (disabled)
+    Fingering >
+        Reset Fingering  (disabled)
+    Lyrics >
+        Line >
+        Translations >
+        Placement >
+        ---
+        Edit Line of Lyrics...  (disabled)
+        Edit Single Lyric...  (disabled)
+    Notehead >
+        Circled Noteheads  (disabled)
+        Default Noteheads  (disabled)
+        Large Circled Noteheads  (disabled)
+        Larger Noteheads  (disabled)
+        Slashed Noteheads (Bottom Left to Top Right)  (disabled)
+        Slashed Noteheads (Top Left to Bottom Right)  (disabled)
+        ---
+        Crosses >
+        Triangular >
+        Diamonds >
+        Slashes >
+        Round and Square >
+        ---
+        Scale Degree >
+        Pitched >
+        ---
+        Reset to Default Notehead  (disabled)
+        ---
+        Toggle Round Brackets  (disabled)
+        Toggle Square Brackets  (disabled)
+    Octave Line >
+        Add Corner  (disabled)
+        Make Angled  (disabled)
+        Remove Corner/Angle  (disabled)
+    Pedal Lines >
+        Add Retake  (disabled)
+        Add Change to One Quarter Depressed  (disabled)
+        Add Change to Half Depressed  (disabled)
+        Add Change to Three Quarters Depressed  (disabled)
+        Add Change to Fully Depressed  (disabled)
+        Remove Retake  (disabled)
+        ---
+        Split Pedal Line  (disabled)
+        Merge Pedal Lines  (disabled)
+    Percussion >
+        Legend for All Instruments  (disabled)
+        Legend for Selected Instruments  (disabled)
+        Legend for Sounding Instruments  (disabled)
+        ---
+        Change Voice >
+    Playing Techniques >
+        Group Playing Techniques  (disabled)
+        Ungroup Playing Techniques  (disabled)
+        Remove Playing Technique from Group  (disabled)
+    Slurs >
+        Link  (disabled)
+        Unlink  (disabled)
+    Staff Size >
+        60%  (disabled)
+        75%  (disabled)
+        100%  (disabled)
+        ---
+        Custom Staff Size...  (disabled)
+    Staff >
+        Add Staff Above  (disabled)
+        Add Staff Below  (disabled)
+        ---
+        Create Ossia Above  (disabled)
+        Create Ossia Below  (disabled)
+        ---
+        Change Divisi...  (disabled)
+        Restore Unison  (disabled)
+        ---
+        Create Manual Cutaway  (disabled)
+        Create Start Cutaway  (disabled)
+        Create End Cutaway  (disabled)
+        ---
+        Create Coordination Line  (disabled)
+        ---
+        Remove Staff  (disabled)
+        ---
+        Manual Staff Visibility...  (disabled)
+    Stem >
+        Force Stem Up  (disabled)
+        Force Stem Down  (disabled)
+        Remove Forced Stem  (disabled)
+        ---
+        Force Centered Beam  (disabled)
+        Custom Centered Beam...  (disabled)
+        Remove Centered Beam  (disabled)
+    Text >
+        Change Paragraph Style...  (disabled)
+        Change Text to System Text  (disabled)
+    Voices >
+        Default Stems Up
+        Default Stems Down
+        ---
+        Rhythmic Slashes >
+        ---
+        Swap Voice Contents  (disabled)
+        Change Voice >
+        ---
+        Swap Voice Order  (disabled)
+---
+Reset Appearance  (disabled)
+Reset Position  (disabled)
+Propagate Properties  (disabled)
+---
+Device Setup...
+---
+AutoFill >
+    Contact…  (disabled)
+    Passwords…  (disabled)
+    Credit Card…  (disabled)
+## View
+Page View  [Opt+Cmd+1]  ✓
+Galley View  [Opt+Cmd+2]
+Fill View  [Opt+Cmd+3]
+---
+Pages >
+    Spreads Horizontally  ✓
+    Spreads Vertically
+    Single Pages Horizontally
+    Single Pages Vertically
+---
+System Track  [Opt+T]
+Instrument Filter Overlay  ✓  (disabled)
+Cycle Locators
+---
+Signposts >
+    Hide Signposts  ✓
+    ---
+    Accidentals  (disabled)
+    Bracket and Barline Changes  ✓  (disabled)
+    Chord Symbols  ✓  (disabled)
+    Clefs  ✓  (disabled)
+    Condensing Changes  ✓  (disabled)
+    Cues  ✓  (disabled)
+    Cutaways  ✓  (disabled)
+    Divisi  ✓  (disabled)
+    Dynamics  ✓  (disabled)
+    Figured Bass  ✓  (disabled)
+    Frame Breaks  ✓  (disabled)
+    Harp Pedals  ✓  (disabled)
+    Instrument Changes  ✓  (disabled)
+    Key Signatures  ✓  (disabled)
+    Note Spacing Changes  ✓  (disabled)
+    Octave Lines  ✓  (disabled)
+    Pedal Lines  ✓  (disabled)
+    Percussion Legends  ✓  (disabled)
+    Player Labels  ✓  (disabled)
+    Playing Techniques  ✓  (disabled)
+    Repeat Markers  ✓  (disabled)
+    Rhythmic Feel  ✓  (disabled)
+    Split Multi-bar Rest  ✓  (disabled)
+    Staff Count Changes  ✓  (disabled)
+    System Breaks  ✓  (disabled)
+    Tempo  ✓  (disabled)
+    Text  ✓  (disabled)
+    Time Signatures  ✓  (disabled)
+    Trills  ✓  (disabled)
+    Trill Accidentals  (disabled)
+    Tuplets  ✓  (disabled)
+    ---
+    Set All Signposts Shown
+    Set All Signposts Hidden
+Note And Rest Colors >
+    None  ✓
+    Voice Colors
+    Notes Out Of Range
+    ---
+    Implicit Rests
+    ---
+    Condensed Music
+    Cues
+    Divisi Unison Ranges
+    Suppressed Playback  ✓
+    Hidden Noteheads  ✓
+    ---
+    Cautionary Accidentals
+    Contradictory Accidentals
+    Forced Accidentals
+Bar Numbers >
+    Page View
+    Galley View  ✓
+    Fill View  ✓
+Page Numbers
+Attachment Lines  ✓
+---
+Comments  ✓
+Cutaway Staff Lines  ✓
+Token Placeholders  ✓
+---
+Highlight Bar Repeat Regions  ✓
+Highlight Chord Symbol Regions  ✓
+Highlight MIDI Trigger Regions  ✓
+Highlight Cues
+Highlight Slash Regions  ✓
+---
+Zoom >
+    Zoom In  [Cmd+=]
+    Zoom Out  [Cmd+-]
+    ---
+    25%
+    50%
+    75%
+    100%
+    150%
+    200%
+    300%
+    400%
+    800%
+    1600%
+    ---
+    Whole Page  [Opt+Cmd+0]
+    Two Pages
+    Page Width
+    Page Height
+    ---
+    Custom Zoom...  [Opt+Z]
+Full Screen  [Ctrl+Cmd+F]
+---
+Marquee Select Tool  ✓
+Hand Tool
+---
+View Options...  [Shift+Cmd+V]
+Enter Full Screen  [F]
+## Setup
+New Single Player...  [Shift+P]
+New Section Player...  [Opt+Shift+P]
+Add Instrument to Player...  [Shift+I]
+Add Ensemble...  [Shift+E]
+---
+Delete Player
+Delete Empty Players...
+---
+Renumber Instruments
+---
+New Player Group
+Delete Player Group  (disabled)
+---
+New Flow  [Shift+F]
+Delete Flow  (disabled)
+---
+New Layout
+Delete Layout  (disabled)
+Propagate Part Formatting...
+Duplicate Layout  (disabled)
+Renumber Layouts
+Clef and Transposition Overrides...  (disabled)
+---
+Create Default Part Layouts
+Reset Instrument Names
+## Play
+Record  (disabled)
+Retrospective Record  (disabled)
+Fixed Tempo Mode
+---
+Play From Playhead Position  [ ]
+Play From Selection  [P]
+Play From Start Of Flow  [Opt+Shift+ ]
+Play From Start Of Project
+Play From Last Start Position  [Shift+ ]
+---
+Cycle
+Locators >
+    Set Cycle Locators From Selection
+    Set Left Cycle Locator
+    Set Right Cycle Locator
+    ---
+    Clear Cycle Locators
+---
+Scrub Playback  (disabled)
+---
+Solo Selected Instruments  [Opt+S]  (disabled)
+Deactivate All Solo States  [Opt+Shift+S]
+Deactivate All Mute States  [Opt+U]
+---
+Increase Key Editor Grid Resolution  (disabled)
+Decrease Key Editor Grid Resolution  (disabled)
+---
+Load Sounds For Unassigned Instruments
+Playback Template...
+Stage Template...
+Space Template...
+---
+Automation >
+    Delete All Automation For Selection  (disabled)
+    Delete All Automation For Instruments In Selection  (disabled)
+    Delete All Automation  (disabled)
+---
+Reset Playback Overrides
+Apply Default Output Level  (disabled)
+---
+Tracks >
+    Time Track  ✓  (disabled)
+    Chord Track  ✓  (disabled)
+    Marker Track  (disabled)
+## Library
+Music Fonts...
+Font Styles...
+Paragraph Styles...
+Character Styles...
+---
+Page Sizes...
+---
+Chord Diagrams...
+Chord Symbols...
+Chord Symbol Kerning Pairs...
+Music Symbols...
+Notehead Sets...
+Playing Techniques...
+---
+Lines...
+Line Bodies...
+Line Annotations...
+Repeatable Symbols...
+---
+Expression Maps...
+Percussion Maps...
+Playback Techniques...
+---
+Engraving Options...  [Shift+Cmd+E]
+Layout Options...  [Shift+Cmd+L]
+Notation Options...  [Shift+Cmd+N]
+Note Input Options...  [Shift+Cmd+I]
+Playback Options...  [Shift+Cmd+P]
+---
+Instruments...
+Instrument Families...
+Instrument Score Orders...
+---
+Export Library...
+Library Manager...
+## Window
+Minimize  [Cmd+M]
+Zoom
+Bring All To Front
+---
+New Window  [Shift+Cmd+T]
+Mixer  []
+Transport  []
+Video  []  (disabled)
+Hub
+---
+Setup  [Cmd+1]  ✓
+Write  [Cmd+2]
+Engrave  [Cmd+3]
+Play  [Cmd+4]
+Print  [Cmd+5]
+---
+Previous Mode
+---
+Show Tabs
+---
+Close Tab  [Cmd+W]  (disabled)
+New Tab  [Cmd+T]
+Next Tab  [Ctrl+	]  (disabled)
+Move Tab To New Window
+Previous Tab  [Ctrl+Shift+	]  (disabled)
+Close Other Tabs  (disabled)
+Merge All Windows
+---
+No Split
+Vertical Split
+Horizontal Split
+---
+Show Toolbar  [Cmd+6]  ✓
+Show Left Zone  [Cmd+7]  ✓
+Show Lower Zone  [Cmd+8]  ✓
+Show Right Zone  [Cmd+9]  ✓
+Hide/Restore Zones  [Cmd+0]
+---
+Next Layout  [Opt+Shift+]]
+Previous Layout  [Opt+Shift+[]
+Counterpart Layout  [W]
+---
+liszt  ✓
+## Help
+Show Help  [Cmd+/]
+---
+Dorico Help
+Guided Tour
+Key Commands
+---
+Support >
+    Steinberg Service and Support
+Community >
+    Dorico Blog
+    Facebook
+    YouTube
+    Instagram
+    Dorico Forum
+---
+Create Diagnostic Report
+Check For Updates
+## Script
+Run Script...
+Run Last Script  [Opt+Shift+Cmd+R]
+---
+Start Recording Macro
+End Recording Macro
+---
+Console
+---
+Attach Debugger
+

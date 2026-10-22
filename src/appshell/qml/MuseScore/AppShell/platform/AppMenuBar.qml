@@ -98,7 +98,7 @@ Item {
 
                 navigation.accessible.ignored: true
 
-                visible: mapToItem(root, 0, 0).x + width < root.availableWidth
+                visible: title !== "" /* Dorico fork (spec 102): no mode menu in Play and Print */ && mapToItem(root, 0, 0).x + width < root.availableWidth
 
                 AccessibleItem {
                     id: accessibleInfo

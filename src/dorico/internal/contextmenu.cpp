@@ -199,6 +199,59 @@ MenuSpec ctxDynamics(Mode mode)
 }
 }
 
+//! Edit > Notations (spec 102): Dorico's alphabetical list, the context menu's submenus plus the ones it only shows on a
+//! selection of that kind.
+MenuSpec mu::dorico::notationsMenu()
+{
+    return ctxSub("notations", "Notations", {
+        ctxSub("bar-numbers", "Bar Numbers", { ctxStub("bar-number-change", "Add Bar Number Change...") }),
+        ctxBeaming(),
+        ctxSub("chord-symbols", "Chord Symbols and Diagrams", {
+            ctxStub("chord-line", "Line"), ctxStub("cycle-diagram", "Cycle Chord Diagram"),
+            ctxStub("diagram-variants", "Show All Variants of Chord Diagram..."), ctxSep(),
+            ctxStub("copy-shape", "Copy Shape to Matching Chord Symbols"), ctxSep(),
+            ctxStub("reset-finger-numbering", "Reset Chord Diagram Finger Numbering"), ctxSep(),
+            ctxStub("clear-played-pitches", "Clear Chord Symbol Played Pitches"), ctxSep(),
+            ctxStub("kerning-pairs", "Chord Symbol Kerning Pairs..."), ctxStub("chord-appearance", "Chord Symbol Appearance..."), ctxSep(),
+            ctxStub("generate-chord-symbols", "Generate Chord Symbols from Selection..."),
+            ctxStub("generate-notes", "Generate Notes from Chord Symbols in Selection..."),
+            ctxStub("paste-chords-as-notes", "Paste Chord Symbols as Notes") }),
+        ctxSub("clef", "Clef", { ctxStub("clef-concert", "Concert Pitch"), ctxStub("clef-transposed", "Transposed Pitch"), ctxSep(),
+                              ctxStub("clef-reset-position", "Reset Clef Position"), ctxStub("clef-after-grace", "After Grace Notes") }),
+        ctxSub("cross-staff", "Cross Staff", { ctxStub("cross-above", "Cross to Staff Above"), ctxStub("cross-below", "Cross to Staff Below"),
+                                            ctxStub("cross-reset", "Reset to Original Staff") }),
+        ctxDynamics(Mode::Write),
+        ctxSub("figured-bass", "Figured Bass", { ctxStub("reset-figured-bass", "Reset Figured Bass"),
+                                              ctxStub("force-figured-bass", "Force Current Appearance") }),
+        ctxSub("fingering", "Fingering", { ctxStub("reset-fingering", "Reset Fingering") }),
+        ctxSub("lyrics", "Lyrics", { ctxStub("lyrics-line", "Line"), ctxStub("lyrics-translations", "Translations"),
+                                  ctxStub("lyrics-placement", "Placement"), ctxSep(), ctxStub("edit-lyrics-line", "Edit Line of Lyrics..."),
+                                  ctxStub("edit-lyric", "Edit Single Lyric...") }),
+        ctxNotehead(),
+        ctxSub("octave-line", "Octave Line", { ctxStub("octave-corner", "Add Corner"), ctxStub("octave-angled", "Make Angled"),
+                                            ctxStub("octave-remove", "Remove Corner/Angle") }),
+        ctxSub("pedal-lines", "Pedal Lines", { ctxStub("pedal-retake", "Add Retake"), ctxStub("pedal-quarter", "Add Change to One Quarter Depressed"),
+                                            ctxStub("pedal-half", "Add Change to Half Depressed"),
+                                            ctxStub("pedal-three-quarters", "Add Change to Three Quarters Depressed"),
+                                            ctxStub("pedal-full", "Add Change to Fully Depressed"), ctxStub("pedal-remove-retake", "Remove Retake"),
+                                            ctxSep(), ctxStub("pedal-split", "Split Pedal Line"), ctxStub("pedal-merge", "Merge Pedal Lines") }),
+        ctxSub("percussion", "Percussion", { ctxStub("legend-all", "Legend for All Instruments"),
+                                          ctxStub("legend-selected", "Legend for Selected Instruments"),
+                                          ctxStub("legend-sounding", "Legend for Sounding Instruments"), ctxSep(),
+                                          ctxStub("percussion-change-voice", "Change Voice") }),
+        ctxSub("playing-techniques", "Playing Techniques", { ctxStub("group-techniques", "Group Playing Techniques"),
+                                                          ctxStub("ungroup-techniques", "Ungroup Playing Techniques"),
+                                                          ctxStub("remove-technique-from-group", "Remove Playing Technique from Group") }),
+        ctxSub("slurs", "Slurs", { ctxStub("slur-link", "Link"), ctxStub("slur-unlink", "Unlink") }),
+        ctxStaffSize(),
+        ctxStaffWrite(),
+        ctxStem(),
+        ctxSub("text", "Text", { ctxStub("text-paragraph-style", "Change Paragraph Style..."),
+                              ctxStub("text-to-system-text", "Change Text to System Text") }),
+        ctxVoices(),
+    });
+}
+
 std::vector<MenuSpec> mu::dorico::scoreContextMenu(const ContextMenuInput& in)
 {
     if (in.mode != Mode::Write && in.mode != Mode::Engrave) {

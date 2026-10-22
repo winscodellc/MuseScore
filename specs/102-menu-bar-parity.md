@@ -2,7 +2,7 @@
 
 # 102 - Menu bar parity
 
-Status: todo - Depends on: 59, 94, 95 (mode menus follow the single page's mode), 97 - Dorico refs: `reference/dorico-ui.md` (menus), the manual's "also from the X menu" mentions
+Status: built, pending review - Depends on: 59, 94, 95 (mode menus follow the single page's mode), 97 - Dorico refs: `reference/dorico-ui.md` (menus), the manual's "also from the X menu" mentions
 
 Ground truth: `reference/dorico-shots/menus/notes.md` Part 1, plus the full dumps `dorico-menubar.txt` and `ours-menubar.txt`. They were taken in Write mode with a note selected, from Dorico Pro 6 on 2026-10-21. Re-dump any time with `osascript reference/dorico-shots/menus/dump-menubar.applescript "Dorico 6" 2` (`mscore 3` for ours).
 
@@ -16,7 +16,9 @@ The macOS menu bar matches Dorico Pro 6's menu bar: the same top-level menus in 
 
 `Dorico | File | Edit | View | <mode menu> | Play | Library | Window | Help | Script`
 
-- **Only the current mode's menu is shown**: Setup, Write, Engrave or Print. Play is always there. Capture the Setup, Engrave and Print mode menus in Dorico Pro as the first implementation step: switch mode, then run the dump script.
+- **Only the current mode's menu is shown** (captured 2026-10-22, `dorico-menubar-{setup,engrave,print,play}.txt`): Setup, Write and Engrave each have a mode menu in that slot. **Play and Print mode have none**: the bar is `Dorico | File | Edit | View | Play | Library | Window | Help | Script`. The Play menu is always there.
+- Setup menu (25 rows): New Single Player... ⇧P, New Section Player... ⌥⇧P, Add Instrument to Player... ⇧I, Add Ensemble... ⇧E / Delete Player, Delete Empty Players... / Renumber Instruments / New Player Group, Delete Player Group / New Flow ⇧F, Delete Flow / New Layout, Delete Layout, Propagate Part Formatting..., Duplicate Layout, Renumber Layouts, Clef and Transposition Overrides... / Create Default Part Layouts, Reset Instrument Names.
+- Engrave menu: Rulers, Grid, Grid Options..., Show Handles >, Crosshairs > / Format Music Frames > (Frame Break ⇧F, Make Into Frame, Lock Frame, Lock Layout, Reset Layout), Format Systems > (System Break ⇧S, Make Into System, Lock System, Move Bars to Next / Previous System . ,), Note Spacing Change..., Condensing Change..., Split Multi-bar Rest, Reset Bracketing / Staff Spacing >, Note Spacing >, Lyric Offsets >.
 - Ours today: `MuseScore Studio | File | Edit | Setup | Write | Engrave | Play | Library | View | Window | Help`. It has all mode menus at once, View is in the wrong place, there is no Script menu, and the app menu has an extra "About Qt...".
 
 ### Per menu (Dorico target; `---` = separator)
@@ -75,14 +77,25 @@ All are disabled stubs:
 
 ## Acceptance criteria
 
-- [ ] The Setup, Engrave and Print mode menus are captured from Dorico Pro and added to the table first.
-- [ ] Re-running `dump-menubar.applescript` on ours and diffing it against `dorico-menubar.txt` (labels, order, separators, shortcuts) shows only the documented stubs as differences. Commit the diff summary to this spec.
-- [ ] Switching mode swaps the mode menu (Setup / Write / Engrave / Print), and Cmd-1..5 items are enabled with the current one checked.
-- [ ] No label carries a "Dorico:" prefix or embedded shortcut text, and no submenu is duplicated.
+- [x] The Setup, Engrave, Print and Play mode menus are captured from Dorico Pro (Print and Play have no mode menu).
+- [~] Re-running `dump-menubar.applescript` on ours and diffing it against `dorico-menubar.txt` (labels, order, separators, shortcuts) shows only the documented stubs as differences. Commit the diff summary to this spec.
+- [x] Switching mode swaps the mode menu (Setup / Write / Engrave / Print), and Cmd-1..5 items are enabled with the current one checked.
+- [x] No label carries a "Dorico:" prefix or embedded shortcut text, and no submenu is duplicated.
 - [ ] Every enabled item runs its command (spot-check 20 with the log).
-- [ ] `check_keymap.py` passes.
+- [x] `check_keymap.py` passes.
 
 ## Tests
 
 - GoogleTest over the `MenuSpec` tables: no duplicate ids, every enabled item has a registered command.
 - Manual: dump and diff, as above.
+
+## Result (2026-10-22)
+
+- Menu bar order, the mode-menu swap and the Window checkmarks match Dorico in all five modes (dumps in the scratchpad of the test run). Play and Print show no mode menu, as in Dorico. No `Dorico menu: no menu item or command` warnings in the log.
+- Built as: `doricomenu.cpp` tables (`modeMenu(Mode)`, `notationsMenu()` from spec 98), `DoricoMenuArranger` (stubs, mode slot, title override), one-line upstream edits in `PlatformMenuBar.qml` (native menu follows the slot's title) and `AppMenuBar.qml` (an untitled top-level menu is hidden).
+- Known differences, all deliberate or deferred:
+  - Stubs show no shortcut (no command behind them).
+  - Shortcuts follow the keymap (spec 10), not this table: Close Project is Cmd+W (the keymap wants it), Project Info Cmd+I and Flip F are deferred keys, Print shows Cmd+P, and Double / Halve Note Duration carry spec 13's keys.
+  - Dorico's New From Project Template submenu, the dynamic Paste Into Voice entries and Open Recent's contents are not reproduced.
+  - Transposed Pitch is a stub; Concert Pitch toggles.
+- Not yet checked: the 20-item "every enabled item runs its command" spot-check (the UI test report did not come back).

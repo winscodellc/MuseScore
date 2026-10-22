@@ -162,7 +162,9 @@ static std::vector<CommandInfo> makeCommandInfos()
 
     static const char* MODES[] = { "Setup", "Write", "Engrave", "Play", "Print" };
     for (int i = 0; i < 5; ++i) {
-        v.push_back(info(DORICO_MODE_COMMANDS[i], std::string("Dorico: ") + MODES[i] + " mode", "Switches the project window to this mode"));
+        CommandInfo mode = info(DORICO_MODE_COMMANDS[i], MODES[i], "Switches the project window to this mode");
+        mode.decoration.checkable = Checkable::Yes; // the Window menu checks the current mode
+        v.push_back(mode);
     }
     static const char* ZONES[] = { "left", "lower", "right" };
     for (int i = 0; i < 3; ++i) {

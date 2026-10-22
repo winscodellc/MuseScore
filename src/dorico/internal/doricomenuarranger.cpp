@@ -22,6 +22,8 @@
 
 #include "doricomenuarranger.h"
 
+#include <algorithm>
+
 #include "log.h"
 #include "types/translatablestring.h"
 
@@ -96,11 +98,23 @@ MenuItem* DoricoMenuArranger::build(const MenuSpec& spec, QObject* owner)
         return submenu;
     }
 
+    if (isStubId(spec.id)) {
+        auto* stub = new MenuItem(owner);
+        stub->setId(spec.id);
+        stub->setTitle(muse::TranslatableString("dorico", spec.title.toUtf8().constData()));
+        stub->setDescription(muse::TranslatableString("dorico", "Not available yet"));
+        stub->setEnabled(false);
+        return stub;
+    }
+
     // An existing MuseScore item is moved here (once); a command placed twice, or one MuseScore's menus do not
     // have (the Dorico commands), gets a new item, built like AbstractMenuModel::makeMenuItem does.
     MenuItem* existing = m_byId.value(spec.id);
     if (existing && !m_used.contains(spec.id)) {
         markUsed(existing);
+        if (!spec.title.isEmpty()) {
+            existing->setTitle(muse::TranslatableString("dorico", spec.title.toUtf8().constData()));
+        }
         return existing;
     }
 
@@ -150,15 +164,86 @@ MenuItem* DoricoMenuArranger::leftovers(MenuItem* item)
     return item;
 }
 
+using DoricoMode = mu::dorico::Mode; // inside the class, Asyncable::Mode hides it
+
+static int modeIndex(DoricoMode mode)
+{
+    return static_cast<int>(mode);
+}
+
+void DoricoMenuArranger::refresh(const MenuItemList& items)
+{
+    for (MenuItem* item : items) {
+        if (!item || isSeparator(item)) {
+            continue;
+        }
+        if (item->id().startsWith("command://")) {
+            // the framework only refreshes the visible tree, and the other modes' menus are not in it
+            item->setCommandState(commandsState()->commandState(item->command()));
+#ifdef MUSE_MODULE_SHORTCUTS_V2
+            item->setShortcuts(commandShortcutsRegister()->shortcut(item->command()).sequences);
+#else
+            item->setShortcuts(shortcutsRegister()->shortcut(item->actionCode()).sequences);
+#endif
+        }
+        refresh(item->subitems());
+    }
+}
+
+void DoricoMenuArranger::applyMode(ModeSlot& slot)
+{
+    if (!slot.item) {
+        return;
+    }
+    const DoricoMode mode = modes()->mode();
+    const MenuItemList& items = slot.items[modeIndex(mode)];
+    refresh(items);
+    // a mode with no menu (Play, Print) leaves an untitled, empty slot, which the menu bars do not show
+    const MenuSpec* spec = modeMenu(mode);
+    slot.item->setTitle(spec ? muse::TranslatableString("dorico", spec->title.toUtf8().constData()) : muse::TranslatableString());
+    slot.item->setSubitems(items);
+}
+
+MenuItem* DoricoMenuArranger::buildModeSlot(QObject* owner)
+{
+    ModeSlot slot;
+    slot.item = new MenuItem(owner);
+    slot.item->setId(MODE_MENU_ID);
+    for (DoricoMode mode : { DoricoMode::Setup, DoricoMode::Write, DoricoMode::Engrave }) {
+        const MenuSpec* spec = modeMenu(mode);
+        if (MenuItem* menu = spec ? build(*spec, owner) : nullptr) {
+            slot.items[modeIndex(mode)] = menu->subitems();
+        }
+    }
+    applyMode(slot);
+
+    MenuItem* item = slot.item;
+    m_modeSlots.erase(std::remove_if(m_modeSlots.begin(), m_modeSlots.end(), [](const ModeSlot& s) { return !s.item; }), m_modeSlots.end());
+    m_modeSlots.push_back(std::move(slot));
+    modes()->modeChanged().onNotify(this, [this]() {
+        for (ModeSlot& s : m_modeSlots) {
+            applyMode(s);
+        }
+    }, Asyncable::Mode::SetReplace);
+    return item;
+}
+
 MenuItemList DoricoMenuArranger::arrange(const MenuItemList& museScoreMenus, QObject* owner)
 {
     m_byId.clear();
     m_used.clear();
     index(museScoreMenus, m_byId);
 
+    // "About Qt..." is an app-menu item by role on macOS; Dorico's app menu has no such item
+    if (MenuItem* aboutQt = m_byId.value("command://app/about-qt")) {
+        aboutQt->setRole(MenuItemRole::NoRole);
+    }
+
     MenuItemList result;
     for (const MenuSpec& spec : doricoMenus()) {
-        if (MenuItem* menu = build(spec, owner)) {
+        if (spec.id == MODE_MENU_ID) {
+            result << buildModeSlot(owner);
+        } else if (MenuItem* menu = build(spec, owner)) {
             result << menu;
         }
     }
