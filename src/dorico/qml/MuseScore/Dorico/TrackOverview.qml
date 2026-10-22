@@ -43,7 +43,11 @@ Rectangle {
     signal trackClicked(string partId)
 
     readonly property int headerWidth: 160
+    readonly property int toolbarHeight: 28
     readonly property int rulerHeight: 24
+    // Read-only Tempo and Chords lanes under the ruler (spec 101, P9)
+    readonly property int laneHeight: 22
+    readonly property int topInset: toolbarHeight + rulerHeight + 2 * laneHeight
     readonly property int trackHeight: 48
     readonly property int zoomBarHeight: 28
     // Horizontal zoom (the slider), relative to fitting the piece to the width
@@ -77,12 +81,42 @@ Rectangle {
         }
     }
 
+    // Track tools: Dorico's row above the headers. No MuseScore commands behind them yet.
+    Row {
+        id: trackTools
+
+        x: 6
+        height: root.toolbarHeight
+        spacing: 4
+
+        Repeater {
+            model: [
+                { "icon": "svg:arrow-down-wide-narrow", "title": qsTrc("dorico", "Sort tracks") },
+                { "icon": "svg:eye", "title": qsTrc("dorico", "Show/hide tracks") },
+                { "icon": "svg:fold-vertical", "title": qsTrc("dorico", "Track height") }
+            ]
+
+            DoricoButton {
+                required property var modelData
+
+                anchors.verticalCenter: parent.verticalCenter
+                enabled: false
+                transparent: true
+                doricoIcon: modelData.icon
+                iconBoxSize: 16
+                toolTipTitle: modelData.title
+                toolTipDescription: qsTrc("dorico", "Not available yet")
+            }
+        }
+    }
+
     // Ruler: scrolls horizontally with the tracks, stays at the top
     Item {
         id: ruler
 
         anchors.left: headers.right
         anchors.right: parent.right
+        y: root.toolbarHeight
         height: root.rulerHeight
         clip: true
 
@@ -129,12 +163,64 @@ Rectangle {
         SeparatorLine { anchors.bottom: parent.bottom }
     }
 
+    // Tempo and Chords lanes: marks of the score, scrolling with the tracks
+    Repeater {
+        model: [
+            { "title": qsTrc("dorico", "Tempo"), "row": 0, "marks": overview.tempos },
+            { "title": qsTrc("dorico", "Chords"), "row": 1, "marks": overview.chords }
+        ]
+
+        Item {
+            id: lane
+
+            required property var modelData
+
+            y: root.toolbarHeight + root.rulerHeight + lane.modelData.row * root.laneHeight
+            width: root.width
+            height: root.laneHeight
+
+            StyledTextLabel {
+                x: 14
+                anchors.verticalCenter: parent.verticalCenter
+                horizontalAlignment: Text.AlignLeft
+                text: lane.modelData.title
+            }
+
+            Item {
+                x: root.headerWidth
+                width: parent.width - root.headerWidth
+                height: parent.height
+                clip: true
+
+                Item {
+                    x: -flick.contentX
+                    height: parent.height
+
+                    Repeater {
+                        model: lane.modelData.marks
+
+                        StyledTextLabel {
+                            required property var modelData
+
+                            x: modelData.start * root.pxPerQuarter + 2
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: modelData.text
+                            font: ui.theme.bodyBoldFont
+                        }
+                    }
+                }
+            }
+
+            SeparatorLine { anchors.bottom: parent.bottom }
+        }
+    }
+
     // Track headers: scroll vertically with the tracks
     Item {
         id: headers
 
         anchors.top: parent.top
-        anchors.topMargin: root.rulerHeight
+        anchors.topMargin: root.topInset
         anchors.bottom: zoomBar.top
         width: root.headerWidth
         clip: true
@@ -225,7 +311,7 @@ Rectangle {
         id: flick
 
         anchors.top: parent.top
-        anchors.topMargin: root.rulerHeight
+        anchors.topMargin: root.topInset
         anchors.left: headers.right
         anchors.right: parent.right
         anchors.bottom: zoomBar.top
@@ -263,6 +349,22 @@ Rectangle {
                             radius: 3
                             color: Utils.colorWithAlpha(root.trackColor(track.index), 0.75)
                             border.color: root.trackColor(track.index)
+                        }
+                    }
+
+                    // Mini piano roll: one dash per note, higher pitch higher up (Dorico's blocks show the notes)
+                    Repeater {
+                        model: track.modelData.notes
+
+                        Rectangle {
+                            required property var modelData
+
+                            x: modelData[0] * root.pxPerQuarter
+                            y: 10 + (1 - (Math.max(21, Math.min(108, modelData[2])) - 21) / 87) * (root.trackHeight - 22)
+                            width: Math.max(1.5, modelData[1] * root.pxPerQuarter - 1)
+                            height: 1.5
+                            color: "#FFFFFF"
+                            opacity: 0.85
                         }
                     }
 

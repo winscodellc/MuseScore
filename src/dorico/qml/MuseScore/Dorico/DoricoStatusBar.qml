@@ -29,6 +29,7 @@ import QtQuick.Layouts
 import Muse.Ui
 import Muse.UiComponents
 import MuseScore.AppShell
+import MuseScore.InstrumentsScene
 import MuseScore.NotationScene
 import MuseScore.Playback
 
@@ -59,6 +60,25 @@ Item {
         id: status
 
         Component.onCompleted: status.load()
+    }
+
+    // Setup's "Order: <name>": MuseScore's instrument ordering menu (the same one as the Instruments panel's)
+    LayoutPanelContextMenuModel {
+        id: orderModel
+
+        readonly property var orderMenu: items.find(i => i.id === "ordering-menu") ?? null
+        property string orderName: ""
+
+        function refreshName() {
+            const checked = orderMenu ? orderMenu.subitems.find(i => i.checked) : undefined
+            orderName = checked ? checked.title : ""
+        }
+
+        onItemsChanged: refreshName()
+        Component.onCompleted: {
+            load()
+            refreshName()
+        }
     }
 
     DoricoToolsModel {
@@ -170,10 +190,28 @@ Item {
 
         SeparatorLine { orientation: Qt.Vertical; visible: root.shows("pitch") }
 
-        StubButton {
+        ToggleButton {
             visible: root.shows("order")
-            text: qsTrc("dorico", "Order")
+            enabled: orderModel.orderMenu !== null
+            transparent: true
+            text: qsTrc("dorico", "Order: %1").arg(orderModel.orderName)
             toolTipTitle: qsTrc("dorico", "Instrument order")
+
+            navigation.panel: navPanel
+            navigation.order: 1
+
+            onClicked: orderMenuLoader.toggleOpened(orderModel.orderMenu.subitems)
+
+            StyledMenuLoader {
+                id: orderMenuLoader
+
+                menuAnchorItem: root.Window.window ? root.Window.window.contentItem : null
+
+                onHandleMenuItem: function(itemId) {
+                    orderModel.handleMenuItem(itemId)
+                    Qt.callLater(orderModel.refreshName)
+                }
+            }
         }
 
         StyledTextLabel {

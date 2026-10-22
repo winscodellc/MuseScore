@@ -40,13 +40,16 @@ class TrackOverviewModel : public QObject, public muse::Contextable, public muse
 {
     Q_OBJECT
 
-    //! [{ partId, title, blocks: [{ start, end }] }]
+    //! [{ partId, title, blocks: [{ start, end }], notes: [[start, length, pitch]] }]
     Q_PROPERTY(QVariantList tracks READ tracks NOTIFY contentChanged)
     //! { partId: { muted, solo } }. Apart from tracks, so a mute / solo click does not recreate the header delegates
     //! (recreating them inside the click handler lost the next click).
     Q_PROPERTY(QVariantMap soloMute READ soloMute NOTIFY soloMuteChanged)
     //! [{ start, number }]
     Q_PROPERTY(QVariantList bars READ bars NOTIFY contentChanged)
+    //! The Tempo and Chords lanes: [{ start, text }]
+    Q_PROPERTY(QVariantList tempos READ tempos NOTIFY contentChanged)
+    Q_PROPERTY(QVariantList chords READ chords NOTIFY contentChanged)
     Q_PROPERTY(double length READ length NOTIFY contentChanged)
     Q_PROPERTY(double playheadPosition READ playheadPosition NOTIFY playheadPositionChanged)
 
@@ -61,6 +64,8 @@ public:
     QVariantList tracks() const { return m_tracks; }
     QVariantMap soloMute() const { return m_soloMute; }
     QVariantList bars() const { return m_bars; }
+    QVariantList tempos() const { return m_tempos; }
+    QVariantList chords() const { return m_chords; }
     double length() const { return m_length; }
     double playheadPosition() const { return m_playheadPosition; }
 
@@ -87,6 +92,8 @@ private:
     QVariantList m_tracks;
     QVariantMap m_soloMute;
     QVariantList m_bars;
+    QVariantList m_tempos;
+    QVariantList m_chords;
     double m_length = 0;
     double m_playheadPosition = 0;
 };

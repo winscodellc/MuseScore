@@ -458,20 +458,94 @@ DockPage {
 
             navigationSection: root.topToolbarKeyNavSec
 
+            // Dorico's transport group (spec 101, T5): video, mixer, audio engine, the playback controls, record and
+            // volume, in one dark pill. Video, audio engine, record and volume have no MuseScore command yet.
             Rectangle {
-                color: playbackToolBar.floating ? "transparent" : ui.theme.backgroundSecondaryColor
-                implicitWidth: playbackContent.implicitWidth
-                implicitHeight: playbackToolBar.floating ? playbackContent.implicitHeight : 37
+                id: transport
 
-                PlaybackToolBar {
-                    id: playbackContent
+                readonly property bool docked: !playbackToolBar.floating
+                readonly property string notAvailable: qsTrc("dorico", "Not available yet")
 
-                    anchors.verticalCenter: parent.verticalCenter
+                color: docked ? ui.theme.backgroundSecondaryColor : "transparent"
+                implicitWidth: transportRow.implicitWidth + (docked ? 20 : 0)
+                implicitHeight: docked ? 37 : transportRow.implicitHeight
 
-                    navigationPanelSection: playbackToolBar.navigationSection
-                    navigationPanelOrder: 3
+                Rectangle {
+                    anchors.centerIn: parent
+                    width: transportRow.implicitWidth + 12
+                    height: 31
+                    radius: 4
+                    color: ui.theme.backgroundPrimaryColor
+                    visible: transport.docked
+                }
 
-                    floating: playbackToolBar.floating
+                Row {
+                    id: transportRow
+
+                    anchors.centerIn: parent
+                    spacing: 4
+
+                    DoricoButton {
+                        anchors.verticalCenter: parent.verticalCenter
+                        visible: transport.docked
+                        enabled: false
+                        doricoIcon: "svg:video"
+                        transparent: true
+                        toolTipTitle: qsTrc("dorico", "Video")
+                        toolTipDescription: transport.notAvailable
+                    }
+
+                    DoricoButton {
+                        anchors.verticalCenter: parent.verticalCenter
+                        visible: transport.docked
+                        doricoIcon: "svg:sliders-vertical"
+                        transparent: true
+                        toolTipTitle: qsTrc("dorico", "Mixer")
+                        onTriggered: root.shellModel.dispatch("command://app/dock/toggle-mixer")
+                    }
+
+                    DoricoButton {
+                        anchors.verticalCenter: parent.verticalCenter
+                        visible: transport.docked
+                        enabled: false
+                        doricoIcon: "svg:power"
+                        iconColor: "#40ACFF"
+                        transparent: true
+                        toolTipTitle: qsTrc("dorico", "Audio engine")
+                        toolTipDescription: transport.notAvailable
+                    }
+
+                    PlaybackToolBar {
+                        id: playbackContent
+
+                        anchors.verticalCenter: parent.verticalCenter
+
+                        navigationPanelSection: playbackToolBar.navigationSection
+                        navigationPanelOrder: 3
+
+                        floating: playbackToolBar.floating
+                    }
+
+                    DoricoButton {
+                        anchors.verticalCenter: parent.verticalCenter
+                        visible: transport.docked
+                        enabled: false
+                        doricoIcon: "svg:circle"
+                        iconColor: "#E5484D"
+                        transparent: true
+                        toolTipTitle: qsTrc("dorico", "Record")
+                        toolTipDescription: transport.notAvailable
+                    }
+
+                    DoricoButton {
+                        anchors.verticalCenter: parent.verticalCenter
+                        visible: transport.docked
+                        enabled: false
+                        doricoIcon: "svg:volume-2"
+                        transparent: true
+                        toolTipTitle: qsTrc("dorico", "Master volume")
+                        toolTipDescription: transport.notAvailable
+                    }
                 }
             }
         },
@@ -780,7 +854,51 @@ DockPage {
                 Binding {
                     target: notationView.paintView
                     property: "backgroundOverride"
-                    value: root.mode === root.modePrint ? "#AAAAAE" : "transparent"
+                    value: root.mode === root.modePrint ? "#AAAAAE" : "transparent" // transparent: the gradient below shows
+                }
+
+                // The music area behind the pages (spec 101, M1): Dorico's navy gradient (sampled from Dorico Pro 6),
+                // a flat slate in Engrave. A negative z draws it under the paint view's own painting.
+                Rectangle {
+                    parent: notationView.paintView
+                    anchors.fill: parent
+                    z: -1
+                    visible: root.mode !== root.modePrint
+                    color: "#485E6E"
+                    gradient: root.mode === root.modeEngrave ? null : writeGradient
+
+                    Gradient {
+                        id: writeGradient
+
+                        GradientStop { position: 0.0; color: "#09203F" }
+                        GradientStop { position: 0.6; color: "#1D3756" }
+                        GradientStop { position: 1.0; color: "#3A5977" }
+                    }
+                }
+
+                // Zone collapse tabs at the window edges (spec 101, S3): the left and right zones, like Ctrl-7 / Ctrl-9
+                Repeater {
+                    model: [
+                        { "icon": "svg:chevron-left", "command": "command://dorico/toggle-zone-left", "left": true },
+                        { "icon": "svg:chevron-right", "command": "command://dorico/toggle-zone-right", "left": false }
+                    ]
+
+                    DoricoButton {
+                        required property var modelData
+
+                        parent: notationView.paintView
+                        z: 10
+                        anchors.left: modelData.left ? parent.left : undefined
+                        anchors.right: modelData.left ? undefined : parent.right
+                        anchors.verticalCenter: parent.verticalCenter
+
+                        visible: root.mode !== root.modePrint
+                        doricoIcon: modelData.icon
+                        iconBoxSize: 12
+                        toolTipTitle: modelData.left ? qsTrc("dorico", "Show/hide left zone") : qsTrc("dorico", "Show/hide right zone")
+
+                        onTriggered: root.shellModel.dispatch(modelData.command)
+                    }
                 }
 
                 // Popovers (spec 20) open in Write mode only. On the paint view, so the popover works in view pixels.

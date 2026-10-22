@@ -180,16 +180,5 @@ Item {
                 }
             }
         }
-
-        DoricoButton {
-            anchors.verticalCenter: parent.verticalCenter
-
-            doricoIcon: "svg:sliders-vertical"
-            toolTipTitle: qsTrc("dorico", "Mixer")
-            navigation.panel: root.navigationPanel
-            navigation.order: 13
-
-            onTriggered: topBar.dispatch("command://app/dock/toggle-mixer")
-        }
     }
 }

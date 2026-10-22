@@ -2,7 +2,7 @@
 
 # 101 - Visual parity sweep (toolbar, zones, panels, music area)
 
-Status: todo - Depends on: 94, 95 (one page: zone defaults are per mode) - Dorico refs: `reference/dorico-ui.md`, the manual's project-window pages per mode
+Status: built, pending review - Depends on: 94, 95 (one page: zone defaults are per mode) - Dorico refs: `reference/dorico-ui.md`, the manual's project-window pages per mode
 
 Ground truth: `reference/dorico-shots/modes/notes.md`, with full-window shots `dorico-<n>-<mode>.png` / `ours-<n>-<mode>.png` and crops. These are from Dorico Pro 6, 2026-10-20 (the SE run was discarded). Window sizes differed (Dorico 2924x1225, ours 3440x1409, both 1 px = 1 pt), so compare sizes in points, not ratios of the window.
 
@@ -67,7 +67,25 @@ Close every chrome gap from the modes audit that specs 98-100 and 102 do not own
 | M1 | Dark navy gradient (`#09203F` region) around the page in Write, and its own Engrave colour | flat `#2C4D6F` | Gradient background (spec 60 deferred). Find the paint hook for the canvas background; keep any upstream edit to one line. |
 | M2 | Write opens in a single-page vertical view with a scrollbar | horizontal multi-page | Match the default view per mode (Dorico default: Page view, pages vertical? confirm against the shots). |
 
+## Build notes (2026-10-22)
+
+Done in code (no UI run yet, see Acceptance): T1-T5 (toolbar 37, `#272D33` bands behind each top toolbar's content, dark tab strip with theme colours, "Full score", transport pill with stub video / power / record / volume), S1-S3 (compact pills, "No selection", Follow playhead in Play and Engrave, bottom-centre chevron, `<` `>` edge tabs), P1-P4, P6-P11, Z2, M1, M2.
+
+- **B1** was already fixed by spec 98 (`Text.StyledText` in `PlayersList.qml`). The same escaping bug was in the Play track headers (`trackoverviewmodel.cpp`): fixed with `TextBase::unEscape`.
+- **Z1** needs no code: the defaults were already right (`zoneOpenByDefault`). The mixer came from a saved `dorico.zones.write.lower.docks` setting. Run Restore Default Layout before taking parity shots.
+- **M1**: the paint hook at `abstractnotationpaintview.cpp` now honours any valid override (a transparent one paints nothing), and `DoricoShellPage.qml` draws the gradient (`#09203F`, `#1D3756` at 60%, `#3A5977`, sampled from Dorico Pro 6) under the paint view. Engrave is flat `#485E6E` (not sampled from a clean canvas: re-measure).
+- **M2**: `applyDoricoAppearance`'s sibling block sets the canvas orientation to vertical once (own settings key `dorico/canvasOrientationApplied`).
+- **P3**: the Notations panel is 2 cells per row, 70 tall, 230 wide. The active colour of the toolbox buttons (`#40ACFF` in `DoricoButton.qml`) was left as is until it is compared in the parity pass.
+- **P8**: the Pages section embeds MuseScore's `NotationNavigator`. Display only: clicking a page does not move the main view.
+- **P9**: Tempo and Chords lanes (tempo marks / chord symbols of the score), note dashes (at most 600 per track, `ponytail:` in the model) and a stub toolbar row.
+- **T5** is not in Dorico's exact order: record and volume come after MuseScore's playback controls (which end with the settings cog), and the loop in / out buttons stay in the toolbar. Reordering needs an edit in `src/playback`.
+
 ## Deferred / unsupported
+
+- T6 title bar: native, its colour is set in the `muse/` submodule (`macosplatformtheme.mm`). Not editable from the fork without forking `muse_framework`.
+- P3 collapsible "Uncommon" sections: MuseScore palettes have no such grouping.
+- P5 checkbox column and "Empty part" rows in Layouts: needs the selected player from the Players panel across two lazily loaded zones, and undoable add / remove of a part in an excerpt. MuseScore has no empty excerpts.
+- T5 exact order (see above).
 
 - Dorico icon artwork. We use MuseScore, Bravura and Lucide icons chosen to look close (hard constraint).
 - The native title bar, if it can't be styled (T6).

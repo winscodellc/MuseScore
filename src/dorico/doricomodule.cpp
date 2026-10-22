@@ -29,6 +29,7 @@
 #include "rcommand/icommandsstate.h"
 
 #include "interactive/iinteractiveuriregister.h"
+#include "notation/inotationconfiguration.h"
 #include "ui/iuiconfiguration.h"
 
 #include "internal/doricoactionscontroller.h"
@@ -57,6 +58,7 @@ using namespace muse::modularity;
 static const std::string mname("dorico");
 static const Settings::Key KEYMAP_APPLIED_KEY(mname, "dorico/keymapApplied");
 static const Settings::Key APPEARANCE_VERSION_KEY(mname, "dorico/appearanceVersion");
+static const Settings::Key CANVAS_ORIENTATION_APPLIED_KEY(mname, "dorico/canvasOrientationApplied");
 
 // Spec 60: bump to re-apply after the colors below are re-tuned.
 static constexpr int APPEARANCE_VERSION = 2;
@@ -130,6 +132,16 @@ void DoricoModule::onInit(const IApplication::RunMode&)
     if (settings()->value(APPEARANCE_VERSION_KEY).toInt() < APPEARANCE_VERSION) {
         applyDoricoAppearance();
         settings()->setSharedValue(APPEARANCE_VERSION_KEY, Val(APPEARANCE_VERSION));
+    }
+
+    // Spec 101 (M2): Dorico lays its pages out in a vertical column. Once, so Preferences can still change it. Not part
+    // of the appearance version: bumping that would overwrite the colors the user has set since.
+    if (!settings()->value(CANVAS_ORIENTATION_APPLIED_KEY).toBool()) {
+        auto notationConfig = globalIoc()->resolve<mu::notation::INotationConfiguration>(mname);
+        if (notationConfig) {
+            notationConfig->setCanvasOrientation(muse::Orientation::Vertical);
+        }
+        settings()->setSharedValue(CANVAS_ORIENTATION_APPLIED_KEY, Val(true));
     }
 }
 

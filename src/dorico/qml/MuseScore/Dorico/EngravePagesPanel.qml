@@ -27,8 +27,9 @@ import QtQuick
 
 import Muse.Ui
 import Muse.UiComponents
+import MuseScore.NotationScene
 
-//! Engrave mode's Pages panel (right zone, spec 56).
+//! Engrave mode's Pages panel (right zone, spec 56). Pages shows MuseScore's own page navigator (spec 101, P8).
 Column {
     id: pagesColumn
 
@@ -43,13 +44,26 @@ Column {
         ]
 
         InspectorSection {
+            id: section
+
             required property var modelData
 
             width: pagesColumn.width
             title: modelData.title
             expanded: modelData.open
 
+            readonly property bool isPages: modelData.title === qsTrc("dorico", "Pages")
+
+            NotationNavigator {
+                visible: section.isPages
+                width: parent.width
+                height: section.isPages ? 220 : 0
+
+                Component.onCompleted: load()
+            }
+
             StyledTextLabel {
+                visible: !section.isPages
                 width: parent.width
                 text: qsTrc("dorico", "Not available yet")
                 opacity: 0.6

@@ -846,7 +846,7 @@ void AbstractNotationPaintView::paintBackground(const RectF& rect, muse::draw::P
 
     const QPixmap& wallpaper = notationConfiguration()->backgroundWallpaper();
 
-    if (m_backgroundOverride.isValid() && m_backgroundOverride.alpha() > 0) { // Dorico fork (spec 95)
+    if (m_backgroundOverride.isValid()) { // Dorico fork (spec 95, 101): a transparent override paints nothing, the QML gradient shows
         painter->fillRect(rect, m_backgroundOverride);
     } else if (notationConfiguration()->backgroundUseColor() || wallpaper.isNull()) {
         painter->fillRect(rect, notationConfiguration()->backgroundColor());

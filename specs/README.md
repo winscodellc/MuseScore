@@ -187,7 +187,7 @@ Status: todo | in-progress | pending review | done  -  Depends on: NN, NN  -  Do
 | 98 | [Context menus](98-context-menus.md) | built, pending review | 97 |
 | 99 | [Popover look and placement](99-popover-look.md) | done (2 boxes deferred) | 94 |
 | 100 | [Preferences dialog](100-preferences-dialog.md) | built, pending review | 94 |
-| 101 | [Visual parity sweep](101-visual-parity-sweep.md) | todo | 95 |
+| 101 | [Visual parity sweep](101-visual-parity-sweep.md) | built, pending review | 95 |
 | 102 | [Menu bar parity](102-menu-bar-parity.md) | built, pending review | 95, 97 |
 
 **Parity pass first (decided 2026-10-21):** specs 94-102 refine what exists against the real Dorico Pro 6, the bar being "exactly the same", and are done **before** any Roadmap spec (64+). Order: 95 -> 96 -> 97 -> 98 / 102, while 99, 100 and 101 can go in any order after 95. Ground truth is in `reference/dorico-shots/` (notes and dumps committed, screenshots gitignored). When a spec needs Dorico, launch **Dorico Pro**, never SE: follow `.claude/agents/ui-tester.md`.
