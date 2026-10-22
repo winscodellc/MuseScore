@@ -346,7 +346,9 @@
     {
         "scope": "APP",
         "shortcuts": [
-        {"command": "command://app/fullscreen", "sequences": []}
+        {"command": "command://app/fullscreen", "sequences": []},
+        {"command": "command://app/preferences", "sequences": []},
+        {"command": "command://dorico/preferences", "sequences": ["Ctrl+,"]}
         ]
     }
 ]

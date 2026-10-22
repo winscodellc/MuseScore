@@ -203,6 +203,8 @@ inline static const muse::rcommand::Command DORICO_TOGGLE_TOOLBAR_COMMAND("comma
 // Window > Hub (Dorico's start page = MuseScore's Home page) and File > Publish: the top bar has no Home/Publish buttons
 inline static const muse::rcommand::Command DORICO_OPEN_HUB_COMMAND("command://dorico/open-hub");
 inline static const muse::rcommand::Command DORICO_OPEN_PUBLISH_COMMAND("command://dorico/open-publish");
+// Edit > Preferences (Cmd-,, spec 100): our dialog instead of MuseScore's `command://app/preferences`
+inline static const muse::rcommand::Command DORICO_PREFERENCES_COMMAND("command://dorico/preferences");
 // Players panel "…" menu (spec 55): the score's stave sharing, a switch in MuseScore's instrument tree
 inline static const muse::rcommand::Command DORICO_TOGGLE_STAVE_SHARING_COMMAND("command://dorico/toggle-stave-sharing");
 

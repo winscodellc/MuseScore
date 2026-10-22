@@ -182,6 +182,14 @@ void DoricoActionsController::init()
         });
     }
     cd->onRequest(this, DORICO_OPEN_PUBLISH_COMMAND, [this]() { interactive()->open("musescore://publish"); return muse::make_ok(); });
+    cd->onRequest(this, DORICO_PREFERENCES_COMMAND, [this]() {
+        // ponytail: upstream waits for playback to stop before opening; we stop it and open at once
+        if (globalContext()->playbackState() && globalContext()->playbackState()->isPlaying()) {
+            commandDispatcher()->dispatch(muse::rcommand::Command("command://playback/stop"));
+        }
+        interactive()->open("musescore://dorico/preferences");
+        return muse::make_ok();
+    });
 }
 
 bool DoricoActionsController::isShellShown() const

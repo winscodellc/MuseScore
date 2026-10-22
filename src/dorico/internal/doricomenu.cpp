@@ -218,7 +218,7 @@ static MenuSpec editMenu()
         sep(),
         stub("Device Setup..."),
         sep(),
-        item("command://app/preferences"),
+        item("command://dorico/preferences", "Preferences..."),
     });
 }
 

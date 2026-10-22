@@ -102,6 +102,7 @@ void DoricoModule::resolveImports()
         ir->registerQmlUri(muse::Uri("musescore://dorico/filternotesbypitch"), "MuseScore.Dorico", "FilterNotesByPitchDialog"); // spec 45
         ir->registerQmlUri(muse::Uri("musescore://dorico/transforminvert"), "MuseScore.Dorico", "InvertPitchesDialog"); // spec 65
         ir->registerQmlUri(muse::Uri("musescore://dorico/transformrotate"), "MuseScore.Dorico", "RotateDialog");
+        ir->registerQmlUri(muse::Uri("musescore://dorico/preferences"), "MuseScore.Dorico", "DoricoPreferencesDialog"); // spec 100
     }
 
     auto cr = globalIoc()->resolve<muse::rcommand::ICommandsRegister>(mname);

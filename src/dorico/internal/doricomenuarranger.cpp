@@ -133,6 +133,9 @@ MenuItem* DoricoMenuArranger::build(const MenuSpec& spec, QObject* owner)
     if (!spec.title.isEmpty()) {
         item->setTitle(muse::TranslatableString("dorico", spec.title.toUtf8().constData())); // the table's name for a long command title
     }
+    if (spec.id == "command://dorico/preferences") {
+        item->setRole(MenuItemRole::PreferencesRole); // macOS: the application menu's Preferences item (spec 100)
+    }
     m_used.insert(spec.id);
     return item;
 }
@@ -237,6 +240,12 @@ MenuItemList DoricoMenuArranger::arrange(const MenuItemList& museScoreMenus, QOb
     // "About Qt..." is an app-menu item by role on macOS; Dorico's app menu has no such item
     if (MenuItem* aboutQt = m_byId.value("command://app/about-qt")) {
         aboutQt->setRole(MenuItemRole::NoRole);
+    }
+
+    // MuseScore's own dialog stays reachable in Window > More MuseScore Commands; the role and Cmd-, go to ours (spec 100)
+    if (MenuItem* museScorePreferences = m_byId.value("command://app/preferences")) {
+        museScorePreferences->setRole(MenuItemRole::NoRole);
+        museScorePreferences->setTitle(muse::TranslatableString("dorico", "MuseScore Preferences..."));
     }
 
     MenuItemList result;

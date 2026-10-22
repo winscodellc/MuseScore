@@ -179,6 +179,7 @@ static std::vector<CommandInfo> makeCommandInfos()
     staveSharing.decoration.checkable = Checkable::Yes; // the Players "…" menu shows a tick while it is on
     v.push_back(staveSharing);
     v.push_back(info(DORICO_OPEN_PUBLISH_COMMAND, "Dorico: Publish", "Opens MuseScore's Publish page (upload and share)"));
+    v.push_back(info(DORICO_PREFERENCES_COMMAND, "Preferences...", "Opens the Preferences dialog"));
 
     v.push_back(info(DORICO_JUMP_BAR_COMMAND, "Jump Bar", "Opens the jump bar in the mode it was last used in"));
     v.push_back(info(DORICO_JUMP_BAR_COMMANDS_COMMAND, "Jump Bar: Commands", "Opens the jump bar to find and run a command"));

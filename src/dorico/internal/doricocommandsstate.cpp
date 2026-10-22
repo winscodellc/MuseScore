@@ -156,12 +156,13 @@ CommandState DoricoCommandsState::commandState(const Command& command) const
 CommandState DoricoCommandsState::commandState(const Command& command, const SelectionFacts& facts) const
 {
     const bool editingText = notationController()->isTextEditing() || notationController()->isLyricsEditing();
-    // The Hub opens without a project too (it is where projects are opened)
+    // The Hub and Preferences open without a project too (the Hub is where projects are opened)
     const bool lyricsCommand = command == DORICO_LYRICS_CLOSE_COMMAND || command == DORICO_LYRICS_NEXT_LINE_COMMAND
                                || command == DORICO_LYRICS_ABOVE_COMMAND
                                || command == DORICO_LYRICS_BELOW_COMMAND;
     const bool enabled = lyricsCommand ? notationController()->isLyricsEditing()
-                         : (globalContext()->currentProject() != nullptr || command == DORICO_OPEN_HUB_COMMAND) && !editingText;
+                         : (globalContext()->currentProject() != nullptr || command == DORICO_OPEN_HUB_COMMAND || command == DORICO_PREFERENCES_COMMAND)
+                           && !editingText;
 
     const notation::INotationPtr notation = globalContext()->currentNotation();
     const engraving::Score* score = notation ? notation->elements()->msScore() : nullptr;

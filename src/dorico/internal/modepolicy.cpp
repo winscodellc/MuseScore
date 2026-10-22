@@ -38,7 +38,7 @@ static constexpr std::array MODE_EVERYWHERE = {
     "notation/save-style", "notation/open-page-settings", "notation/open-parts", "notation/get-location",
     "notation/cancel", "notation/undo", "notation/redo",
     "dorico/mode-", "dorico/toggle-zone-", "dorico/toggle-all-zones", "dorico/toggle-toolbar", "dorico/open-hub",
-    "dorico/open-publish", "dorico/noop", "dorico/toggle-stave-sharing", "dorico/jump-bar", "dorico/jump-bar-", "dorico/go-to-bar",
+    "dorico/open-publish", "dorico/preferences", "dorico/noop", "dorico/toggle-stave-sharing", "dorico/jump-bar", "dorico/jump-bar-", "dorico/go-to-bar",
     "dorico/grid-",
 };
 

@@ -2,7 +2,7 @@
   {"key": "Ctrl+Z", "dorico": "Cmd-Z", "command": "command://notation/undo", "owner": "10"},
   {"key": "Ctrl+Shift+Z", "dorico": "Cmd-Shift-Z", "command": "command://notation/redo", "owner": "10"},
   {"key": "Ctrl+Y", "dorico": "Cmd-Y", "command": "command://notation/redo", "owner": "10"},
-  {"key": "Ctrl+,", "dorico": "Cmd-,", "command": "command://app/preferences", "owner": "10"},
+  {"key": "Ctrl+,", "dorico": "Cmd-,", "command": "command://dorico/preferences", "owner": "10"},
   {"key": "Ctrl+S", "dorico": "Cmd-S", "command": "command://project/save", "owner": "10"},
   {"key": "Ctrl+Shift+S", "dorico": "Cmd-Shift-S", "command": "command://project/save-as", "owner": "10"},
   {"key": "Ctrl+W", "dorico": "Cmd-W", "command": "command://project/close", "owner": "10"},

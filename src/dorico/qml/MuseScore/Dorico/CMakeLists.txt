@@ -31,6 +31,8 @@ qt_add_qml_module(dorico_qml
         doricopanelmodel.h
         doricomixermodel.cpp
         doricomixermodel.h
+        doricopreferencesmodel.cpp
+        doricopreferencesmodel.h
         doricoprinter.cpp
         doricoprinter.h
         doricotopbarmodel.cpp
@@ -91,6 +93,16 @@ qt_add_qml_module(dorico_qml
         FilterNotesByPitchDialog.qml
         InvertPitchesDialog.qml
         RotateDialog.qml
+        DoricoPreferencesDialog.qml
+        prefs/DoricoCard.qml
+        prefs/DoricoColorRow.qml
+        prefs/DoricoEmbeddedPage.qml
+        prefs/DoricoHelpIcon.qml
+        prefs/DoricoPrefControl.qml
+        prefs/DoricoPrefRow.qml
+        prefs/DoricoSectionBand.qml
+        prefs/DoricoSegmented.qml
+        prefs/prefscolors.js
         JumpBar.qml
         ResourceDropdown.qml
         mixervalues.js
@@ -108,6 +120,7 @@ qt_add_qml_module(dorico_qml
         MuseScore.InstrumentsScene
         MuseScore.Palette
         MuseScore.PropertiesPanel
+        MuseScore.Preferences
 )
 
 # DoricoPanelModel (spec 53) builds palette trees; palette/internal headers include their module headers without a path.
