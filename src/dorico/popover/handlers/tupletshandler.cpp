@@ -414,7 +414,7 @@ PopoverDef mu::dorico::tupletsPopover()
     PopoverDef def;
     def.id = "tuplets";
     def.title = "Tuplets";
-    def.icon = muse::ui::IconCode::Code::NOTE_TUPLET;
+    def.glyph = "\uE1F0\uE1F7\uE1FF\uE1F0\uE1F7\uE1F0";
     def.validate = [](const std::string& text) { return parseTuplet(text).status; };
     def.prefill = [](const EngravingItem*) { return std::string(); };
     def.selectionPrefill = tupletSuggestion;

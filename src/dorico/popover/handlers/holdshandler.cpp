@@ -224,7 +224,7 @@ PopoverDef mu::dorico::holdsPopover()
     PopoverDef def;
     def.id = "holds";
     def.title = "Holds and Pauses";
-    def.icon = muse::ui::IconCode::Code::FERMATA;
+    def.glyph = "\uE4C0";
     def.supportsLocal = false; // Dorico: Return only
     def.itemTypes = { ElementType::FERMATA, ElementType::BREATH };
     def.validate = [](const std::string& text) { return parseHold(text).status; };

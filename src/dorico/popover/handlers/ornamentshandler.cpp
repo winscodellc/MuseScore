@@ -601,7 +601,7 @@ PopoverDef mu::dorico::ornamentsPopover()
     PopoverDef def;
     def.id = "ornaments";
     def.title = "Ornaments";
-    def.icon = muse::ui::IconCode::Code::ORNAMENT;
+    def.glyph = "\uE566";
     def.supportsLocal = false; // Dorico: Return only
     def.itemTypes = { ElementType::ORNAMENT, ElementType::TRILL_SEGMENT, ElementType::ARPEGGIO,
                       ElementType::GLISSANDO_SEGMENT, ElementType::CHORDLINE, ElementType::GUITAR_BEND_SEGMENT,

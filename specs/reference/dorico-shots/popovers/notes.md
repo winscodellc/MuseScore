@@ -40,7 +40,7 @@ Staff height (5 lines, top to bottom line): **Dorico ~38.5 px (space 9.6)**, **o
 | tuplets (`;`) | beamed 3-note glyph with small "3" / same, larger | Dorico prefilled "3:2" (selected), ours "2:3" (selected) |
 | chords (Shift-Q) | big bold "C7" glyph, field, stepper "1" (chord count), person | ours: small "Cm7" label, no field, no stepper, no person; it opens on the selected note's measure (orange measure box) in a different state than Dorico |
 | lyrics (Shift-L) | "v1." label, field, stepper "1" (verse), "down arrow" (placement) | ours: **no popover**; Shift-L starts in-score lyric editing (small boxed caret under the note), typed text becomes the lyric |
-| fingering (Shift-F) | **not comparable**: the Dorico shot shows no popover (zoomed score, view changed); needs a re-take | ours: fretboard-grid icon, empty field |
+| fingering (Shift-F) | Dorico (re-taken 2026-10-21, Bach Fugue 16 at 100%): "5" over a note glyph, box 204 x 39, field 157 x 28, no person button, box left edge 54 px left of the note centre, bottom 13 px above the staff (staff 24.5 px); invalid `zzz` shows no change | ours: fretboard-grid icon, empty field |
 | intervals (Shift-I) | fan-like glyph, no person / ours: filled notehead ellipse | glyph differs |
 | figbass (Shift-G) | stacked "6/3" figure + person / ours: beamed note glyph | wrong glyph in ours; Dorico has person |
 
@@ -51,3 +51,7 @@ Staff height (5 lines, top to bottom line): **Dorico ~38.5 px (space 9.6)**, **o
 4. Position the box left of the note (box left ~1.5 sh left of the note), not right of it; fix size (narrower) relative to staff.
 5. Fix glyphs: timesig stack, bars, tempo (add icon, drop "accel." prefill), ornaments "tr", techniques bow, repeats volta, intervals, figbass "6/3".
 6. Lyrics popover (v1. field, verse stepper, placement arrow) and chord popover stepper are missing.
+
+## Zoom check (2026-10-21)
+
+Dorico dynamics popover on one note at 100% and 200%: box 247 x 49 and 247 x 48 px; staff 24.5 and 36 px; left edge 54.5 and 56 px left of the note centre; bottom 12.7 and 19 px above the staff top. So the size and the horizontal offset are fixed in points, and the gap above the staff is about half a staff height.

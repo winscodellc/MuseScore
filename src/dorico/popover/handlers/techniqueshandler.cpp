@@ -664,7 +664,7 @@ PopoverDef mu::dorico::techniquesPopover()
     PopoverDef def;
     def.id = "techniques";
     def.title = "Playing Techniques";
-    def.icon = muse::ui::IconCode::Code::ARTICULATION;
+    def.glyph = "\uE612\uE610";
     def.supportsLocal = false; // Dorico: Return only
     def.itemTypes = { ElementType::PLAYTECH_ANNOTATION, ElementType::PEDAL_SEGMENT };
     def.editsAttached = false; // Dorico stacks techniques: Shift-P on a note with pizz. adds another one

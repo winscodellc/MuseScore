@@ -96,7 +96,9 @@ PopoverDef mu::dorico::figuredBassPopover()
     PopoverDef def;
     def.id = "figuredbass";
     def.title = "Figured Bass";
-    def.icon = muse::ui::IconCode::Code::MUSIC_NOTES;
+    def.glyph = "\uEA5B\n\uEA54";
+    def.scopeButton = true;
+    def.fieldWidth = 171;
     def.itemTypes = { ElementType::FIGURED_BASS };
     def.validate = [](const std::string& text) { return parseFiguredBass(text).status; };
     def.prefill = [](const EngravingItem* item) {

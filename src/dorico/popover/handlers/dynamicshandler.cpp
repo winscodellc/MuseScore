@@ -284,7 +284,9 @@ PopoverDef mu::dorico::dynamicsPopover()
     PopoverDef def;
     def.id = "dynamics";
     def.title = "Dynamics";
-    def.icon = muse::ui::IconCode::Code::DYNAMIC_FORTE;
+    def.glyph = "\uE522";
+    def.scopeButton = true;
+    def.fieldWidth = 171;
     def.supportsLocal = true;
     def.itemTypes = { ElementType::DYNAMIC, ElementType::HAIRPIN_SEGMENT };
     def.validate = [](const std::string& text) { return parseDynamics(text).status; };

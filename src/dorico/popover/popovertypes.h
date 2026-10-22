@@ -28,7 +28,6 @@
 
 #include "engraving/types/types.h"
 #include "notation/inotation.h"
-#include "ui/view/iconcodes.h"
 
 namespace mu::engraving {
 class EngravingItem;
@@ -70,8 +69,12 @@ struct PopoverPosition {
 struct PopoverDef {
     std::string id;    // URI tail: command://dorico/popover/<id>
     std::string title;
-    muse::ui::IconCode::Code icon = muse::ui::IconCode::Code::NONE; // MuseScore icon, never a Dorico asset
-    bool supportsLocal = false;                                     // Opt-Return means something
+    //! Box icon (spec 99): SMuFL glyphs drawn in Bravura Text (plain text falls back to the UI font), "\n" stacks lines;
+    //! or "svg:<name>" from the Dorico icons. Never a Dorico asset.
+    std::string glyph;
+    bool supportsLocal = false; // Opt-Return means something
+    bool scopeButton = false;   // Dorico shows the Local/Global person button (spec 99)
+    int fieldWidth = 133;       // entry field width in px, border included (spec 99, measured on Dorico 6)
     std::vector<engraving::ElementType> itemTypes;                  // selected item types whose Return reopens this popover
     bool editsAttached = true; // opened on a note that has one of itemTypes, edit it (dynamics); false adds another
 

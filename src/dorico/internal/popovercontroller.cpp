@@ -308,16 +308,42 @@ std::optional<PopoverPosition> PopoverController::startPosition(EngravingItem* e
     return PopoverPosition { e->tick(), m_current->stepsByChord ? e->track() : trackZeroVoice(e->track()) };
 }
 
-// The caret, or the earliest selected item, with the top raised to its staff's top line so the box sits above the staff.
+// Dorico 6 (spec 99): the box's bottom sits half a staff height above the staff, at every zoom.
 RectF PopoverController::computeAnchor() const
 {
+    RectF rect = itemAnchor();
+    rect.setTop(rect.top() - 2 * globalContext()->currentNotation()->elements()->msScore()->style().spatium());
+    return rect;
+}
+
+// Canvas y of a staff's top line at a tick, if laid out.
+static std::optional<double> popoverStaffTop(const Score* score, const Fraction& tick, staff_idx_t staff)
+{
+    const Measure* m = score->tick2measure(tick);
+    const System* system = m ? m->system() : nullptr;
+    return system && system->staff(staff) ? std::optional<double>(system->staffCanvasYpage(staff)) : std::nullopt;
+}
+
+// The caret, or the earliest selected item, with the top raised to its staff's top line so the box sits above the staff.
+RectF PopoverController::itemAnchor() const
+{
     INotationPtr notation = globalContext()->currentNotation();
+    const Score* score = notation->elements()->msScore();
     if (m_position) {
-        return m_editing ? m_editing->canvasBoundingRect() : positionRect(notation->elements()->msScore(), *m_position);
+        RectF rect = m_editing ? m_editing->canvasBoundingRect() : positionRect(score, *m_position);
+        if (const std::optional<double> top = popoverStaffTop(score, m_position->tick, track2staff(m_position->track))) {
+            rect.setTop(std::min(rect.top(), *top));
+        }
+        return rect;
     }
     INotationInteractionPtr interaction = notation->interaction();
     if (interaction->noteInput()->isNoteInputMode()) {
-        return interaction->noteInput()->cursorRect();
+        RectF rect = interaction->noteInput()->cursorRect();
+        const InputState& is = score->inputState();
+        if (const std::optional<double> top = popoverStaffTop(score, is.tick(), track2staff(is.track()))) {
+            rect.setTop(*top); // the caret reaches above the staff
+        }
+        return rect;
     }
 
     INotationSelectionPtr selection = interaction->selection();

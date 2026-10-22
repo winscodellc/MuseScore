@@ -343,7 +343,7 @@ PopoverDef mu::dorico::clefPopover()
     PopoverDef def;
     def.id = "clef";
     def.title = "Clefs and Octave Lines";
-    def.icon = muse::ui::IconCode::Code::CLEF_TREBLE;
+    def.glyph = "\uE050";
     def.supportsLocal = false; // Opt-Return (octave line in one voice only): MuseScore octave lines are staff-wide
     def.itemTypes = { ElementType::CLEF, ElementType::OTTAVA_SEGMENT };
     def.validate = [](const std::string& text) { return parseClef(text).status; };

@@ -69,6 +69,7 @@ private:
     engraving::EngravingItem* existingItem(const PopoverDef* def) const;
     void open(const PopoverDef* def, engraving::EngravingItem* editing);
     muse::RectF computeAnchor() const;
+    muse::RectF itemAnchor() const;
     std::optional<PopoverPosition> startPosition(engraving::EngravingItem* editing) const;
     bool applyEntry(const std::string& text, ApplyScope scope);
     void subscribeNoteInput();

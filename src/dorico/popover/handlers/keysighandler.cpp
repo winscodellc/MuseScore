@@ -118,7 +118,9 @@ PopoverDef mu::dorico::keySigPopover()
     PopoverDef def;
     def.id = "keysig";
     def.title = "Key Signatures";
-    def.icon = muse::ui::IconCode::Code::KEY_SIGNATURE;
+    def.glyph = "\uE262\uE262";
+    def.scopeButton = true;
+    def.fieldWidth = 171;
     def.supportsLocal = true;
     def.itemTypes = { ElementType::KEYSIG };
     def.validate = [](const std::string& text) { return parseKeySig(text).status; };

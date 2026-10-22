@@ -204,7 +204,9 @@ PopoverDef mu::dorico::timeSigPopover()
     PopoverDef def;
     def.id = "timesig";
     def.title = "Time Signatures";
-    def.icon = muse::ui::IconCode::Code::TIME_SIGNATURE;
+    def.glyph = "3\n4"; // bold UI digits: Bravura Text has no plain timeSig digits
+    def.scopeButton = true;
+    def.fieldWidth = 171;
     def.supportsLocal = true;
     def.itemTypes = { ElementType::TIMESIG };
     def.validate = [](const std::string& text) { return parseTimeSig(text).status; };

@@ -36,7 +36,7 @@ TEST(DoricoPopoverRegistry, EveryPopoverCommandHasADef)
         const PopoverDef* def = registry.find(command.pathSegments().back());
         ASSERT_NE(def, nullptr) << command.toString();
         EXPECT_FALSE(def->title.empty());
-        EXPECT_NE(def->icon, muse::ui::IconCode::Code::NONE);
+        EXPECT_TRUE(!def->glyph.empty() || def->openInline) << command.toString(); // lyrics: no box of its own
     }
 }
 

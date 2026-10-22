@@ -74,7 +74,9 @@ PopoverDef mu::dorico::chordSymbolsPopover()
     PopoverDef def;
     def.id = "chordsymbols";
     def.title = "Chord Symbols";
-    def.icon = muse::ui::IconCode::Code::CHORD_SYMBOL;
+    def.glyph = "C\u2077";
+    def.scopeButton = true;
+    def.fieldWidth = 171;
     def.itemTypes = { ElementType::HARMONY };
     def.validate = [](const std::string& text) { return parseChordSymbol(text).status; };
     def.prefill = [](const EngravingItem* item) {

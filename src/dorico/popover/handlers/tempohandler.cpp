@@ -267,7 +267,8 @@ PopoverDef mu::dorico::tempoPopover()
     PopoverDef def;
     def.id = "tempo";
     def.title = "Tempo";
-    def.icon = muse::ui::IconCode::Code::TEMPO_CHANGE;
+    def.glyph = "\uECA5=72";
+    def.fieldWidth = 296;
     def.itemTypes = { ElementType::TEMPO_TEXT, ElementType::GRADUAL_TEMPO_CHANGE_SEGMENT };
     def.validate = [](const std::string& text) { return parseTempo(text).status; };
     def.suggest = tempoSuggestions;

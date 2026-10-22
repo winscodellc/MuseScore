@@ -423,7 +423,7 @@ PopoverDef mu::dorico::repeatsPopover()
     PopoverDef def;
     def.id = "repeats";
     def.title = "Repeats and Tremolos";
-    def.icon = muse::ui::IconCode::Code::REPEAT_START;
+    def.glyph = "svg:popover-repeats";
     def.supportsLocal = false; // Dorico: Return only
     def.itemTypes = { ElementType::MARKER, ElementType::JUMP, ElementType::VOLTA_SEGMENT, ElementType::TREMOLO_SINGLECHORD,
                       ElementType::TREMOLO_TWOCHORD, ElementType::MEASURE_REPEAT };

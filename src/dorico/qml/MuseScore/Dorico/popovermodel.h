@@ -32,17 +32,23 @@
 
 #include "async/asyncable.h"
 #include "modularity/ioc.h"
+#include "context/iglobalcontext.h"
+#include "rcommand/icommanddispatcher.h"
 
 #include "../../../ipopovercontroller.h"
 
 namespace mu::dorico {
 //! Backs Popover.qml (spec 20): mirrors IPopoverController and maps its canvas anchor into view pixels.
+//! Also the lyrics popover look (spec 99): the lyric is typed in MuseScore's in-score editor (spec 33), and the box shows
+//! its line, text and placement while that editor runs.
 class PopoverModel : public QObject, public muse::Contextable, public muse::async::Asyncable
 {
     Q_OBJECT
 
     Q_PROPERTY(bool isOpen READ isOpen NOTIFY changed)
-    Q_PROPERTY(int iconCode READ iconCode NOTIFY changed)
+    Q_PROPERTY(QString glyph READ glyph NOTIFY changed) // PopoverDef::glyph
+    Q_PROPERTY(bool scopeButton READ scopeButton NOTIFY changed)
+    Q_PROPERTY(int fieldWidth READ fieldWidth NOTIFY changed)
     Q_PROPERTY(QString title READ title NOTIFY changed)
     Q_PROPERTY(bool supportsLocal READ supportsLocal NOTIFY changed)
     Q_PROPERTY(bool navigates READ navigates NOTIFY changed) // Space / Tab / Cmd-arrows move it along the score (spec 32)
@@ -56,9 +62,17 @@ class PopoverModel : public QObject, public muse::Contextable, public muse::asyn
     Q_PROPERTY(QVariant viewMatrix READ viewMatrix WRITE setViewMatrix NOTIFY geometryChanged)
     Q_PROPERTY(QRectF anchorRect READ anchorRect NOTIFY geometryChanged)
 
+    Q_PROPERTY(bool lyricsOpen READ lyricsOpen NOTIFY lyricsChanged)
+    Q_PROPERTY(int lyricsLine READ lyricsLine NOTIFY lyricsChanged) // 1-based
+    Q_PROPERTY(bool lyricsAbove READ lyricsAbove NOTIFY lyricsChanged)
+    Q_PROPERTY(QString lyricsText READ lyricsText NOTIFY lyricsChanged)
+    Q_PROPERTY(QRectF lyricsAnchor READ lyricsAnchor NOTIFY geometryChanged)
+
     QML_ELEMENT
 
     muse::ContextInject<IPopoverController> controller = { this };
+    muse::ContextInject<context::IGlobalContext> globalContext = { this };
+    muse::ContextInject<muse::rcommand::ICommandDispatcher> dispatcher = { this };
 
 public:
     explicit PopoverModel(QObject* parent = nullptr);
@@ -68,9 +82,13 @@ public:
     Q_INVOKABLE void cancel();
     Q_INVOKABLE void moveSuggestion(int delta);
     Q_INVOKABLE void move(int popoverMove); // PopoverMove: 0 next beat, 1 previous beat, 2 next bar, 3 previous bar, 4/5 next/previous item
+    Q_INVOKABLE void lyricsLineStep(int delta); // -1 previous line, +1 next line (added when missing)
+    Q_INVOKABLE void toggleLyricsPlacement();
 
     bool isOpen() const;
-    int iconCode() const;
+    QString glyph() const;
+    bool scopeButton() const;
+    int fieldWidth() const;
     QString title() const;
     bool supportsLocal() const;
     bool navigates() const;
@@ -83,14 +101,30 @@ public:
     void setViewMatrix(const QVariant& matrix);
     QRectF anchorRect() const;
 
+    bool lyricsOpen() const { return m_lyricsOpen; }
+    int lyricsLine() const { return m_lyricsLine; }
+    bool lyricsAbove() const { return m_lyricsAbove; }
+    QString lyricsText() const { return m_lyricsText; }
+    QRectF lyricsAnchor() const;
+
 signals:
     void changed();
     void geometryChanged(); // also sent with every changed()
     void opened(); // a popover was opened (or replaced): take keyboard focus
+    void lyricsChanged();
 
 private:
+    void subscribeLyrics();
+    void updateLyrics();
+
     QString m_text;
     int m_currentSuggestion = -1;
     QVariant m_viewMatrix;
+
+    bool m_lyricsOpen = false;
+    int m_lyricsLine = 1;
+    bool m_lyricsAbove = false;
+    QString m_lyricsText;
+    QRectF m_lyricsRect; // canvas
 };
 }

@@ -23,10 +23,16 @@
 #include "popovermodel.h"
 
 #include "../../../internal/doricoperf.h"
+#include "../../../doricocommands.h"
+
+#include "engraving/dom/lyrics.h"
+#include "notation/inotationinteraction.h"
+#include "notationscene/notationcommands.h"
 
 #include <algorithm>
 
 using namespace mu::dorico;
+using namespace mu::notation;
 
 PopoverModel::PopoverModel(QObject* parent)
     : QObject(parent), muse::Contextable(muse::iocCtxForQmlObject(this))
@@ -44,6 +50,58 @@ void PopoverModel::load()
             emit opened();
         }
     });
+
+    globalContext()->currentNotationChanged().onNotify(this, [this]() { subscribeLyrics(); });
+    subscribeLyrics();
+}
+
+void PopoverModel::subscribeLyrics()
+{
+    if (INotationPtr notation = globalContext()->currentNotation()) {
+        INotationInteractionPtr interaction = notation->interaction();
+        interaction->textEditingStarted().onNotify(this, [this]() { updateLyrics(); }, Asyncable::Mode::SetReplace);
+        interaction->textEditingEnded().onReceive(this, [this](engraving::TextBase*) { updateLyrics(); },
+                                                  Asyncable::Mode::SetReplace);
+        // Every keystroke and placement change re-lays out the score
+        notation->notationChanged().onReceive(this, [this](const muse::RectF&) { updateLyrics(); }, Asyncable::Mode::SetReplace);
+    }
+    updateLyrics();
+}
+
+void PopoverModel::updateLyrics()
+{
+    INotationPtr notation = globalContext()->currentNotation();
+    const engraving::TextBase* text = notation && notation->interaction()->isTextEditingStarted()
+                                      ? notation->interaction()->editedText() : nullptr;
+    const bool open = text && text->isLyrics();
+    if (!open && !m_lyricsOpen) {
+        return;
+    }
+    m_lyricsOpen = open;
+    if (open) {
+        const engraving::Lyrics* lyric = engraving::toLyrics(text);
+        m_lyricsLine = static_cast<int>(lyric->verse()) + 1;
+        m_lyricsAbove = lyric->placeAbove();
+        m_lyricsText = lyric->plainText().toQString();
+        m_lyricsRect = lyric->canvasBoundingRect().toQRectF();
+    }
+    emit lyricsChanged();
+    emit geometryChanged();
+}
+
+QRectF PopoverModel::lyricsAnchor() const
+{
+    return m_viewMatrix.value<QTransform>().mapRect(m_lyricsRect);
+}
+
+void PopoverModel::lyricsLineStep(int delta)
+{
+    dispatcher()->dispatch(delta < 0 ? EDITLYRIC_PREV_VERSE_COMMAND : DORICO_LYRICS_NEXT_LINE_COMMAND);
+}
+
+void PopoverModel::toggleLyricsPlacement()
+{
+    dispatcher()->dispatch(m_lyricsAbove ? DORICO_LYRICS_BELOW_COMMAND : DORICO_LYRICS_ABOVE_COMMAND);
 }
 
 bool PopoverModel::isOpen() const
@@ -51,9 +109,19 @@ bool PopoverModel::isOpen() const
     return controller()->current() != nullptr;
 }
 
-int PopoverModel::iconCode() const
+QString PopoverModel::glyph() const
 {
-    return isOpen() ? static_cast<int>(controller()->current()->icon) : 0;
+    return isOpen() ? QString::fromStdString(controller()->current()->glyph) : QString();
+}
+
+bool PopoverModel::scopeButton() const
+{
+    return isOpen() && controller()->current()->scopeButton;
+}
+
+int PopoverModel::fieldWidth() const
+{
+    return isOpen() ? controller()->current()->fieldWidth : 0;
 }
 
 QString PopoverModel::title() const

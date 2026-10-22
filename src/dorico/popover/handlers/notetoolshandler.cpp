@@ -135,7 +135,7 @@ PopoverDef mu::dorico::noteToolsPopover()
     PopoverDef def;
     def.id = "notetools";
     def.title = "Note Tools";
-    def.icon = muse::ui::IconCode::Code::NOTE_HEAD;
+    def.glyph = "\uE1F0\uE1F7\uE1F0";
     def.validate = [](const std::string& text) { return parseNoteTools(text).status; };
     def.prefill = [](const EngravingItem*) { return std::string(); }; // nothing to reopen
     def.apply = [](const std::string& text, ApplyScope, mu::notation::INotationPtr notation) {

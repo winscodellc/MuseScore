@@ -390,7 +390,9 @@ PopoverDef mu::dorico::barsPopover()
     PopoverDef def;
     def.id = "bars";
     def.title = "Bars and Barlines";
-    def.icon = muse::ui::IconCode::Code::DOUBLE_BAR_LINE;
+    def.glyph = "svg:popover-bars";
+    def.scopeButton = true;
+    def.fieldWidth = 171;
     def.supportsLocal = true;
     def.itemTypes = { ElementType::BAR_LINE };
     def.validate = [](const std::string& text) { return parseBars(text).status; };

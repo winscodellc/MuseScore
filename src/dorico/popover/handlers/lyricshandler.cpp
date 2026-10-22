@@ -40,7 +40,6 @@ PopoverDef mu::dorico::lyricsPopover()
     PopoverDef def;
     def.id = "lyrics";
     def.title = "Lyrics";
-    def.icon = muse::ui::IconCode::Code::LYRICS;
 
     // Same target as MuseScore's add-lyrics (NotationActionController::addText), but a note that already has a
     // line 1 lyric edits it instead of adding line 2.

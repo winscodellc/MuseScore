@@ -91,7 +91,8 @@ PopoverDef mu::dorico::fingeringPopover()
     PopoverDef def;
     def.id = "fingering";
     def.title = "Fingering";
-    def.icon = muse::ui::IconCode::Code::FRETBOARD_DIAGRAM;
+    def.glyph = "\uED15\n\uE1D5";
+    def.fieldWidth = 157;
     def.itemTypes = { ElementType::FINGERING };
     def.stepsByChord = true;
     def.validate = [](const std::string& text) { return parseFingering(text, false).status; };

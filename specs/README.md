@@ -185,7 +185,7 @@ Status: todo | in-progress | pending review | done  -  Depends on: NN, NN  -  Do
 | 96 | [Runtime performance](96-runtime-performance.md) | built, pending review | 95 |
 | 97 | [Mode gating](97-mode-gating.md) | todo | 95 |
 | 98 | [Context menus](98-context-menus.md) | todo | 97 |
-| 99 | [Popover look and placement](99-popover-look.md) | todo | 94 |
+| 99 | [Popover look and placement](99-popover-look.md) | done (2 boxes deferred) | 94 |
 | 100 | [Preferences dialog](100-preferences-dialog.md) | todo | 94 |
 | 101 | [Visual parity sweep](101-visual-parity-sweep.md) | todo | 95 |
 | 102 | [Menu bar parity](102-menu-bar-parity.md) | todo | 95, 97 |
