@@ -36,6 +36,7 @@ class DoricoPasteController;
 class DoricoSelectionController;
 class DoricoTransformController;
 class JumpBarController;
+class ModeCommandsGate;
 class PopoverController;
 
 class DoricoModule : public muse::modularity::IModuleSetup
@@ -69,6 +70,7 @@ private:
     std::shared_ptr<DoricoSelectionController> m_selectionController;
     std::shared_ptr<DoricoTransformController> m_transformController;
     std::shared_ptr<JumpBarController> m_jumpBarController;
+    std::shared_ptr<ModeCommandsGate> m_modeGate;
     std::shared_ptr<PopoverController> m_popoverController;
 };
 }

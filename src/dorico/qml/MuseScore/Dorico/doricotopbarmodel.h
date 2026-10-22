@@ -44,6 +44,8 @@ class DoricoTopBarModel : public QObject, public muse::Contextable, public muse:
     Q_OBJECT
 
     Q_PROPERTY(int currentMode READ currentMode NOTIFY currentModeChanged)
+    //! What the mouse may edit in the score view in this mode (spec 97), as notation::InteractionCaps flags
+    Q_PROPERTY(int interactionCaps READ interactionCaps NOTIFY currentModeChanged)
     Q_PROPERTY(QStringList layoutTitles READ layoutTitles NOTIFY layoutsChanged)
     Q_PROPERTY(int currentLayoutIndex READ currentLayoutIndex NOTIFY layoutsChanged)
     // Parallel to layoutTitles: page size / space size per layout, empty for parts that were never opened (spec 55).
@@ -63,6 +65,7 @@ public:
     Q_INVOKABLE void load();
 
     int currentMode() const;
+    int interactionCaps() const;
     QStringList layoutTitles() const;
     int currentLayoutIndex() const;
     QStringList layoutInfos() const;

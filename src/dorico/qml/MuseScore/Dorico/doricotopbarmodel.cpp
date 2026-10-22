@@ -35,6 +35,8 @@
 #include "notation/inotationstyle.h"
 #include "notation/inotationundostack.h"
 #include "engraving/dom/masterscore.h"
+
+#include "../../../internal/modepolicy.h"
 #include "engraving/editing/editscoreproperties.h"
 #include "engraving/dom/mscore.h"
 #include "project/inotationproject.h"
@@ -75,6 +77,11 @@ void DoricoTopBarModel::load()
 int DoricoTopBarModel::currentMode() const
 {
     return static_cast<int>(modes()->mode());
+}
+
+int DoricoTopBarModel::interactionCaps() const
+{
+    return mu::dorico::interactionCaps(modes()->mode());
 }
 
 QStringList DoricoTopBarModel::layoutTitles() const

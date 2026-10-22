@@ -34,6 +34,7 @@
 
 #include "../doricocommands.h"
 #include "filtersettings.h"
+#include "modepolicy.h"
 #include "pastespecial.h"
 #include "doricoperf.h"
 
@@ -207,7 +208,7 @@ CommandState DoricoCommandsState::commandState(const Command& command, const Sel
         checked = std::all_of(it->second.begin(), it->second.end(), [&](SymId s) { return facts.articulations.count(s) > 0; });
     }
 
-    return CommandState(enabled && pasteSpecialEnabled, checked);
+    return CommandState(enabled && pasteSpecialEnabled && isCommandAllowed(modes()->mode(), command.toString()), checked);
 }
 
 async::Channel<Command, CommandState> DoricoCommandsState::commandStateChanged() const

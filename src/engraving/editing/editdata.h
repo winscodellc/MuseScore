@@ -254,6 +254,7 @@ public:
 
     int key = 0;
     KeyboardModifiers modifiers;
+    bool keepAnchors = false; // Dorico fork (spec 97): a drag changes offsets only, never the beat an item is anchored to
     String s;
     String preeditString;
 

@@ -131,6 +131,7 @@ public:
     bool isDragStarted() const override;
     void startDrag(const std::vector<EngravingItem*>& elems, const muse::PointF& eoffset, const IsDraggable& isDraggable) override;
     void drag(const muse::PointF& fromPos, const muse::PointF& toPos, DragMode mode) override;
+    void setDragKeepsAnchors(bool keep) override; // Dorico fork (spec 97)
     void endDrag() override;
     muse::async::Notification dragChanged() const override;
 
@@ -563,6 +564,7 @@ private:
     std::shared_ptr<MScoreErrorsController> m_errorsController = nullptr;
 
     DragData m_dragData;
+    bool m_dragKeepsAnchors = false; // Dorico fork (spec 97)
     muse::async::Notification m_dragChanged;
     std::vector<muse::LineF> m_anchorLines;
 

@@ -123,6 +123,7 @@ void AbstractNotationPaintView::load()
     m_continuousPanel = std::make_unique<ContinuousPanel>();
 
     m_inputController->setReadonly(m_readonly);
+    m_inputController->setInteractionCaps(m_interactionCaps); // Dorico fork (spec 97)
     m_inputController->init();
 
     // Dorico fork (spec 58): the Dorico mode pages stay alive, so the main view being shown takes the view commands
@@ -656,7 +657,7 @@ void AbstractNotationPaintView::showContextMenu(const ElementType& elementType, 
 {
     TRACEFUNC;
 
-    if (m_readonly) {
+    if (m_readonly || !(m_interactionCaps & INTERACTION_SELECT)) { // Dorico fork (spec 97)
         return;
     }
 
@@ -1519,6 +1520,26 @@ void AbstractNotationPaintView::setReadonly(bool readonly)
     }
 
     emit readonlyChanged();
+}
+
+// Dorico fork (spec 97)
+int AbstractNotationPaintView::interactionCaps() const
+{
+    return m_interactionCaps;
+}
+
+void AbstractNotationPaintView::setInteractionCaps(int caps)
+{
+    if (m_interactionCaps == caps) {
+        return;
+    }
+
+    m_interactionCaps = caps;
+    if (m_inputController) {
+        m_inputController->setInteractionCaps(caps);
+    }
+
+    emit interactionCapsChanged();
 }
 
 void AbstractNotationPaintView::clear()

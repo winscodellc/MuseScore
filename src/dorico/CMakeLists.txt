@@ -38,6 +38,8 @@ target_sources(dorico PRIVATE
     internal/doricoperf.h
     internal/doricomodestate.cpp
     internal/doricomodestate.h
+    internal/modepolicy.cpp
+    internal/modepolicy.h
     internal/doriconoteinputcontroller.cpp
     internal/doriconoteinputcontroller.h
     internal/doricomenu.cpp

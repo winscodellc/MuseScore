@@ -111,6 +111,7 @@ public:
     virtual bool isDragStarted() const = 0;
     virtual void startDrag(const std::vector<EngravingItem*>& elems, const muse::PointF& eoffset, const IsDraggable& isDrag) = 0;
     virtual void drag(const muse::PointF& fromPos, const muse::PointF& toPos, DragMode mode) = 0;
+    virtual void setDragKeepsAnchors(bool keep) = 0; // Dorico fork (spec 97): drags then change offsets only
     virtual void endDrag() = 0;
     virtual muse::async::Notification dragChanged() const = 0;
 

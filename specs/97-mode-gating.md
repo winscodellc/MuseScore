@@ -2,7 +2,7 @@
 
 # 97 - Mode gating (what each mode lets you edit)
 
-Status: todo - Depends on: 95 (single page; the gate reads one mode state), 94 - Dorico refs: `topics/dorico-concepts/modes-in-dorico.md`, `topics/setup-mode.md`, `topics/write-mode.md`, `topics/engrave-mode.md`, `topics/play-mode.md`, `topics/print-mode.md`
+Status: built, pending review - Depends on: 95 (single page; the gate reads one mode state), 94 - Dorico refs: `topics/dorico-concepts/modes-in-dorico.md`, `topics/setup-mode.md`, `topics/write-mode.md`, `topics/engrave-mode.md`, `topics/play-mode.md`, `topics/print-mode.md`
 
 ## Goal
 
@@ -18,7 +18,31 @@ Each mode allows only the edits that Dorico allows there. Today Setup, Write, En
 | Play | Track view, the Key Editor and the Mixer. Notes are edited in the Key Editor. | No score editing in the music area (it shows tracks, not the score). |
 | Print | Print and export settings, layout selection in the Layouts panel. | Everything in the music area. The layout selector in the toolbar is disabled. |
 
-The audit (spec 94) did not test per-key gating, so capture it first. In Dorico Pro, check which keys and menu items are enabled in each mode, for example Cmd-C, Cmd-A, Undo, Alt-arrow (graphic nudge) and Shift-Alt-arrow in Engrave, and check how a blocked key responds (a beep or a status message). Launch Dorico Pro with the steps in `.claude/agents/ui-tester.md`, then record the table here.
+### Dorico Pro 6 audit (2026-10-22, ui-tester on a real project)
+
+Where Dorico 6 differs from the manual's wording, the observed behaviour wins; unconfirmed cells follow the manual.
+
+| Action | Write | Engrave | Setup | Play | Print |
+|---|---|---|---|---|---|
+| Click a note | selects | selects | nothing | (piano roll) | nothing |
+| Delete | deletes | **resets engraving changes**, removes nothing | nothing (deletes a selected player) | deletes in the Key Editor | nothing |
+| Letter key (C) outside note input | nothing | nothing | nothing | nothing | nothing |
+| Alt-Up | pitch up | **note: pitch up; other item: graphic nudge** | reorders players (panel) | nothing | nothing |
+| Shift-N | note input | toggles note input (label seen; kept blocked here, per the manual) | nothing | nothing | nothing |
+| Shift-D | popover | unclear (kept blocked) | nothing | nothing | nothing |
+| Cmd-C / Cmd-V | yes / yes | Copy on with notes; paste not confirmed (kept blocked, per the manual) | off | (Key Editor) | off |
+| Cmd-A | yes | yes | off | (Key Editor) | off |
+| Undo | yes | yes | greyed in the test (stack was empty); kept on, Setup edits are undoable | yes | - |
+| Alt-Left/Right | rhythmic move | graphic nudge | - | - | - |
+| Ctrl-Alt-Left/Right | nothing | nothing | - | - | - |
+| Shift-Alt-Right | lengthens (slur, rhythmic) | nothing | - | - | - |
+| Drag a dynamic | snaps to the next grid position | free graphic move | - | - | - |
+| Drag a note up | pitch | pitch | - | - | - |
+| Double-click text | text editor | text editor | - | - | - |
+| Slur handles | shown; drag snaps to notes | bezier handles | - | - | - |
+| System / frame breaks | no | Engrave toolbox only | no | no | no |
+
+A blocked key gives no beep and no message: it is silently ignored.
 
 ## MuseScore today
 
@@ -58,21 +82,32 @@ The audit (spec 94) did not test per-key gating, so capture it first. In Dorico 
 - `notationviewinputcontroller.{h,cpp}`: a caps struct and checks at the five entry points.
 - `paletteprovider.cpp`: one guard.
 
+### As built (differs from the design above)
+
+- Policy: `src/dorico/internal/modepolicy.{h,cpp}` (`isCommandAllowed`, `interactionCaps`, `ModeCommandsGate`). Notation commands ask it through a new optional `notationscene/inotationcommandsgate.h` (`NotationCommandsState::commandState`); Dorico commands ask it in `DoricoCommandsState`.
+- Shortcuts, menus and toolbars all read the enabled state, so disabling is enough for them. The dispatcher itself does not check it, so `ModeCommandsGate` also vetoes blocked commands in `preDispatch` (double-clicking a bar dispatches note input directly). It subscribes first; the paste controller's hook skips vetoed commands. In Engrave it turns Delete into `reset-shapes-and-positions`.
+- No palette guard: the palettes panel exists only in Write.
+- Setup does not use `readOnly` (that paints the score as printed, hiding invisible items); it gets no mouse caps instead. Caps (`notationscenetypes.h` `InteractionCaps`) reach the view through `AbstractNotationPaintView::interactionCaps`, bound in `DoricoShellPage.qml` from `DoricoTopBarModel::interactionCaps`.
+- Engrave drags must not move items to another beat: `INTERACTION_REANCHOR` is off there, which sets `EditData::keepAnchors` (checked by `MoveElementAnchors::moveElementAnchorsOnDrag` and `LineSegment::rebaseAnchors`).
+- Engrave Alt-arrow: `command://dorico/nudge-{left,right,up,down}` share Alt-arrow with Write's commands; only one of each pair is enabled per mode. Up/Down on notes changes pitch (Dorico 6).
+
 ## Deferred / unsupported
 
 - The Play-mode Key Editor (spec 88). Until then, Play allows nothing in the score.
+- Rhythmic drag in Write (a dragged dynamic snapping to the grid; slur handles snapping to notes). Write blocks graphic drags of items and handles instead.
+- Shift-N and paste in Engrave: Dorico 6 seemed to allow them, but the audit could not confirm it; kept blocked, per the manual.
 - Graphic offsets in Engrave that MuseScore cannot represent (system- or frame-relative). Use MuseScore's offsets.
 
 ## Acceptance criteria
 
-- [ ] Setup: clicking the score selects nothing. Shift-D, Delete, letter keys and Cmd-V do nothing. Panels still work.
-- [ ] Write: note input, popovers, delete and paste work. Dragging a dynamic does not change its graphic offset (save and check `<offset>` in the .mscx).
-- [ ] Engrave: Delete, A-G pitch keys, Shift-N, popovers, Cmd-V and palette clicks do nothing. Dragging a dynamic changes its offset. Alt-arrow nudges graphically.
-- [ ] Play: the track view only. No score edit commands are enabled.
-- [ ] Print: no edits through keys either (today keys are still enabled).
-- [ ] Menu items reflect the mode: the Edit menu in Engrave shows Delete disabled.
-- [ ] Switching modes updates the enabled states at once (no stale enabled items).
-- [ ] An upstream build without the dorico module still compiles and behaves as before.
+- [x] Setup: clicking the score selects nothing. Shift-D, Delete, letter keys and Cmd-V do nothing. Panels still work.
+- [x] Write: note input, popovers, delete and paste work. Dragging a dynamic does not change its graphic offset (save and check `<offset>` in the .mscx).
+- [x] Engrave: A-G pitch keys, Shift-N, popovers, Cmd-V and palette clicks do nothing. Delete resets the selected items' positions and removes nothing. Dragging a dynamic changes its offset. Alt-arrow nudges graphically (Alt-Up/Down on notes changes their pitch).
+- [x] Play: the track view only. No score edit commands are enabled.
+- [x] Print: no edits through keys either (today keys are still enabled).
+- [x] Menu items reflect the mode: the Edit menu in Engrave shows Paste disabled (Delete stays on, as in Dorico 6).
+- [x] Switching modes updates the enabled states at once (no stale enabled items).
+- [ ] An upstream build without the dorico module still compiles and behaves as before. (not built: the notationscene/notation/engraving edits include no dorico header, and every hook is null-safe or defaults to upstream behaviour)
 
 ## Tests
 

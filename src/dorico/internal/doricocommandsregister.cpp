@@ -103,6 +103,12 @@ static std::vector<CommandInfo> makeCommandInfos()
                      "Moves the selected note past the next one, or the selected dynamic or text to the next note"));
     v.push_back(info(DORICO_MOVE_LEFT_COMMAND, "Dorico: move left",
                      "Moves the selected note before the previous one, or the selected dynamic or text to the previous note"));
+    v.push_back(info(DORICO_NUDGE_LEFT_COMMAND, "Dorico: nudge left", "Engrave mode: moves the selected items left graphically"));
+    v.push_back(info(DORICO_NUDGE_RIGHT_COMMAND, "Dorico: nudge right", "Engrave mode: moves the selected items right graphically"));
+    v.push_back(info(DORICO_NUDGE_UP_COMMAND, "Dorico: nudge up",
+                     "Engrave mode: moves the selected items up graphically, or raises the selected notes"));
+    v.push_back(info(DORICO_NUDGE_DOWN_COMMAND, "Dorico: nudge down",
+                     "Engrave mode: moves the selected items down graphically, or lowers the selected notes"));
     v.push_back(info(DORICO_SCISSORS_COMMAND, "Dorico: scissors", "Removes the ties of the selected tie chains"));
 
     v.push_back(info(DORICO_DUPLICATE_TO_STAFF_ABOVE_COMMAND, "Duplicate to Staff Above", "Copies the selection to the staff above"));

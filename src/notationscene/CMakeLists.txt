@@ -26,6 +26,7 @@ target_sources(notationscene PRIVATE
 
     inotationsceneconfiguration.h
     inotationcommandscontroller.h
+    inotationcommandsgate.h # Dorico fork (spec 97)
     iselectinstrumentscenario.h
 
     notationcommands.h

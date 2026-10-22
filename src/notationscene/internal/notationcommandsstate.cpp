@@ -356,6 +356,13 @@ void NotationCommandsState::init()
         updateCommandStates(DEBUG_COMMANDS);
     });
 
+    // Dorico fork (spec 97): the editing mode decides which commands are enabled
+    if (gate()) {
+        gate()->changed().onNotify(this, [this]() {
+            updateCommandStates();
+        });
+    }
+
     updateCommandStates();
 }
 
@@ -374,6 +381,9 @@ void NotationCommandsState::deinit()
     controller()->notationStyleChanged().disconnect(this);
     controller()->automationModeEnabledChanged().disconnect(this);
     controller()->debuggingOptionsChanged().disconnect(this);
+    if (gate()) {
+        gate()->changed().disconnect(this); // Dorico fork (spec 97)
+    }
 }
 
 void NotationCommandsState::updateCommandStates(const std::vector<Command>& commands)
@@ -502,6 +512,7 @@ CommandState NotationCommandsState::doCommandState(const Command& command) const
 CommandState NotationCommandsState::commandState(const Command& command) const
 {
     CommandState state = doCommandState(command);
+    state.enabled = state.enabled && (!gate() || gate()->isCommandAllowed(command)); // Dorico fork (spec 97)
     // LOGDA() << "command: " << command
     //         << ", enabled: " << state.enabled
     //         << ", checked: " << state.checked;

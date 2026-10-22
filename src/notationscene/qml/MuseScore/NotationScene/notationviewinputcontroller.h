@@ -38,6 +38,7 @@
 #include "notation/types/viewmode.h"
 
 #include "notationscene/inotationcommandscontroller.h"
+#include "notationscene/notationscenetypes.h" // Dorico fork (spec 97)
 
 #include "playback/iplaybackcontroller.h"
 
@@ -150,6 +151,7 @@ public:
 
     bool readonly() const;
     void setReadonly(bool readonly);
+    void setInteractionCaps(int caps); // Dorico fork (spec 97): InteractionCaps flags
 
     void pinchToZoom(qreal scaleFactor, const QPointF& pos);
     void wheelEvent(QWheelEvent* event);
@@ -238,6 +240,7 @@ private:
     QList<int> m_possibleZoomPercentages;
 
     bool m_readonly = false;
+    int m_interactionCaps = INTERACTION_ALL; // Dorico fork (spec 97)
     bool m_isCanvasDragged = false;
     bool m_tripleClickPending = false;
 

@@ -32,6 +32,7 @@
 #include "context/iglobalcontext.h"
 #include "rcommand/icommandsregister.h"
 #include "../inotationcommandscontroller.h"
+#include "../inotationcommandsgate.h" // Dorico fork (spec 97)
 
 namespace mu::notation {
 class NotationCommandsState : public muse::rcommand::IModuleCommandsState, public muse::Contextable, public muse::async::Asyncable
@@ -40,6 +41,7 @@ class NotationCommandsState : public muse::rcommand::IModuleCommandsState, publi
     muse::ContextInject<muse::IInteractive> interactive = { this };
     muse::ContextInject<context::IGlobalContext> globalContext = { this };
     muse::ContextInject<INotationCommandsController> controller = { this };
+    muse::ContextInject<INotationCommandsGate> gate = { this }; // Dorico fork (spec 97): optional
 public:
     NotationCommandsState(const muse::modularity::ContextPtr& ctx)
         : muse::Contextable(ctx) {}

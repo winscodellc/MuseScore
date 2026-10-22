@@ -239,7 +239,7 @@ void MoveElementAnchors::moveElementAnchorsOnDrag(EngravingItem* element, EditDa
     }
 
     KeyboardModifiers km = ed.modifiers;
-    if (km & (ShiftModifier | ControlModifier)) {
+    if (km & (ShiftModifier | ControlModifier) || ed.keepAnchors) { // Dorico fork (spec 97): keepAnchors
         return;
     }
 

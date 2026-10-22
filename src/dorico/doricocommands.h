@@ -108,6 +108,12 @@ inline static const muse::rcommand::Command DORICO_MOVE_RIGHT_COMMAND("command:/
 inline static const muse::rcommand::Command DORICO_MOVE_LEFT_COMMAND("command://dorico/move-left");
 inline static const muse::rcommand::Command DORICO_SCISSORS_COMMAND("command://dorico/scissors");
 
+// Engrave mode's Alt-arrow (spec 97): nudges graphically; Up / Down on notes changes their pitch, as in Dorico 6.
+inline static const muse::rcommand::Command DORICO_NUDGE_LEFT_COMMAND("command://dorico/nudge-left");
+inline static const muse::rcommand::Command DORICO_NUDGE_RIGHT_COMMAND("command://dorico/nudge-right");
+inline static const muse::rcommand::Command DORICO_NUDGE_UP_COMMAND("command://dorico/nudge-up");
+inline static const muse::rcommand::Command DORICO_NUDGE_DOWN_COMMAND("command://dorico/nudge-down");
+
 // Edit > Paste Special (spec 41). Paste Into Voice commands are in voice order (1-4).
 inline static const muse::rcommand::Command DORICO_DUPLICATE_TO_STAFF_ABOVE_COMMAND("command://dorico/duplicate-to-staff-above");
 inline static const muse::rcommand::Command DORICO_DUPLICATE_TO_STAFF_BELOW_COMMAND("command://dorico/duplicate-to-staff-below");

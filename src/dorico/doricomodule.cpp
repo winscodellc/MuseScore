@@ -43,6 +43,7 @@
 #include "internal/doricopastecontroller.h"
 #include "internal/doricoselectioncontroller.h"
 #include "internal/jumpbar/jumpbarcontroller.h"
+#include "internal/modepolicy.h"
 #include "internal/popovercontroller.h"
 #include "internal/transformcontroller.h"
 
@@ -149,6 +150,8 @@ void DoricoContext::registerExports()
     m_jumpBarController = std::make_shared<JumpBarController>(iocContext());
 
     ioc()->registerExport<IDoricoModeState>(mname, m_modeState);
+    m_modeGate = std::make_shared<ModeCommandsGate>(iocContext());
+    ioc()->registerExport<mu::notation::INotationCommandsGate>(mname, m_modeGate);
     ioc()->registerExport<IDoricoCaret>(mname, m_caret);
     ioc()->registerExport<IDoricoPaste>(mname, m_pasteController);
     ioc()->registerExport<IPopoverController>(mname, m_popoverController);
@@ -166,6 +169,7 @@ void DoricoContext::resolveImports()
 
 void DoricoContext::onInit(const IApplication::RunMode&)
 {
+    m_modeGate->init(); // first: its preDispatch veto must run before the other controllers' hooks
     m_actionsController->init();
     m_caret->init();
     m_durationsController->init();

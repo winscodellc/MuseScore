@@ -340,6 +340,9 @@ void DoricoPasteController::init()
     });
 
     dispatcher()->preDispatch().onReceive(this, [this](const muse::rcommand::Command& command, bool* allowDispatch) {
+        if (!*allowDispatch) {
+            return; // blocked in this mode (spec 97)
+        }
         if (command == mu::notation::DELETE_COMMAND && tryDelete()) {
             *allowDispatch = false;
         } else if (command == mu::notation::PASTE_COMMAND && tryPaste()) {

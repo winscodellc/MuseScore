@@ -723,6 +723,13 @@ DockPage {
                 }
 
                 // Dorico shows Print mode's preview on grey (measured #AAAAAE), without touching the stored setting.
+                // Each mode allows its own mouse edits (spec 97): none in Setup, pitch drags in Write, offsets in Engrave.
+                Binding {
+                    target: notationView.paintView
+                    property: "interactionCaps"
+                    value: root.shellModel.interactionCaps
+                }
+
                 Binding {
                     target: notationView.paintView
                     property: "backgroundOverride"

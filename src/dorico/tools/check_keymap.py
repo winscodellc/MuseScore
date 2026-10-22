@@ -34,7 +34,7 @@ COMMAND_HEADERS = [
 # Scopes whose commands can be live at the same time (shortcuts v2: scope never disables a command).
 ACTIVE_SCOPES = {"NOTATION", "NOTATION_PAGE", "NOTATION_NOTE_INPUT", "PLAYBACK", "PROJECT", "APP"}
 # Command families that are mutually exclusive by state or focus, so sharing a key is fine.
-CLASH_ALLOW = ["command://*/edittext-*", "command://*/editlyrics-*", "command://*-tab", "command://*/enter-fret-*"]
+CLASH_ALLOW = ["command://dorico/nudge-*", "command://*/edittext-*", "command://*/editlyrics-*", "command://*-tab", "command://*/enter-fret-*"]
 
 MODS = {"ctrl", "alt", "shift", "meta", "num"}
 

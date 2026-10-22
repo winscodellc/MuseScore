@@ -31,6 +31,9 @@
 #include "settings.h"
 #include "notation/inotationparts.h"
 #include "notation/inotationstyle.h"
+#include "notation/inotationinteraction.h"
+#include "notation/inotationselection.h"
+#include "engraving/dom/engravingitem.h"
 
 #include "../doricocommands.h"
 
@@ -154,6 +157,30 @@ void DoricoActionsController::init()
         }
         return muse::make_ok();
     });
+    // Engrave mode (spec 97): Dorico 6 nudges items graphically but still changes the pitch of selected notes
+    for (const auto& [command, direction] : { std::pair { DORICO_NUDGE_LEFT_COMMAND, notation::MoveDirection::Left },
+                                              std::pair { DORICO_NUDGE_RIGHT_COMMAND, notation::MoveDirection::Right },
+                                              std::pair { DORICO_NUDGE_UP_COMMAND, notation::MoveDirection::Up },
+                                              std::pair { DORICO_NUDGE_DOWN_COMMAND, notation::MoveDirection::Down } }) {
+        cd->onRequest(this, command, [this, direction]() {
+            const notation::INotationPtr notation = globalContext()->currentNotation();
+            if (!notation) {
+                return muse::make_ok();
+            }
+            const notation::INotationInteractionPtr interaction = notation->interaction();
+            const std::vector<engraving::EngravingItem*>& items = interaction->selection()->elements();
+            const bool notes = !items.empty() && std::all_of(items.begin(), items.end(), [](const engraving::EngravingItem* e) {
+                return e->isNote();
+            });
+            const bool vertical = direction == notation::MoveDirection::Up || direction == notation::MoveDirection::Down;
+            if (notes && vertical) {
+                interaction->movePitch(direction, notation::PitchMode::DIATONIC);
+            } else {
+                interaction->nudge(direction, false);
+            }
+            return muse::make_ok();
+        });
+    }
     cd->onRequest(this, DORICO_OPEN_PUBLISH_COMMAND, [this]() { interactive()->open("musescore://publish"); return muse::make_ok(); });
 }
 

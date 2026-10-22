@@ -72,6 +72,8 @@ class AbstractNotationPaintView : public muse::uicomponents::QuickPaintedView, p
     Q_PROPERTY(bool isMainView READ isMainView WRITE setIsMainView NOTIFY isMainViewChanged)
 
     Q_PROPERTY(bool readOnly READ readonly WRITE setReadonly NOTIFY readonlyChanged)
+    // Dorico fork (spec 97): what the mouse may edit, as InteractionCaps flags
+    Q_PROPERTY(int interactionCaps READ interactionCaps WRITE setInteractionCaps NOTIFY interactionCapsChanged)
 
     // Dorico fork (spec 95): a background colour that wins over the configured one (Print mode's grey); transparent = none.
     Q_PROPERTY(QColor backgroundOverride MEMBER m_backgroundOverride NOTIFY backgroundOverrideChanged)
@@ -174,6 +176,9 @@ public:
     bool readonly() const;
     void setReadonly(bool readonly);
 
+    int interactionCaps() const; // Dorico fork (spec 97)
+    void setInteractionCaps(int caps);
+
 signals:
     void showContextMenuRequested(int elementType, const QPointF& viewPos);
     void hideContextMenuRequested();
@@ -198,6 +203,7 @@ signals:
     void isMainViewChanged(bool isMainView);
 
     void readonlyChanged();
+    void interactionCapsChanged(); // Dorico fork (spec 97)
     void backgroundOverrideChanged(); // Dorico fork (spec 95)
 
 protected:
@@ -315,6 +321,7 @@ private:
     qreal m_previousHorizontalScrollPosition = 0;
 
     bool m_readonly = false;
+    int m_interactionCaps = INTERACTION_ALL; // Dorico fork (spec 97)
     QColor m_backgroundOverride; // Dorico fork (spec 95)
     bool m_publishMode = false;
     int m_lastAcceptedKey = -1;

@@ -271,6 +271,11 @@ void NotationViewInputController::setReadonly(bool readonly)
     m_readonly = readonly;
 }
 
+void NotationViewInputController::setInteractionCaps(int caps)
+{
+    m_interactionCaps = caps;
+}
+
 INotationPtr NotationViewInputController::currentNotation() const
 {
     return globalContext()->currentNotation();
@@ -662,8 +667,10 @@ void NotationViewInputController::mousePressEvent(QMouseEvent* event)
 
     if (!m_readonly) {
         INotationInteraction::HitElementContext context;
-        context.element = viewInteraction()->hitElement(logicPos, hitWidth());
-        context.staff = viewInteraction()->hitStaff(logicPos);
+        if (m_interactionCaps & INTERACTION_SELECT) { // Dorico fork (spec 97): else nothing is hit
+            context.element = viewInteraction()->hitElement(logicPos, hitWidth());
+            context.staff = viewInteraction()->hitStaff(logicPos);
+        }
         viewInteraction()->setHitElementContext(context);
 
         hitElement = context.element;
@@ -765,7 +772,7 @@ void NotationViewInputController::handleClickInNoteInputMode(QMouseEvent* event)
 
 bool NotationViewInputController::mousePress_considerGrip(const ClickContext& ctx)
 {
-    if (ctx.isHitGrip && ctx.event->button() == Qt::LeftButton) {
+    if (ctx.isHitGrip && ctx.event->button() == Qt::LeftButton && (m_interactionCaps & INTERACTION_GRIPS)) { // Dorico fork (spec 97)
         viewInteraction()->startEditGrip(ctx.logicClickPos);
         return true;
     } else if (viewInteraction()->isGripEditStarted()) {
@@ -778,7 +785,8 @@ bool NotationViewInputController::mousePress_considerGrip(const ClickContext& ct
 bool NotationViewInputController::mousePress_considerDragOutgoingElement(const ClickContext& ctx)
 {
     if (ctx.event->button() != Qt::LeftButton
-        || ctx.event->modifiers() != (Qt::ShiftModifier | Qt::ControlModifier)) {
+        || ctx.event->modifiers() != (Qt::ShiftModifier | Qt::ControlModifier)
+        || !(m_interactionCaps & INTERACTION_OUTGOING_DRAG)) { // Dorico fork (spec 97)
         return false;
     }
 
@@ -796,7 +804,8 @@ bool NotationViewInputController::mousePress_considerDragOutgoingElement(const C
 bool NotationViewInputController::mousePress_considerStartPasteRangeOnRelease(const ClickContext& ctx)
 {
     // Check if this is a left click with Alt modifier
-    if (ctx.event->button() != Qt::LeftButton || !(ctx.event->modifiers() & Qt::AltModifier)) {
+    if (ctx.event->button() != Qt::LeftButton || !(ctx.event->modifiers() & Qt::AltModifier)
+        || !(m_interactionCaps & INTERACTION_DROP)) { // Dorico fork (spec 97)
         return false;
     }
 
@@ -947,7 +956,7 @@ void NotationViewInputController::cycleOverlappingHitElements(const std::vector<
 
 bool NotationViewInputController::mousePress_considerDragOutgoingRange(const ClickContext& ctx)
 {
-    if (ctx.event->button() != Qt::LeftButton) {
+    if (ctx.event->button() != Qt::LeftButton || !(m_interactionCaps & INTERACTION_OUTGOING_DRAG)) { // Dorico fork (spec 97)
         return false;
     }
 
@@ -999,7 +1008,8 @@ void NotationViewInputController::handleRightClick(const ClickContext& ctx)
 bool NotationViewInputController::startTextEditingAllowed() const
 {
     INotationInteractionPtr interaction = viewInteraction();
-    return interaction->isTextSelected() && !interaction->isTextEditingStarted();
+    return interaction->isTextSelected() && !interaction->isTextEditingStarted()
+           && (m_interactionCaps & INTERACTION_EDIT_TEXT); // Dorico fork (spec 97)
 }
 
 void NotationViewInputController::updateTextCursorPosition()
@@ -1121,6 +1131,11 @@ void NotationViewInputController::mouseMoveEvent(QMouseEvent* event)
         // drag element
         if ((hitElement && (hitElement->isMovable() || viewInteraction()->isEditingElement()))
             || viewInteraction()->isGripEditStarted()) {
+            // Dorico fork (spec 97): notes are dragged to change pitch, other items to change their offset
+            if (hitElement && !viewInteraction()->isGripEditStarted()
+                && !(m_interactionCaps & (hitElement->isNote() ? INTERACTION_DRAG_NOTES : INTERACTION_DRAG_ITEMS))) {
+                return;
+            }
             if (hitElement && !viewInteraction()->isDragStarted()) {
                 startDragElements(hitElement->type(), hitElement->offset());
             }
@@ -1139,6 +1154,7 @@ void NotationViewInputController::mouseMoveEvent(QMouseEvent* event)
             }
 
             const std::vector<int> oldPitches = pitchesBeingDragged();
+            viewInteraction()->setDragKeepsAnchors(!(m_interactionCaps & INTERACTION_REANCHOR)); // Dorico fork (spec 97)
             viewInteraction()->drag(m_mouseDownInfo.logicalBeginPoint, logicPos, mode);
 
             if (!oldPitches.empty() && oldPitches != pitchesBeingDragged()) {
@@ -1336,7 +1352,8 @@ void NotationViewInputController::mouseDoubleClickEvent(QMouseEvent* event)
         return;
     }
 
-    if (viewInteraction()->textEditingAllowed(hitElement) && !playbackController()->isPlaying()) {
+    if (viewInteraction()->textEditingAllowed(hitElement) && !playbackController()->isPlaying()
+        && (m_interactionCaps & INTERACTION_EDIT_TEXT)) { // Dorico fork (spec 97)
         viewInteraction()->startEditText(hitElement, m_mouseDownInfo.logicalBeginPoint);
         return;
     }
@@ -1567,7 +1584,7 @@ QVariant NotationViewInputController::inputMethodQuery(Qt::InputMethodQuery quer
 
 void NotationViewInputController::dragEnterEvent(QDragEnterEvent* event)
 {
-    if (m_readonly) {
+    if (m_readonly || !(m_interactionCaps & INTERACTION_DROP)) { // Dorico fork (spec 97)
         event->ignore();
         return;
     }
@@ -1698,7 +1715,7 @@ void NotationViewInputController::dropEvent(QDropEvent* event)
 
 bool NotationViewInputController::dropEvent(const DragMoveEvent& event, const QMimeData* mimeData)
 {
-    if (m_readonly) {
+    if (m_readonly || !(m_interactionCaps & INTERACTION_DROP)) { // Dorico fork (spec 97)
         return false;
     }
 

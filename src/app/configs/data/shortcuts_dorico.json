@@ -266,6 +266,10 @@
         {"command": "command://dorico/prev-item-at-position", "sequences": ["Shift+Tab"]},
         {"command": "command://dorico/move-right", "sequences": ["Alt+Right"]},
         {"command": "command://dorico/move-left", "sequences": ["Alt+Left"]},
+        {"command": "command://dorico/nudge-left", "sequences": ["Alt+Left"]},
+        {"command": "command://dorico/nudge-right", "sequences": ["Alt+Right"]},
+        {"command": "command://dorico/nudge-up", "sequences": ["Alt+Up"]},
+        {"command": "command://dorico/nudge-down", "sequences": ["Alt+Down"]},
         {"command": "command://dorico/scissors", "sequences": ["U"]}
         ]
     },

@@ -1178,6 +1178,7 @@ void NotationInteraction::drag(const PointF& fromPos, const PointF& toPos, DragM
     m_dragData.ed.evtDelta = evtDelta;
     m_dragData.ed.pos = toPos;
     m_dragData.ed.modifiers = keyboardModifier(QGuiApplication::keyboardModifiers());
+    m_dragData.ed.keepAnchors = m_dragKeepsAnchors; // Dorico fork (spec 97)
 
     m_dragData.ed.isEditMode = isEditingElement();
 
@@ -1226,6 +1227,12 @@ void NotationInteraction::drag(const PointF& fromPos, const PointF& toPos, DragM
     }
 
     notifyAboutDragChanged();
+}
+
+// Dorico fork (spec 97)
+void NotationInteraction::setDragKeepsAnchors(bool keep)
+{
+    m_dragKeepsAnchors = keep;
 }
 
 void NotationInteraction::doEndDrag()
