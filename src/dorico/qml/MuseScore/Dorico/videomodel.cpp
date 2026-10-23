@@ -25,17 +25,24 @@
 #include <algorithm>
 #include <cmath>
 
+#include <QDir>
+#include <QFileInfo>
+#ifdef DORICO_HAS_VIDEO
+#include "dorico/video/videodecoder.h"
+#include <QUrl>
+#endif
+
 #include "engraving/dom/masterscore.h"
 #include "engraving/dom/tempotimeline.h"
 #include "engraving/dom/sig.h"
-#include "engraving/editing/editscoreproperties.h"
 #include "engraving/types/constants.h"
 #include "notation/inotation.h"
 #include "notation/inotationplayback.h"
+#include "notation/inotationundostack.h"
+#include "project/inotationproject.h"
 #include "settings.h"
 
 #include "dorico/internal/prefstable.h"
-#include "notation/inotationundostack.h"
 
 using namespace mu::dorico;
 
@@ -76,21 +83,7 @@ void VideoModel::read()
 
 void VideoModel::write(const VideoData& data, const char* undoTitle)
 {
-    if (!m_master || data == m_data) {
-        return;
-    }
-    VideoData sorted = data;
-    std::stable_sort(sorted.markers.begin(), sorted.markers.end(), [](const VideoMarker& a, const VideoMarker& b) {
-        return a.time < b.time;
-    });
-
-    engraving::MasterScore* score = m_master->masterScore();
-    std::map<muse::String, muse::String> tags = score->metaTags();
-    tags[VIDEO_TAG] = muse::String::fromStdString(videoDataToJson(sorted));
-    const notation::INotationUndoStackPtr undoStack = m_master->notation()->undoStack();
-    undoStack->prepareChanges(muse::TranslatableString("undoableAction", undoTitle));
-    score->undo(new engraving::ChangeMetaTags(score, tags));
-    undoStack->commitChanges();
+    writeVideoData(m_master, data, undoTitle);
 }
 
 QVariantList VideoModel::markers() const
@@ -281,6 +274,7 @@ QString VideoModel::applyProperties(int rateIndex, int attachBeats, int attachUn
     if (rateIndex < 0 || rateIndex >= int(mu::dorico::frameRates().size()) || attachBeats < 0 || attachUnit <= 0) {
         return tr("Invalid value");
     }
+    const bool attaching = !m_probePath.isEmpty() && m_probeError.isEmpty() && m_probeFps > 0.0;
     const FrameRate rate = static_cast<FrameRate>(rateIndex);
     const std::optional<double> offset = parseTimecodeSeconds(startOffset.toStdString(), rate);
     const std::optional<double> start = parseTimecodeSeconds(timecodeStart.toStdString(), rate);
@@ -288,6 +282,13 @@ QString VideoModel::applyProperties(int rateIndex, int attachBeats, int attachUn
         return tr("Invalid timecode");
     }
     VideoData data = m_data;
+    if (attaching) {
+        data.videoPath = QFileInfo(m_probePath).absoluteFilePath().toStdString();
+        const std::string dir = scoreDir();
+        data.videoRelPath = dir.empty() ? std::string()
+                            : QDir(QString::fromStdString(dir)).relativeFilePath(m_probePath).toStdString();
+        data.videoFps = m_probeFps;
+    }
     data.rate = rate;
     data.attachBeats = attachBeats;
     data.attachUnit = attachUnit;
@@ -296,8 +297,111 @@ QString VideoModel::applyProperties(int rateIndex, int attachBeats, int attachUn
     for (VideoMarker& m : data.markers) {
         m.time += *start - m_data.timecodeStart;
     }
-    write(data, "Change video properties");
+    write(data, attaching ? "Attach video" : "Change video properties");
+    if (attaching) {
+        modes()->setVideoWindowVisible(true);
+    }
     return {};
+}
+
+std::string VideoModel::scoreDir() const
+{
+    const project::INotationProjectPtr project = globalContext()->currentProject();
+    // A new project has no file yet, so no folder to be relative to
+    return project && !project->isNewlyCreated() ? QFileInfo(project->path().toQString()).absolutePath().toStdString()
+           : std::string();
+}
+
+QString VideoModel::videoFile() const
+{
+    return QString::fromStdString(m_data.videoPath);
+}
+
+static QString rateLabel(double fps)
+{
+    const std::optional<FrameRate> rate = frameRateForFps(fps);
+    return rate ? QString(frameRateInfo(*rate).label) : QString();
+}
+
+QString VideoModel::videoRate() const
+{
+    return rateLabel(m_data.videoFps);
+}
+
+int VideoModel::videoRateIndex() const
+{
+    const std::optional<FrameRate> rate = frameRateForFps(m_data.videoFps);
+    return rate ? static_cast<int>(*rate) : -1;
+}
+
+bool VideoModel::videoMissing() const
+{
+    return m_data.hasVideo() && resolveVideoPath(m_data, scoreDir()).empty();
+}
+
+bool VideoModel::videoAvailable() const
+{
+#ifdef DORICO_HAS_VIDEO
+    return true;
+#else
+    return false;
+#endif
+}
+
+QString VideoModel::probeFile() const
+{
+    return m_probePath;
+}
+
+QString VideoModel::probeRate() const
+{
+    return rateLabel(m_probeFps);
+}
+
+int VideoModel::probeRateIndex() const
+{
+    const std::optional<FrameRate> rate = frameRateForFps(m_probeFps);
+    return rate ? static_cast<int>(*rate) : -1;
+}
+
+void VideoModel::probeVideo(const QString& path)
+{
+    m_probePath = path;
+    m_probeFps = 0.0;
+    m_probeError.clear();
+    emit probeChanged();
+#ifdef DORICO_HAS_VIDEO
+    // ponytail: FFmpeg's guess is the stream's nominal rate, so a variable-rate file whose rate is one of the 11 gets
+    // through; reading every timestamp would catch it
+    VideoDecoder decoder;
+    const double fps = decoder.open(path.toStdString()) ? decoder.fps() : 0.0;
+    if (fps <= 0.0) {
+        m_probeError = tr("The file cannot be opened as a video.");
+    } else if (!frameRateForFps(fps)) {
+        m_probeError = tr("The video's frame rate (%1 fps) is not supported. Use a constant frame rate of 23.98, 24, "
+                          "24.98, 25, 29.97, 30, 50, 59.94 or 60 fps.").arg(fps, 0, 'f', 3);
+    } else {
+        m_probeFps = fps;
+    }
+    emit probeChanged();
+#else
+    m_probeError = tr("This build cannot play video.");
+    emit probeChanged();
+#endif
+}
+
+void VideoModel::setVideoVolume(double volume)
+{
+    VideoData data = m_data;
+    data.videoVolume = std::clamp(volume, 0.0, 1.0);
+    write(data, "Change video volume");
+}
+
+void VideoModel::setVideoMute(bool mute)
+{
+    VideoData data = m_data;
+    data.videoMute = mute;
+    write(data, "Mute video");
 }
 
 void VideoModel::openAddMarker()

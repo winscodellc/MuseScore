@@ -26,9 +26,10 @@ import QtQuick.Layouts
 import Muse.Ui
 import Muse.UiComponents
 
-//! Video Properties (spec 91): the project frame rate, where the video attaches to the flow and its timecode.
-//! Opens from the flow card's Video menu and the Video panel. With no video attached Dorico shows no file rows and
-//! no "Use video frame rate" (phase B adds them).
+//! Video Properties (spec 91): the video file and its frame rate, the project frame rate, where the video attaches to
+//! the flow and its timecode. Opens from the flow card's Video menu, the Video panel, and after Attach (attachPath set),
+//! where OK attaches the file. With no video attached Dorico shows no file rows and no "Use video frame rate" button
+//! (checked in Dorico 6.2). The project rate does not follow the video by itself; the button copies the video's rate.
 StyledDialogView {
     id: root
 
@@ -40,6 +41,14 @@ StyledDialogView {
 
     modal: true
 
+    //! Set by Video > Attach...: the file to attach on OK
+    property string attachPath: ""
+
+    readonly property bool showVideo: root.attachPath !== "" || video.hasVideo
+    readonly property bool probing: root.attachPath !== "" && video.probeFile !== "" && video.probeRate === "" && video.probeError === ""
+    readonly property string videoRateText: root.attachPath !== "" ? video.probeRate : video.videoRate
+    readonly property int videoRateIndex: root.attachPath !== "" ? video.probeRateIndex : video.videoRateIndex
+
     property int rateIndex: 0
     property int attachBeats: 0
     property int noteTicks: 480     // undotted beat unit
@@ -50,6 +59,10 @@ StyledDialogView {
 
     readonly property var dotFactor: [1, 1.5, 1.75]
     readonly property bool rateIsDrop: video.frameRates[root.rateIndex].indexOf("dfps") >= 0
+    onRateIndexChanged: {
+        root.startOffset = root.withSeparator(root.startOffset)
+        root.timecodeStart = root.withSeparator(root.timecodeStart)
+    }
 
     VideoModel {
         id: video
@@ -57,6 +70,9 @@ StyledDialogView {
 
     function accept() {
         var unit = Math.round(root.noteTicks * root.dotFactor[root.dots])
+        if (root.probing || (root.attachPath !== "" && video.probeError !== "")) {
+            return
+        }
         root.error = video.applyProperties(root.rateIndex, root.attachBeats, unit, root.startOffset, root.timecodeStart)
         if (root.error === "") {
             root.ret = { errcode: 0, value: "" }
@@ -66,11 +82,17 @@ StyledDialogView {
 
     // The separator follows the chosen rate
     function withSeparator(tc) {
+        if (tc.length < 11) {
+            return tc
+        }
         return tc.substring(0, 8) + (root.rateIsDrop ? ";" : ":") + tc.substring(9)
     }
 
     Component.onCompleted: {
         video.load()
+        if (root.attachPath !== "") {
+            video.probeVideo(root.attachPath)
+        }
         root.rateIndex = video.rateIndex
         root.attachBeats = video.attachBeats
         // Split the stored unit into a note value and dots
@@ -108,18 +130,43 @@ StyledDialogView {
             columnSpacing: 12
             rowSpacing: 12
 
+            StyledTextLabel { visible: root.showVideo; text: qsTrc("dorico", "Video file:"); horizontalAlignment: Text.AlignLeft }
+            StyledTextLabel {
+                visible: root.showVideo
+                Layout.maximumWidth: 380
+                text: root.attachPath !== "" ? video.probeFile : video.videoFile
+                horizontalAlignment: Text.AlignLeft
+                wrapMode: Text.WrapAnywhere
+            }
+
+            StyledTextLabel { visible: root.showVideo; text: qsTrc("dorico", "Video frame rate:"); horizontalAlignment: Text.AlignLeft }
+            StyledTextLabel {
+                visible: root.showVideo
+                text: root.videoRateText !== "" ? root.videoRateText.replace(" fps", "") : "–"
+                horizontalAlignment: Text.AlignLeft
+            }
+
             StyledTextLabel { text: qsTrc("dorico", "Project frame rate:"); horizontalAlignment: Text.AlignLeft }
-            StyledDropdown {
-                Layout.preferredWidth: 140
-                navigation.panel: contentNavigationPanel
-                navigation.row: 0
-                model: video.frameRates.map(function(r, i) { return { text: r, value: i } })
-                currentIndex: root.rateIndex
-                onActivated: function(index, value) {
-                    root.rateIndex = index
-                    root.startOffset = root.withSeparator(root.startOffset)
-                    root.timecodeStart = root.withSeparator(root.timecodeStart)
-                    root.error = ""
+            RowLayout {
+                spacing: 12
+                StyledDropdown {
+                    Layout.preferredWidth: 140
+                    navigation.panel: contentNavigationPanel
+                    navigation.row: 0
+                    model: video.frameRates.map(function(r, i) { return { text: r, value: i } })
+                    currentIndex: root.rateIndex
+                    onActivated: function(index, value) {
+                        root.rateIndex = index
+                        root.error = ""
+                    }
+                }
+                FlatButton {
+                    visible: root.showVideo
+                    enabled: root.videoRateIndex >= 0
+                    text: qsTrc("dorico", "Use video frame rate")
+                    navigation.panel: contentNavigationPanel
+                    navigation.row: 1
+                    onClicked: root.rateIndex = root.videoRateIndex
                 }
             }
 
@@ -207,8 +254,10 @@ StyledDialogView {
 
         StyledTextLabel {
             Layout.fillWidth: true
-            visible: root.error !== ""
-            text: root.error
+            Layout.maximumWidth: 420
+            visible: text !== ""
+            text: root.error !== "" ? root.error : (root.attachPath !== "" ? video.probeError : "")
+            wrapMode: Text.WordWrap
             color: "#E05050"
             horizontalAlignment: Text.AlignLeft
         }
@@ -227,6 +276,7 @@ StyledDialogView {
                 buttonRole: ButtonBoxModel.AcceptRole
                 buttonId: ButtonBoxModel.Ok
                 accentButton: true
+                enabled: !root.probing && !(root.attachPath !== "" && video.probeError !== "")
 
                 onClicked: root.accept()
             }

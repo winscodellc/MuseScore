@@ -28,6 +28,7 @@ import QtQuick.Layouts
 
 import Muse.Ui
 import Muse.UiComponents
+import Muse.GraphicalEffects
 
 //! Setup mode's Flows panel (spec 55), shown in the lower zone.
 ColumnLayout {
@@ -100,15 +101,41 @@ ColumnLayout {
                 Component.onCompleted: flowVideo.load()
             }
 
-            Text {
+            // The reel while a video is attached, a warning when its file is missing (phase B), then the timecode
+            Row {
                 anchors.left: parent.left
                 anchors.bottom: parent.bottom
                 anchors.margins: 8
-                // Dorico leaves it out while it is 00:00:00:00
-                visible: !/^00:00:00[:;]00$/.test(flowVideo.flowStartTimecode)
-                text: flowVideo.flowStartTimecode
-                font: ui.theme.bodyFont
-                color: "#FFFFFF"
+                spacing: 6
+
+                Item {
+                    width: 18
+                    height: 18
+                    visible: flowVideo.hasVideo
+
+                    Image {
+                        id: flowVideoIcon
+                        anchors.fill: parent
+                        visible: false
+                        source: Qt.resolvedUrl(flowVideo.videoMissing ? "icons/triangle-alert.svg" : "icons/film.svg")
+                        sourceSize: Qt.size(18, 18)
+                    }
+
+                    EffectColorOverlay {
+                        anchors.fill: flowVideoIcon
+                        source: flowVideoIcon
+                        color: flowVideo.videoMissing ? "#FFC83D" : "#FFFFFF"
+                    }
+                }
+
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    // Dorico leaves it out while it is 00:00:00:00, unless a video is attached
+                    visible: flowVideo.hasVideo || !/^00:00:00[:;]00$/.test(flowVideo.flowStartTimecode)
+                    text: flowVideo.flowStartTimecode
+                    font: ui.theme.bodyFont
+                    color: "#FFFFFF"
+                }
             }
 
             Text {

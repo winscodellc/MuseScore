@@ -140,4 +140,11 @@ target_include_directories(dorico_qml PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../../..
                                               ${CMAKE_CURRENT_LIST_DIR}/../../../../playback/qml/MuseScore/Playback)
 target_link_libraries(dorico_qml PRIVATE playback_qml)
 
+# The Video window and its player (spec 91 phase B), only with Qt Multimedia and FFmpeg (found by ../../../CMakeLists.txt)
+if (DORICO_VIDEO)
+    target_sources(dorico_qml PRIVATE videoplayermodel.cpp videoplayermodel.h)
+    qt_target_qml_sources(dorico_qml QML_FILES DoricoVideoWindow.qml)
+    target_link_libraries(dorico_qml PRIVATE Qt6::Multimedia)
+endif()
+
 fixup_qml_module_dependencies(dorico_qml)

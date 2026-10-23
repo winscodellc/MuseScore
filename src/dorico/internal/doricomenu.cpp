@@ -562,7 +562,7 @@ static MenuSpec windowMenu()
         stub("New Window"),
         item("command://app/dock/toggle-mixer", "Mixer"),
         item("command://app/dock/toggle-playback", "Transport"),
-        stub("Video"),
+        item("command://dorico/toggle-video-window", "Video"),
         item("command://dorico/open-hub", "Hub"),
         sep(),
         item("command://dorico/mode-setup", "Setup"),

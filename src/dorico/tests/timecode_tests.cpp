@@ -20,6 +20,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <cmath>
+
 #include <gtest/gtest.h>
 
 #include "dorico/video/timecode.h"
@@ -126,6 +128,42 @@ TEST(DoricoVideoData, JsonRoundTrip)
     d.nextId = 3;
     EXPECT_EQ(videoDataFromJson(videoDataToJson(d)), d);
 
+    d.videoPath = "/films/reel 1.mov";
+    d.videoRelPath = "reel 1.mov";
+    d.videoFps = 30000.0 / 1001.0;
+    d.videoVolume = 0.25;
+    d.videoMute = true;
+    EXPECT_EQ(videoDataFromJson(videoDataToJson(d)), d);
+
     EXPECT_EQ(videoDataFromJson(""), VideoData {});
     EXPECT_EQ(videoDataFromJson("not json"), VideoData {});
+}
+
+TEST(DoricoTimecode, VideoFrameAtPicksTheFrameThatCoversTheTime)
+{
+    // Frame 300 at 29.97 starts at 10.01 s: its own start shows it, a hair before shows 299
+    const double ntsc = 30000.0 / 1001.0;
+    EXPECT_EQ(videoFrameAt(300 / ntsc, ntsc), 300);
+    EXPECT_EQ(videoFrameAt(300 / ntsc - 1e-6, ntsc), 299);
+    // Anywhere inside a frame is that frame
+    EXPECT_EQ(videoFrameAt(10.0, 25.0), 250);
+    EXPECT_EQ(videoFrameAt(10.039, 25.0), 250);
+    EXPECT_EQ(videoFrameAt(10.04, 25.0), 251);
+    // Every frame start at 59.94 and 23.976 lands on that frame
+    for (const double fps : { 60000.0 / 1001.0, 24000.0 / 1001.0 }) {
+        for (long long k : { 1LL, 545LL, 2190LL, 3593LL, 215784LL }) {
+            EXPECT_EQ(videoFrameAt(k / fps, fps), k);
+        }
+    }
+    EXPECT_EQ(videoFrameAt(0.0, 25.0), 0);
+}
+
+TEST(DoricoTimecode, FrameRateForFps)
+{
+    EXPECT_EQ(frameRateForFps(30000.0 / 1001.0), FrameRate::Fps29_97);
+    EXPECT_EQ(frameRateForFps(24.0), FrameRate::Fps24);
+    EXPECT_EQ(frameRateForFps(25000.0 / 1001.0), FrameRate::Fps24_975);
+    EXPECT_EQ(frameRateForFps(59.94), FrameRate::Fps59_94);
+    EXPECT_EQ(frameRateForFps(15.0), std::nullopt);
+    EXPECT_EQ(frameRateForFps(0.0), std::nullopt);
 }

@@ -77,6 +77,12 @@ std::string formatTimecodeSeconds(double seconds, FrameRate rate, bool nearest =
 std::optional<long long> parseTimecode(const std::string& text, FrameRate rate);
 std::optional<double> parseTimecodeSeconds(const std::string& text, FrameRate rate);
 
+//! The video frame shown at `videoSeconds` on a video of `fps`, as Dorico's video engine picks it: the time snapped to
+//! 100 ns, then the frame that covers it (frame k covers [k / fps, (k + 1) / fps))
+long long videoFrameAt(double videoSeconds, double fps);
+//! The video frame rate as one of the 11 project rates (non-drop), or nothing for a rate Dorico does not support
+std::optional<FrameRate> frameRateForFps(double fps);
+
 //! Where the flow sits against the timecode (Video Properties)
 struct TimeSettings {
     double timecodeStart = 0.0;   // the timecode at the start of the video, in seconds

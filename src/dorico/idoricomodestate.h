@@ -63,5 +63,9 @@ public:
     virtual QString lowerZoneTab() const = 0;
     virtual void setLowerZoneTab(const QString& tab) = 0;
     virtual muse::async::Notification lowerZoneTabChanged() const = 0;
+
+    //! The Video window (spec 91), shown in every mode. Changes send modesChanged.
+    virtual bool isVideoWindowVisible() const = 0;
+    virtual void setVideoWindowVisible(bool visible) = 0;
 };
 }

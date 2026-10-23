@@ -44,9 +44,13 @@ public:
     void setLowerZoneTab(const QString& tab) override;
     muse::async::Notification lowerZoneTabChanged() const override { return m_lowerZoneTabChanged; }
 
+    bool isVideoWindowVisible() const override { return m_videoWindow; }
+    void setVideoWindowVisible(bool visible) override;
+
 private:
     bool m_chord = false;
     bool m_insert = false;
+    bool m_videoWindow = false;
     muse::async::Notification m_changed;
     Mode m_mode = Mode::Write;
     muse::async::Notification m_modeChanged;

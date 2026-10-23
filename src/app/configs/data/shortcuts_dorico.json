@@ -299,6 +299,7 @@
         {"command": "command://app/dock/toggle-properties", "sequences": []},
         {"command": "command://app/dock/toggle-palettes", "sequences": []},
         {"command": "command://app/dock/toggle-mixer", "sequences": ["F3"]},
+        {"command": "command://dorico/toggle-video-window", "sequences": ["F4"]},
         {"command": "command://app/dock/toggle-instruments", "sequences": []},
         {"command": "command://app/dock/toggle-piano-keyboard", "sequences": []},
         {"command": "command://app/dock/toggle-percussion", "sequences": []},

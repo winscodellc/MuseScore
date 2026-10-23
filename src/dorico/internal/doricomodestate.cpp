@@ -58,6 +58,15 @@ void DoricoModeState::setMode(Mode mode)
     m_modeChanged.notify();
 }
 
+void DoricoModeState::setVideoWindowVisible(bool visible)
+{
+    if (m_videoWindow == visible) {
+        return;
+    }
+    m_videoWindow = visible;
+    m_changed.notify();
+}
+
 void DoricoModeState::setLowerZoneTab(const QString& tab)
 {
     if (m_lowerZoneTab == tab) {

@@ -340,7 +340,7 @@ std::vector<MenuSpec> mu::dorico::flowContextMenu()
         ctxCmd("command://notation/open-edit-style", "Notation Options..."),
         ctxCmd("command://project/properties", "Project Info..."), ctxSep(),
         ctxStub("flow-layouts", "Layouts"), ctxStub("flow-players", "Players"), ctxSep(),
-        ctxSub("flow-video", "Video", { ctxStub("video-attach", "Attach..."), ctxStub("video-detach", "Detach"),
+        ctxSub("flow-video", "Video", { ctxCmd("command://dorico/video-attach", "Attach..."), ctxCmd("command://dorico/video-detach", "Detach"),
                                         ctxCmd("command://dorico/video-properties", "Properties...") }), ctxSep(),
         ctxStub("duplicate-flow", "Duplicate Flow"), ctxStub("delete-flow", "Delete Flow"),
     };

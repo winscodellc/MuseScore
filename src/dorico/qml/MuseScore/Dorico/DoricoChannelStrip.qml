@@ -38,7 +38,8 @@ import "mixervalues.js" as MixerValues
 Rectangle {
     id: root
 
-    property MixerChannelItem channelItem: null
+    //! A MixerChannelItem, or an object with the same properties (the Mixer's Video strip, spec 91)
+    property var channelItem: null
     property color labelColor: ui.theme.strokeColor
     // Renamed channels, one model per mixer instead of one per strip (spec 96)
     property DoricoMixerModel names: null
@@ -273,8 +274,10 @@ Rectangle {
                 accentColor: root.soloLitColor
                 iconColor: accentButton ? "#FFFFFF" : ui.theme.fontPrimaryColor
                 toolTipTitle: qsTrc("dorico", "Solo")
-                // As MuseScore's mixer: no solo on the output and the click, and FX channels cannot be soloed
+                // As MuseScore's mixer: no solo on the output and the click, and FX channels cannot be soloed. The Video
+                // strip has none either (its audio is not in the engine).
                 visible: !root.isOutput && !(root.channelItem && root.channelItem.type === MixerChannelItem.Metronome)
+                         && !(root.channelItem && root.channelItem.solo === undefined)
                 enabled: !root.isFx
                 accentButton: root.channelItem ? root.channelItem.solo : false
                 onClicked: root.channelItem.solo = !root.channelItem.solo
@@ -485,7 +488,7 @@ Rectangle {
 
         MouseArea {
             anchors.fill: parent
-            enabled: root.channelItem !== null && !root.isOutput
+            enabled: root.channelItem !== null && !root.isOutput && root.names !== null
             onDoubleClicked: root.startEdit("name")
         }
     }

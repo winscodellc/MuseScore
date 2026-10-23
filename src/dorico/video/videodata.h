@@ -27,6 +27,7 @@
 #include <vector>
 
 #include "timecode.h"
+#include "notation/imasternotation.h"
 
 namespace mu::engraving {
 class Score;
@@ -57,6 +58,17 @@ struct VideoData {
     int nextId = 1;
     std::vector<VideoMarker> markers; // sorted by time
 
+    // The attached video (phase B): none while the path is empty
+    std::string videoPath;          // absolute
+    std::string videoRelPath;       // relative to the score file, tried when the absolute path is missing
+    double videoFps = 0.0;          // read from the file
+    double videoVolume = 0.5;       // linear, 0..1, from the Mixer's Video strip (-6.02 dB, Dorico's default)
+    bool videoMute = false;
+
+    bool hasVideo() const { return !videoPath.empty(); }
+    //! Where the video is at a timecode: 0 s is the video's first frame
+    double videoSeconds(double timecodeSeconds) const { return timecodeSeconds - timecodeStart; }
+
     TimeSettings timeSettings() const { return { timecodeStart, attachBeats * attachUnit, startOffset }; }
     bool operator==(const VideoData&) const = default;
 };
@@ -65,6 +77,11 @@ VideoData videoDataFromJson(const std::string& json);
 std::string videoDataToJson(const VideoData& data);
 
 VideoData readVideoData(const engraving::Score* score);
+//! The attached video's file: the absolute path, else the relative one from the score's folder; empty if neither exists
+std::string resolveVideoPath(const VideoData& data, const std::string& scoreDir);
+
+//! One undo step; markers are sorted by time first. Does nothing if the data is unchanged.
+void writeVideoData(const notation::IMasterNotationPtr& master, const VideoData& data, const char* undoTitle);
 //! The first-pass tempo timeline, which page and lane positions use
 TimeMap timeMap(const engraving::Score* score, const VideoData& data);
 

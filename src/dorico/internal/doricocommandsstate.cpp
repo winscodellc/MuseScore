@@ -34,6 +34,7 @@
 #include "engraving/dom/score.h"
 
 #include "../doricocommands.h"
+#include "../video/videodata.h"
 #include "filtersettings.h"
 #include "modepolicy.h"
 #include "pastespecial.h"
@@ -211,6 +212,14 @@ CommandState DoricoCommandsState::commandState(const Command& command, const Sel
         pasteSpecialEnabled = score && pasteSpecialHasTarget(score);
     }
 
+#ifdef DORICO_HAS_VIDEO
+    // Window > Video and F4 do nothing without an attached video (Dorico 6.2)
+    const bool videoEnabled = command != DORICO_TOGGLE_VIDEO_WINDOW_COMMAND || (score && readVideoData(score).hasVideo());
+#else
+    // Built without Qt Multimedia: no video playback
+    const bool videoEnabled = command != DORICO_VIDEO_ATTACH_COMMAND && command != DORICO_TOGGLE_VIDEO_WINDOW_COMMAND;
+#endif
+
     bool checked = false;
     for (size_t i = 0; i < DORICO_MODE_COMMANDS.size(); ++i) {
         if (command == DORICO_MODE_COMMANDS[i]) {
@@ -234,13 +243,15 @@ CommandState DoricoCommandsState::commandState(const Command& command, const Sel
     } else if (command == DORICO_TOGGLE_STAVE_SHARING_COMMAND) {
         const notation::INotationPtr notation = globalContext()->currentNotation();
         checked = notation && notation->style()->styleValue(engraving::Sid::enableStaveSharing).toBool();
+    } else if (command == DORICO_TOGGLE_VIDEO_WINDOW_COMMAND) {
+        checked = modes()->isVideoWindowVisible();
     } else if (const auto it = ARTICULATION_SYMS.find(command); it != ARTICULATION_SYMS.end()) {
         // Same rule as MuseScore's toggles: the input articulations, or those on the selected notes. Combined
         // articulations come back split (tenuto-staccato = tenuto + staccato), so every part must be there.
         checked = std::all_of(it->second.begin(), it->second.end(), [&](SymId s) { return facts.articulations.count(s) > 0; });
     }
 
-    return CommandState(enabled && pasteSpecialEnabled && isCommandAllowed(modes()->mode(), command.toString()), checked);
+    return CommandState(enabled && pasteSpecialEnabled && videoEnabled && isCommandAllowed(modes()->mode(), command.toString()), checked);
 }
 
 async::Channel<Command, CommandState> DoricoCommandsState::commandStateChanged() const

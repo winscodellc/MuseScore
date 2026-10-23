@@ -33,6 +33,7 @@
 #include "interactive/iinteractive.h"
 #include "notation/imasternotation.h"
 
+#include "dorico/idoricomodestate.h"
 #include "dorico/video/videodata.h"
 
 namespace mu::dorico {
@@ -59,6 +60,21 @@ class VideoModel : public QObject, public muse::Contextable, public muse::async:
     Q_PROPERTY(QString startOffset READ startOffset NOTIFY changed)
     Q_PROPERTY(QString timecodeStart READ timecodeStart NOTIFY changed)
 
+    //! The attached video (phase B): its path, its frame rate ("29.97 fps"), and whether the file is missing
+    Q_PROPERTY(bool hasVideo READ hasVideo NOTIFY changed)
+    Q_PROPERTY(QString videoFile READ videoFile NOTIFY changed)
+    Q_PROPERTY(QString videoRate READ videoRate NOTIFY changed)
+    Q_PROPERTY(int videoRateIndex READ videoRateIndex NOTIFY changed)
+    Q_PROPERTY(bool videoMissing READ videoMissing NOTIFY changed)
+    Q_PROPERTY(bool videoAvailable READ videoAvailable CONSTANT)
+    Q_PROPERTY(double videoVolume READ videoVolume NOTIFY changed)
+    Q_PROPERTY(bool videoMute READ videoMute NOTIFY changed)
+    //! The file being attached, read by probeVideo(): "" until it is read, or the reason it cannot be attached
+    Q_PROPERTY(QString probeFile READ probeFile NOTIFY probeChanged)
+    Q_PROPERTY(QString probeRate READ probeRate NOTIFY probeChanged)
+    Q_PROPERTY(int probeRateIndex READ probeRateIndex NOTIFY probeChanged)
+    Q_PROPERTY(QString probeError READ probeError NOTIFY probeChanged)
+
     Q_PROPERTY(QString flowStartTimecode READ flowStartTimecode NOTIFY changed)
     Q_PROPERTY(QString rangeStart READ rangeStart NOTIFY changed)
     Q_PROPERTY(QString rangeEnd READ rangeEnd NOTIFY changed)
@@ -71,6 +87,7 @@ class VideoModel : public QObject, public muse::Contextable, public muse::async:
 
     muse::ContextInject<context::IGlobalContext> globalContext = { this };
     muse::ContextInject<muse::IInteractive> interactive = { this };
+    muse::ContextInject<IDoricoModeState> modes = { this };
 
 public:
     explicit VideoModel(QObject* parent = nullptr);
@@ -89,6 +106,19 @@ public:
     QString startOffset() const;
     QString timecodeStart() const;
 
+    bool hasVideo() const { return m_data.hasVideo(); }
+    QString videoFile() const;
+    QString videoRate() const;
+    int videoRateIndex() const;
+    bool videoMissing() const;
+    bool videoAvailable() const;
+    double videoVolume() const { return m_data.videoVolume; }
+    bool videoMute() const { return m_data.videoMute; }
+    QString probeFile() const;
+    QString probeRate() const;
+    int probeRateIndex() const;
+    QString probeError() const { return m_probeError; }
+
     QString flowStartTimecode() const;
     QString rangeStart() const;
     QString rangeEnd() const;
@@ -105,9 +135,18 @@ public:
     Q_INVOKABLE void deleteMarker(int id);
 
     //! Timecodes are read in the new frame rate, so they keep what the user typed. A new timecode start moves every
-    //! marker by the same amount, so the markers stay on the music (as Dorico 6.2 does)
+    //! marker by the same amount, so the markers stay on the music (as Dorico 6.2 does). The attachment position and
+    //! start offset keep marker timecodes (checked in Dorico 6.2). A file read by probeVideo() is attached in the same
+    //! undo step, and the Video window opens, as in Dorico.
     Q_INVOKABLE QString applyProperties(int rateIndex, int attachBeats, int attachUnit, const QString& startOffset,
                                         const QString& timecodeStart);
+
+    //! Reads a video file's frame rate for Attach (async, then probeChanged)
+    Q_INVOKABLE void probeVideo(const QString& path);
+
+    //! The Mixer's Video strip; a fader drag is one undo step per call, so the strip calls it on release
+    Q_INVOKABLE void setVideoVolume(double volume);
+    Q_INVOKABLE void setVideoMute(bool mute);
 
     //! The time display's first format, from Preferences > Play: 0 bars and beats, 1 elapsed time, 2 timecode
     Q_INVOKABLE int defaultTimeDisplay() const;
@@ -118,6 +157,7 @@ public:
 signals:
     void changed();
     void playheadChanged();
+    void probeChanged();
 
 private:
     void listenToScore();
@@ -129,7 +169,12 @@ private:
     double flowEnd() const;
     QString format(double seconds) const;
 
+    std::string scoreDir() const;
+
     notation::IMasterNotationPtr m_master;
     VideoData m_data;
+    QString m_probePath;
+    double m_probeFps = 0.0;
+    QString m_probeError;
 };
 }

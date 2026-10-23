@@ -89,6 +89,14 @@ DockPage {
         Component.onCompleted: root.mixerNames.load()
     }
 
+    // The Video window and its player (spec 91 phase B). Not built without Qt Multimedia, so it is loaded by URL.
+    property Loader videoWindow: Loader {
+        source: "DoricoVideoWindow.qml"
+        // Floats above the main window, as Dorico's does
+        onLoaded: root.videoWindow.item.transientParent = root.Window.window
+    }
+    readonly property var videoPlayer: root.videoWindow.item ? root.videoWindow.item.player : null
+
     property var notationView: null
 
     onInited: {
@@ -548,7 +556,7 @@ DockPage {
                 implicitHeight: 36
 
                 // Dorico's right group (spec 101, T5): video, mixer, audio engine, record, volume, then undo / redo /
-                // help. Video, audio engine, record and volume have no MuseScore command yet (disabled stubs).
+                // help. Audio engine, record and volume have no MuseScore command yet (disabled stubs).
                 Row {
                     id: undoRedoRow
 
@@ -557,7 +565,7 @@ DockPage {
 
                     Repeater {
                         model: [
-                            { "icon": "svg:video", "title": qsTrc("dorico", "Video"), "color": "", "command": "" },
+                            { "icon": "svg:film", "title": qsTrc("dorico", "Show Video"), "color": "", "command": "command://dorico/toggle-video-window" },
                             { "icon": "svg:sliders-vertical", "title": qsTrc("dorico", "Mixer"), "color": "", "command": "command://app/dock/toggle-mixer" },
                             { "icon": "svg:power", "title": qsTrc("dorico", "Audio engine"), "color": "#40ACFF", "command": "" },
                             { "icon": "svg:circle", "title": qsTrc("dorico", "Record"), "color": "#E5484D", "command": "" },
@@ -567,11 +575,16 @@ DockPage {
                         DoricoButton {
                             required property var modelData
 
+                            // Show Video is lit while the Video window is shown, and off without a video (Dorico 6.2)
+                            readonly property bool isVideo: modelData.command === "command://dorico/toggle-video-window"
+
                             anchors.verticalCenter: parent.verticalCenter
-                            enabled: modelData.command !== ""
-                            transparent: true
+                            enabled: isVideo ? Boolean(root.videoPlayer && root.videoPlayer.hasVideo) : modelData.command !== ""
+                            accentButton: isVideo && Boolean(root.videoPlayer && root.videoPlayer.windowVisible)
+                            transparent: !accentButton
                             doricoIcon: modelData.icon
-                            iconColor: modelData.color !== "" ? modelData.color : ui.theme.fontPrimaryColor
+                            iconColor: modelData.color !== "" ? modelData.color
+                                       : (accentButton ? (ui.theme.isDark ? "#000000" : "#FFFFFF") : ui.theme.fontPrimaryColor)
                             toolTipTitle: modelData.title
                             toolTipDescription: modelData.command === "" ? qsTrc("dorico", "Not available yet") : ""
 

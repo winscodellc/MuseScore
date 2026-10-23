@@ -39,7 +39,7 @@ static constexpr std::array MODE_EVERYWHERE = {
     "notation/cancel", "notation/undo", "notation/redo",
     "dorico/mode-", "dorico/toggle-zone-", "dorico/toggle-all-zones", "dorico/toggle-toolbar", "dorico/open-hub", "dorico/export-", "dorico/notation-options",
     "dorico/open-publish", "dorico/preferences", "dorico/noop", "dorico/toggle-stave-sharing", "dorico/jump-bar", "dorico/jump-bar-", "dorico/go-to-bar",
-    "dorico/grid-", "dorico/video-properties",
+    "dorico/grid-", "dorico/video-", "dorico/toggle-video-window",
 };
 
 // Engrave (Dorico 6, spec 97 audit): select and copy, edit text, change how the music looks, and Alt-arrow (which still

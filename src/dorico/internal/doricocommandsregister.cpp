@@ -193,6 +193,11 @@ static std::vector<CommandInfo> makeCommandInfos()
     v.push_back(info(DORICO_PREFERENCES_COMMAND, "Preferences...", "Opens the Preferences dialog"));
     v.push_back(info(DORICO_ADD_MARKER_COMMAND, "Add Marker", "Adds a marker at the playhead position"));
     v.push_back(info(DORICO_VIDEO_PROPERTIES_COMMAND, "Video Properties...", "Opens the Video Properties dialog"));
+    v.push_back(info(DORICO_VIDEO_ATTACH_COMMAND, "Attach Video...", "Attaches a video file to the flow"));
+    v.push_back(info(DORICO_VIDEO_DETACH_COMMAND, "Detach Video", "Removes the video from the flow and keeps the markers"));
+    CommandInfo videoWindow = info(DORICO_TOGGLE_VIDEO_WINDOW_COMMAND, "Video", "Shows or hides the Video window");
+    videoWindow.decoration.checkable = Checkable::Yes; // Window > Video shows a tick while the window is shown
+    v.push_back(videoWindow);
 
     v.push_back(info(DORICO_JUMP_BAR_COMMAND, "Jump Bar", "Opens the jump bar in the mode it was last used in"));
     v.push_back(info(DORICO_JUMP_BAR_COMMANDS_COMMAND, "Jump Bar: Commands", "Opens the jump bar to find and run a command"));

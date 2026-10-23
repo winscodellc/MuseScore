@@ -74,6 +74,23 @@ double framesToSeconds(long long frames, FrameRate rate)
     return double(frames) * r.den / r.num;
 }
 
+long long videoFrameAt(double videoSeconds, double fps)
+{
+    constexpr double QUANTUM = 1e-7; // Dorico's video engine keeps times in 100 ns steps
+    const double snapped = std::round((videoSeconds + QUANTUM) / QUANTUM) * QUANTUM;
+    return static_cast<long long>(std::floor((snapped + QUANTUM) * fps));
+}
+
+std::optional<FrameRate> frameRateForFps(double fps)
+{
+    for (const FrameRateInfo& r : frameRates()) {
+        if (r.drop == 0 && std::abs(fps - double(r.num) / r.den) < 0.01) {
+            return r.rate;
+        }
+    }
+    return std::nullopt;
+}
+
 // Drop frame skips the frame numbers 00 and 01 (00-03 at 59.94) at the start of every minute except every tenth one,
 // so that the timecode keeps up with real time.
 Timecode framesToTimecode(long long frames, FrameRate rate)

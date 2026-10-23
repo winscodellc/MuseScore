@@ -51,6 +51,53 @@ Item {
 
     property bool showInstruments: true
     property bool showFx: true
+    property bool showVideo: false
+
+    // The Video strip (spec 91 phase B): the attached video's audio, an engine track the player adds. A stand-in for a
+    // MixerChannelItem, so it has a fader and mute but no pan, solo or meter yet. Its level is saved in the score; a fader drag is saved once it
+    // pauses, so it is one undo step rather than one per pixel.
+    VideoModel {
+        id: video
+        Component.onCompleted: video.load()
+        onChanged: {
+            videoChannel.syncing = true
+            videoChannel.volumeLevel = video.videoVolume > 0.001 ? 20 * Math.log10(video.videoVolume) : -60
+            videoChannel.muted = video.videoMute
+            videoChannel.syncing = false
+            if (root.showVideo && (root.rows.some(function(r) { return r.channel === videoChannel }) !== video.hasVideo)) {
+                Qt.callLater(root.rebuild)
+            }
+        }
+    }
+
+    QtObject {
+        id: videoChannel
+
+        readonly property string title: qsTrc("dorico", "Video")
+        readonly property int type: -1
+        property real volumeLevel: -6.02
+        readonly property real volumeLevelMin: -60
+        readonly property real volumeLevelMax: 0 // Qt's audio output cannot go above full level
+        property bool muted: false
+        readonly property bool forceMute: false
+        property int balance: 0
+        readonly property int balanceMin: -100
+        readonly property int balanceMax: 100
+        readonly property bool hasVolumeAutomation: false
+        readonly property bool hasBalanceAutomation: true // keeps the pan box disabled: no pan for the video's audio
+        readonly property real leftChannelPressure: -60
+        readonly property real rightChannelPressure: -60
+        property bool syncing: false
+
+        onVolumeLevelChanged: if (!syncing) videoVolumeTimer.restart()
+        onMutedChanged: if (!syncing && muted !== video.videoMute) video.setVideoMute(muted)
+    }
+
+    Timer {
+        id: videoVolumeTimer
+        interval: 300
+        onTriggered: video.setVideoVolume(videoChannel.volumeLevel <= -60 ? 0 : Math.pow(10, videoChannel.volumeLevel / 20))
+    }
 
     // Strip sections open on every channel at once, as in Dorico
     property bool insertsOpen: false
@@ -110,6 +157,11 @@ Item {
         if (metronome) {
             rows.unshift(metronome) // Dorico lists the click first
         }
+        if (root.showVideo && video.hasVideo) {
+            // After the instruments, before the FX channels (Dorico 6.2)
+            const firstFx = rows.findIndex(function(r) { return r.channel.type === MixerChannelItem.Aux })
+            rows.splice(firstFx < 0 ? rows.length : firstFx, 0, { "channel": videoChannel, "slot": -1 })
+        }
         root.instrumentCount = primaries
         root.fxCount = fx
         root.masterChannel = master
@@ -128,6 +180,7 @@ Item {
 
     onShowInstrumentsChanged: root.rebuild()
     onShowFxChanged: root.rebuild()
+    onShowVideoChanged: root.rebuild()
 
     // Re-evaluated whenever a channel's mute / solo changes (the binding reads every channel's property)
     readonly property bool anyMuted: {
@@ -217,7 +270,7 @@ Item {
                 model: [
                     { "title": qsTrc("dorico", "Instruments"), "kind": "instruments" },
                     { "title": qsTrc("dorico", "MIDI"), "kind": "" },
-                    { "title": qsTrc("dorico", "Video"), "kind": "" },
+                    { "title": qsTrc("dorico", "Video"), "kind": "video" },
                     { "title": qsTrc("dorico", "FX"), "kind": "fx" },
                     { "title": qsTrc("dorico", "Unused"), "kind": "" }
                 ]
@@ -234,7 +287,7 @@ Item {
                     text: modelData.title
                     available: modelData.kind !== ""
                     accentButton: modelData.kind === "instruments" ? root.showInstruments
-                                                                   : modelData.kind === "fx" ? root.showFx : false
+                                  : modelData.kind === "fx" ? root.showFx : modelData.kind === "video" ? root.showVideo : false
                     transparent: !accentButton
                     navigation.panel: toolbarNav
                     navigation.order: index
@@ -242,6 +295,8 @@ Item {
                     onTriggered: {
                         if (modelData.kind === "instruments") {
                             root.showInstruments = !root.showInstruments
+                        } else if (modelData.kind === "video") {
+                            root.showVideo = !root.showVideo
                         } else {
                             root.showFx = !root.showFx
                         }
@@ -350,7 +405,7 @@ Item {
     component ChannelColumn: Column {
         id: column
 
-        property MixerChannelItem channelItem: null
+        property var channelItem: null // a MixerChannelItem, or videoChannel
         property color labelColor: "#B8B8B8"
 
         width: 80
@@ -361,7 +416,7 @@ Item {
             height: root.stripAreaHeight
             visible: root.showStrips
 
-            channelItem: column.channelItem
+            channelItem: column.channelItem === videoChannel ? null : column.channelItem
             insertsOpen: root.insertsOpen
             sendsOpen: root.sendsOpen
             onToggleInserts: root.insertsOpen = !root.insertsOpen
@@ -374,7 +429,7 @@ Item {
 
             channelItem: column.channelItem
             labelColor: column.labelColor
-            names: root.mixerData
+            names: column.channelItem === videoChannel ? null : root.mixerData // renames are for engine channels
             meterClock: meterClock
         }
     }

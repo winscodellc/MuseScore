@@ -50,7 +50,7 @@
   {"key": "Ctrl+9", "dorico": "Cmd-9", "command": "command://dorico/toggle-zone-right", "owner": "50"},
   {"key": "F3", "dorico": "F3", "command": "command://app/dock/toggle-mixer", "owner": "10"},
   {"key": "F2", "dorico": "F2", "command": "deferred", "owner": "10"},
-  {"key": "F4", "dorico": "F4", "command": "deferred", "owner": "10"},
+  {"key": "F4", "dorico": "F4", "command": "command://dorico/toggle-video-window", "owner": "91"},
   {"key": "F7", "dorico": "F7", "command": "deferred", "owner": "10"},
   {"key": "F9", "dorico": "F9", "command": "deferred", "owner": "10"},
   {"key": "P", "dorico": "P", "command": "command://playback/play-selection", "owner": "10"},

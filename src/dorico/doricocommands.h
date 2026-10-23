@@ -216,6 +216,10 @@ inline static const muse::rcommand::Command DORICO_TOGGLE_STAVE_SHARING_COMMAND(
 // Markers and timecodes (spec 91): Add Marker (Shift-Alt-M in Write) and the Video Properties dialog
 inline static const muse::rcommand::Command DORICO_ADD_MARKER_COMMAND("command://dorico/add-marker");
 inline static const muse::rcommand::Command DORICO_VIDEO_PROPERTIES_COMMAND("command://dorico/video-properties");
+// Video (spec 91 phase B): the flow card's Video > Attach... / Detach, and the Video window (F4, the toolbar, Window > Video)
+inline static const muse::rcommand::Command DORICO_VIDEO_ATTACH_COMMAND("command://dorico/video-attach");
+inline static const muse::rcommand::Command DORICO_VIDEO_DETACH_COMMAND("command://dorico/video-detach");
+inline static const muse::rcommand::Command DORICO_TOGGLE_VIDEO_WINDOW_COMMAND("command://dorico/toggle-video-window");
 
 // Lyrics popover keys (spec 33): enabled only while a lyric is being edited, when every other dorico command is off.
 inline static const muse::rcommand::Command DORICO_LYRICS_CLOSE_COMMAND("command://dorico/lyrics-close");

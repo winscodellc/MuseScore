@@ -34,8 +34,10 @@
 #include "notation/inotationinteraction.h"
 #include "notation/inotationselection.h"
 #include "engraving/dom/engravingitem.h"
+#include "engraving/dom/masterscore.h"
 
 #include "../doricocommands.h"
+#include "../video/videodata.h"
 
 #include "log.h"
 
@@ -211,6 +213,34 @@ void DoricoActionsController::init()
     cd->onRequest(this, DORICO_ADD_MARKER_COMMAND, [this]() { interactive()->open("musescore://dorico/addmarker"); return muse::make_ok(); });
     cd->onRequest(this, DORICO_VIDEO_PROPERTIES_COMMAND, [this]() {
         interactive()->open("musescore://dorico/videoproperties");
+        return muse::make_ok();
+    });
+    // Attach: a file, then the Properties dialog, which reads the file and attaches it on OK (spec 91 phase B)
+    cd->onRequest(this, DORICO_VIDEO_ATTACH_COMMAND, [this]() {
+        const muse::io::path_t file = interactive()->selectOpeningFileSync(muse::trc("dorico", "Attach Video"), {},
+                                                                           { "Any Readable File (*.mp4 *.mov *.avi *.mpg *.mpeg *.dv)" });
+        if (!file.empty()) {
+            muse::UriQuery query("musescore://dorico/videoproperties");
+            query.addParam("attachPath", muse::Val(file.toStdString()));
+            interactive()->open(query);
+        }
+        return muse::make_ok();
+    });
+    cd->onRequest(this, DORICO_VIDEO_DETACH_COMMAND, [this]() {
+        const notation::IMasterNotationPtr master = globalContext()->currentMasterNotation();
+        if (!master) {
+            return muse::make_ok();
+        }
+        VideoData data = readVideoData(master->masterScore());
+        data.videoPath.clear();
+        data.videoRelPath.clear();
+        data.videoFps = 0.0;
+        writeVideoData(master, data, "Detach video");
+        modes()->setVideoWindowVisible(false); // Dorico closes the Video window too
+        return muse::make_ok();
+    });
+    cd->onRequest(this, DORICO_TOGGLE_VIDEO_WINDOW_COMMAND, [this]() {
+        modes()->setVideoWindowVisible(!modes()->isVideoWindowVisible());
         return muse::make_ok();
     });
 }
