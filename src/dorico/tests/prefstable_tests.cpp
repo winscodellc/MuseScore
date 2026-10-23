@@ -174,7 +174,8 @@ TEST_F(DoricoPrefTableTests, BackedRowsAreTheExpectedOnes)
     EXPECT_EQ(backed, (std::set<std::string> {
         "general.window.theme", "general.view.defaultZoom", "general.files.projectFolder", "general.files.autoSave",
         "general.files.autoSaveMinutes", "colors.page.fullScore", "colors.page.invert", "note.input.accidentalTiming",
-        "note.input.playNotes", "note.input.playChord", "play.playhead.follow", "play.recording.midiInput" }));
+        "note.input.playNotes", "note.input.playChord", "play.playhead.follow", "play.recording.midiInput",
+        "play.transport.display" }));
 }
 
 TEST_F(DoricoPrefTableTests, EveryBackedRowRoundTrips)
@@ -191,7 +192,7 @@ TEST_F(DoricoPrefTableTests, EveryBackedRowRoundTrips)
         EXPECT_EQ(row->get(), next) << id;
         ++checked;
     }
-    EXPECT_EQ(checked, 12);
+    EXPECT_EQ(checked, 13);
 }
 
 TEST_F(DoricoPrefTableTests, ZoomRowMapsToZoomTypeAndPercentage)

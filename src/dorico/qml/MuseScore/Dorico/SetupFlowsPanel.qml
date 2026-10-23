@@ -94,6 +94,23 @@ ColumnLayout {
                 enabled: false
             }
 
+            // The flow's start timecode (spec 91)
+            VideoModel {
+                id: flowVideo
+                Component.onCompleted: flowVideo.load()
+            }
+
+            Text {
+                anchors.left: parent.left
+                anchors.bottom: parent.bottom
+                anchors.margins: 8
+                // Dorico leaves it out while it is 00:00:00:00
+                visible: !/^00:00:00[:;]00$/.test(flowVideo.flowStartTimecode)
+                text: flowVideo.flowStartTimecode
+                font: ui.theme.bodyFont
+                color: "#FFFFFF"
+            }
+
             Text {
                 anchors.right: parent.right
                 anchors.bottom: parent.bottom

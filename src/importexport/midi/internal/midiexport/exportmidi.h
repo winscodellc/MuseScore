@@ -25,6 +25,11 @@
 
 #include <QFile>
 
+#include <functional>
+#include <string>
+#include <utility>
+#include <vector>
+
 #include "../midishared/midifile.h"
 #include "engraving/compat/midi/pausemap.h"
 #include "engraving/compat/midi/compatmidirenderinternal.h"
@@ -47,6 +52,9 @@ public:
     bool write(QIODevice* device, bool midiExpandRepeats, bool exportRPNs);
     bool write(const QString& name, bool midiExpandRepeats, bool exportRPNs, const engraving::SynthesizerState& synthState);
     bool write(QIODevice* device, bool midiExpandRepeats, bool exportRPNs, const engraving::SynthesizerState& synthState);
+
+    //! Fork (spec 91): extra marker meta events as (raw tick, text), written on the first track. Set by the dorico module.
+    static std::function<std::vector<std::pair<int, std::string> >(const engraving::Score*)> extraMarkers;
 
 private:
     void writeHeader(const engraving::CompatMidiRendererInternal::Context& context);

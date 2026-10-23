@@ -70,7 +70,7 @@ struct PaletteCellInfo {
     QString name;                               // untranslated cell name (PaletteCell::name)
 };
 
-//! Every panel section, in manual order. Panels with no section are stubs (cues, video, comments, proofreading).
+//! Every panel section, in manual order. Panels with no section are stubs (cues, comments, proofreading) or have their own QML (video).
 //! "engraveBracketing" is not a Write panel: Engrave's Formatting panel shows it (spec 56).
 const std::vector<NotationsSection>& notationsSections();
 std::vector<NotationsSection> sectionsOfPanel(const QString& panel);

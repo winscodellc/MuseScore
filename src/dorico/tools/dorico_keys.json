@@ -103,6 +103,7 @@
   {"key": "M", "dorico": "M", "command": "command://notation/move-down", "owner": "10"},
   {"key": "Alt+N", "dorico": "Opt-N", "command": "command://dorico/move-to-staff-above", "owner": "41"},
   {"key": "Alt+M", "dorico": "Opt-M", "command": "command://dorico/move-to-staff-below", "owner": "41"},
+  {"key": "Alt+Shift+M", "dorico": "Shift-Opt-M", "command": "command://dorico/add-marker", "owner": "91"},
   {"key": "1", "dorico": "1", "command": "command://dorico/set-duration-1", "owner": "11"},
   {"key": "2", "dorico": "2", "command": "command://dorico/set-duration-2", "owner": "11"},
   {"key": "3", "dorico": "3", "command": "command://dorico/set-duration-3", "owner": "11"},

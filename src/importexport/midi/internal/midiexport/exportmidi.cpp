@@ -43,6 +43,8 @@
 using namespace mu::engraving;
 
 namespace mu::iex::midi {
+std::function<std::vector<std::pair<int, std::string> >(const Score*)> ExportMidi::extraMarkers;
+
 //---------------------------------------------------------
 //   writeHeader
 //---------------------------------------------------------
@@ -418,6 +420,20 @@ bool ExportMidi::write(QIODevice* device, bool midiExpandRepeats, bool exportRPN
                         }
                     }
                 }
+            }
+        }
+
+        // Fork (spec 91): markers are locked to time, so each is written once, at its first pass
+        if (staffIdx == 0 && extraMarkers) {
+            for (const auto& [tick, text] : extraMarkers(m_score)) {
+                std::vector<unsigned char> data(text.begin(), text.end());
+                data.push_back(0);
+                MidiEvent ev;
+                ev.setType(ME_META);
+                ev.setMetaType(META_MARKER);
+                ev.setLen(static_cast<int>(data.size()));
+                ev.setEData(std::move(data));
+                track.insert(CompatMidiRender::tick(context, m_score->repeatList().tick2utick(tick)), ev);
             }
         }
         ++staffIdx;

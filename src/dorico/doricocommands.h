@@ -213,6 +213,9 @@ inline static const muse::rcommand::Command DORICO_EXPORT_MUSICXML_COMMAND("comm
 inline static const muse::rcommand::Command DORICO_PREFERENCES_COMMAND("command://dorico/preferences");
 // Players panel "…" menu (spec 55): the score's stave sharing, a switch in MuseScore's instrument tree
 inline static const muse::rcommand::Command DORICO_TOGGLE_STAVE_SHARING_COMMAND("command://dorico/toggle-stave-sharing");
+// Markers and timecodes (spec 91): Add Marker (Shift-Alt-M in Write) and the Video Properties dialog
+inline static const muse::rcommand::Command DORICO_ADD_MARKER_COMMAND("command://dorico/add-marker");
+inline static const muse::rcommand::Command DORICO_VIDEO_PROPERTIES_COMMAND("command://dorico/video-properties");
 
 // Lyrics popover keys (spec 33): enabled only while a lyric is being edited, when every other dorico command is off.
 inline static const muse::rcommand::Command DORICO_LYRICS_CLOSE_COMMAND("command://dorico/lyrics-close");

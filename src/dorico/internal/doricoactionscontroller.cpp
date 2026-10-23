@@ -208,6 +208,11 @@ void DoricoActionsController::init()
         interactive()->open("musescore://dorico/preferences");
         return muse::make_ok();
     });
+    cd->onRequest(this, DORICO_ADD_MARKER_COMMAND, [this]() { interactive()->open("musescore://dorico/addmarker"); return muse::make_ok(); });
+    cd->onRequest(this, DORICO_VIDEO_PROPERTIES_COMMAND, [this]() {
+        interactive()->open("musescore://dorico/videoproperties");
+        return muse::make_ok();
+    });
 }
 
 bool DoricoActionsController::isShellShown() const

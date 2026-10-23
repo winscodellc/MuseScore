@@ -30,7 +30,7 @@ import Muse.UiComponents
 
 //! The right-zone panel of Write mode (spec 53): the Dorico panel chosen in the Notations toolbox. Each section
 //! is MuseScore's palette grid over the cells DoricoPanelModel picked; clicking applies like the palette does.
-//! Panels with no MuseScore backing (Cues, Video, Comments, Proofreading) show the "Not available yet" stub.
+//! Video has its own panel; the others with no MuseScore backing (Cues, Comments, Proofreading) show the stub.
 Item {
     id: root
 
@@ -51,7 +51,17 @@ Item {
 
     DoricoPlaceholder {
         anchors.fill: parent
-        visible: root.panelModel.sectionTitles.length === 0
+        visible: root.panelModel.sectionTitles.length === 0 && root.panelModel.panelId !== "video"
+    }
+
+    // Video has its own panel (spec 91)
+    Loader {
+        anchors.fill: parent
+        active: root.panelModel.panelId === "video"
+        sourceComponent: VideoPanel {
+            navigationSection: root.navigationSection
+            navigationOrderStart: root.navigationOrderStart + 1
+        }
     }
 
     StyledFlickable {

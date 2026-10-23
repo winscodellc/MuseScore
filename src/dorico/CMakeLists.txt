@@ -77,6 +77,11 @@ target_sources(dorico PRIVATE
     internal/selectmore.h
     internal/selectionsummary.cpp
     internal/selectionsummary.h
+
+    video/timecode.cpp
+    video/timecode.h
+    video/videodata.cpp
+    video/videodata.h
     internal/noteinpututils.h
     internal/partlayouts.h
     internal/printjob.cpp
@@ -166,6 +171,11 @@ target_sources(dorico PRIVATE
 )
 
 target_link_libraries(dorico PRIVATE engraving muse_uicomponents_qml)
+# Markers in exported MIDI (spec 91): sets ExportMidi's marker hook
+if (TARGET iex_midi)
+    target_link_libraries(dorico PRIVATE iex_midi)
+    target_compile_definitions(dorico PRIVATE DORICO_HAS_MIDI_EXPORT)
+endif()
 
 add_subdirectory(qml/MuseScore/Dorico)
 

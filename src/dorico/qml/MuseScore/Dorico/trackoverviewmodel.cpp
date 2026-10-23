@@ -40,6 +40,7 @@
 
 #include "../../../internal/trackblocks.h"
 #include "../../../internal/doricoperf.h"
+#include "dorico/video/videodata.h"
 
 using namespace mu::dorico;
 using namespace mu::engraving;
@@ -203,6 +204,7 @@ void TrackOverviewModel::rebuild(const Score* score)
     QVariantList bars;
     QVariantList tempos;
     QVariantList chords;
+    QVariantList markers;
     double length = 0;
 
     if (score) {
@@ -223,6 +225,10 @@ void TrackOverviewModel::rebuild(const Score* score)
             }
         }
         length = quarters(score->endTick());
+        // The Markers lane (spec 91): markers are locked to time, so a tempo change moves them against the bars
+        for (const auto& [tick, text] : markerTicks(score)) {
+            markers << QVariantMap { { "start", tick / double(Constants::DIVISION) }, { "text", QString::fromStdString(text) } };
+        }
 
         for (const Part* part : score->parts()) {
             std::vector<TrackBar> trackBars;
@@ -262,7 +268,8 @@ void TrackOverviewModel::rebuild(const Score* score)
     }
 
     // Most edits (a pitch, a dynamic) leave the overview as it was: then QML keeps its delegates (spec 96)
-    if (tracks == m_tracks && bars == m_bars && tempos == m_tempos && chords == m_chords && length == m_length) {
+    if (tracks == m_tracks && bars == m_bars && tempos == m_tempos && chords == m_chords && markers == m_markers
+        && length == m_length) {
         return;
     }
     qCInfo(doricoPerf) << "trackOverview changed";
@@ -270,6 +277,7 @@ void TrackOverviewModel::rebuild(const Score* score)
     m_bars = bars;
     m_tempos = tempos;
     m_chords = chords;
+    m_markers = markers;
     m_length = length;
 
     emit contentChanged();

@@ -43,6 +43,9 @@ Item {
     property alias navigationPanelSection: navPanel.section
     property alias navigationPanelOrder: navPanel.order
 
+    // Fork (spec 91): see PlaybackToolBarActions.showTimeFields
+    property bool showTimeFields: true
+
     PlaybackToolBarModel {
         id: thePlaybackModel
     }
@@ -68,6 +71,7 @@ Item {
 
             playbackModel: thePlaybackModel
             floating: root.floating
+            showTimeFields: root.showTimeFields
 
             navPanel: root.navigationPanel
         }

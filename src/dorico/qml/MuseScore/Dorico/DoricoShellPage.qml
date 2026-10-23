@@ -496,18 +496,31 @@ DockPage {
             // toolbar's width / height: PlaybackToolBar sets those and has no implicit size.
             Rectangle {
                 color: playbackToolBar.floating ? "transparent" : ui.theme.backgroundSecondaryColor
-                implicitWidth: playbackContent.width
+                implicitWidth: transportRow.width
                 implicitHeight: playbackToolBar.floating ? playbackContent.height : 36
 
-                PlaybackToolBar {
-                    id: playbackContent
+                Row {
+                    id: transportRow
 
                     anchors.verticalCenter: parent.verticalCenter
+                    spacing: 6
 
-                    navigationPanelSection: playbackToolBar.navigationSection
-                    navigationPanelOrder: 3
+                    // Dorico's time display (spec 91) replaces MuseScore's time and bar / beat fields
+                    DoricoTimeDisplay {
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
 
-                    floating: playbackToolBar.floating
+                    PlaybackToolBar {
+                        id: playbackContent
+
+                        anchors.verticalCenter: parent.verticalCenter
+
+                        navigationPanelSection: playbackToolBar.navigationSection
+                        navigationPanelOrder: 3
+
+                        floating: playbackToolBar.floating
+                        showTimeFields: false
+                    }
                 }
             }
         },

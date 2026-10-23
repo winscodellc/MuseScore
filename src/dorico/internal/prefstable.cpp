@@ -633,6 +633,17 @@ static PrefCategory play(const PrefBackends& b)
                           [n](const Val& v) { n->setIsMidiInputEnabled(v.toBool()); });
     }
 
+    // Read by the time display (DoricoTimeDisplay.qml); Dorico 6 opens a new project on bars and beats
+    PrefRow transportDisplay = segmented("play.transport.display", "Default mini transport display",
+                                         { "Elapsed Time", "Timecode", "Bar.Beat.Ticks" });
+    if (b.notation) {   // with the app's settings, like the page colour
+        static const muse::Settings::Key TRANSPORT_KEY("dorico", TRANSPORT_DISPLAY_SETTING);
+        transportDisplay = bound(transportDisplay, []() {
+            const Val v = muse::settings()->value(TRANSPORT_KEY);
+            return v.isNull() || v.toString().empty() ? Val("Bar.Beat.Ticks") : v;
+        }, [](const Val& v) { muse::settings()->setSharedValue(TRANSPORT_KEY, v); });
+    }
+
     static const std::initializer_list<const char*> UNITS = { "1/4", "1/8", "1/16", "1/32", "1/64" };
     PrefPage p = page("play", "Play", {
         section("Playback Template", {
@@ -683,7 +694,7 @@ static PrefCategory play(const PrefBackends& b)
             spinner("play.recording.latency", "MIDI input latency compensation", 0, 0, 500, "ms"),
         }),
         section("Transport Display", {
-            segmented("play.transport.display", "Default mini transport display", { "Elapsed Time", "Timecode", "Bar.Beat.Ticks" }),
+            transportDisplay,
         }),
         section("Controllers", {
             check("play.controllers.reset", "Reset controllers and send 'all notes off' when stopping playback", true),

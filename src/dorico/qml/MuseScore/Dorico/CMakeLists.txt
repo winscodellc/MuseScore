@@ -27,6 +27,8 @@ qt_add_qml_module(dorico_qml
     URI MuseScore.Dorico
     VERSION 1.0
     SOURCES
+        videomodel.cpp
+        videomodel.h
         doricopanelmodel.cpp
         doricopanelmodel.h
         doricomixermodel.cpp
@@ -58,6 +60,11 @@ qt_add_qml_module(dorico_qml
         trackoverviewmodel.cpp
         trackoverviewmodel.h
     QML_FILES
+        AddMarkerDialog.qml
+        VideoPanel.qml
+        VideoPropertiesDialog.qml
+        DoricoTimeDisplay.qml
+        DoricoTimecodeField.qml
         DoricoButton.qml
         DoricoShellPage.qml
         EngraveFormattingPanel.qml

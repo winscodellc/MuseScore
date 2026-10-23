@@ -50,6 +50,7 @@ Namespace `mu::dorico`, commands `command://dorico/<name>`. It is created in spe
 - Duration keys (spec 13): `notationscene/qml/MuseScore/NotationScene/notationviewinputcontroller.cpp` `shortcutOverrideEvent` lets (Cmd-)Shift-Opt-Left/Right reach the shortcuts when a line or text is selected.
 - Opt-click / Opt-drag copy (spec 42): `notation/internal/notationinteraction.{h,cpp}` `dropRange` pastes a copy through an optional `IDoricoPaste` (Chord / Insert rules) when one is registered; `notationscene/qml/MuseScore/NotationScene/notationviewinputcontroller.cpp` `mousePress_considerStartPasteRangeOnRelease` turns a selected note / chord into a range first, so Opt-click copies it.
 - Dorico pages hide MuseScore's score/part tabs (spec 50): `notationscene/qml/MuseScore/NotationScene/NotationView.qml` `showNotationTabs`.
+- Markers in MIDI export (spec 91): `importexport/midi/internal/midiexport/exportmidi.{h,cpp}` has a static `ExportMidi::extraMarkers` hook that the dorico module sets. Our transport time display (spec 91): `playback/qml/MuseScore/Playback/PlaybackToolBar.qml` + `internal/PlaybackToolBarActions.qml` `showTimeFields` hides MuseScore's time and bar fields.
 
 ### 2. Changing behaviour = new commands, not overriding old ones
 The command dispatcher allows **one handler per command** (`muse/framework/rcommand/internal/commanddispatcher.cpp:135` refuses duplicates), so a module cannot replace `command://notation/paste`. Instead:
@@ -180,6 +181,7 @@ Status: todo | in-progress | pending review | done  -  Depends on: NN, NN  -  Do
 | 62 | [Print panel parity](done/62-print-panel.md) | done | 58 |
 | 63 | [Mixer parity](63-mixer-parity.md) | pending review | 57 |
 | 65 | [Musical transformations](done/65-musical-transformations.md) | done | 35, 59 |
+| 91 | [Markers, timecodes and video](91-markers-timecodes-video.md) | in progress (phase A done) | 26, 53, 55, 57, 63, 102 |
 | 94 | [Dorico Pro parity audit](done/94-parity-audit.md) | done | 50-63 |
 | 95 | [Single-page shell (instant mode switching)](95-single-page-shell.md) | built, pending review | 94 |
 | 96 | [Runtime performance](96-runtime-performance.md) | built, pending review | 95 |

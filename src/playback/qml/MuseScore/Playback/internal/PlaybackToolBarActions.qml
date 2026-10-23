@@ -39,6 +39,8 @@ Item {
     readonly property int navigationOrderEnd: tempoLoader.navigationOrderEnd
 
     property bool floating: false
+    // Fork (spec 91): false hides the time and bar/beat fields, for a host that shows its own time display
+    property bool showTimeFields: true
 
     // Not `+ endSeparator.width`: this way, the separator itself is outside the view,
     // which means that it will be exactly at the position of the KDDockWidgets separator
@@ -126,14 +128,15 @@ Item {
         id: timeField
 
         anchors.left: buttonsSeparator.right
-        anchors.leftMargin: 12
+        anchors.leftMargin: root.showTimeFields ? 12 : 0
         anchors.verticalCenter: parent.verticalCenter
         anchors.verticalCenterOffset: 1 // for nicer visual alignment
 
         //! NOTE: explicit width prevents the content from jumping around
         // when a score is being played
         // See: https://github.com/musescore/MuseScore/issues/9633
-        width: 64
+        width: root.showTimeFields ? 64 : 0
+        visible: root.showTimeFields
 
         maxTime: root.playbackModel.maxPlayTime
         maxMillisecondsNumber: 9
@@ -151,7 +154,9 @@ Item {
         id: measureAndBeatFields
 
         anchors.left: timeField.right
-        anchors.leftMargin: 6
+        anchors.leftMargin: root.showTimeFields ? 6 : 0
+        width: root.showTimeFields ? implicitWidth : 0
+        visible: root.showTimeFields
         anchors.verticalCenter: parent.verticalCenter
         anchors.verticalCenterOffset: 1 // for nicer visual alignment
 

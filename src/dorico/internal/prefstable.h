@@ -127,6 +127,9 @@ struct PrefBackends {
 
 PrefTable buildPrefTable(const PrefBackends& backends);
 
+//! Play > Default mini transport display (spec 91): "Elapsed Time", "Timecode" or "Bar.Beat.Ticks", in app settings
+inline constexpr const char* TRANSPORT_DISPLAY_SETTING = "dorico/play/transportDisplay";
+
 //! Row by id, searching the extra controls too; nullptr when there is none.
 const PrefRow* findPrefRow(const PrefTable& table, const std::string& id);
 

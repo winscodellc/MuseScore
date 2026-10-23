@@ -52,6 +52,7 @@ class TrackOverviewModel : public QObject, public muse::Contextable, public muse
     //! The Tempo and Chords lanes: [{ start, text }]
     Q_PROPERTY(QVariantList tempos READ tempos NOTIFY contentChanged)
     Q_PROPERTY(QVariantList chords READ chords NOTIFY contentChanged)
+    Q_PROPERTY(QVariantList markers READ markers NOTIFY contentChanged)
     Q_PROPERTY(double length READ length NOTIFY contentChanged)
     Q_PROPERTY(double playheadPosition READ playheadPosition NOTIFY playheadPositionChanged)
     //! False while the overview is not on screen: edits are then not walked until it is shown again
@@ -71,6 +72,7 @@ public:
     QVariantList bars() const { return m_bars; }
     QVariantList tempos() const { return m_tempos; }
     QVariantList chords() const { return m_chords; }
+    QVariantList markers() const { return m_markers; }
     double length() const { return m_length; }
     double playheadPosition() const { return m_playheadPosition; }
     bool active() const { return m_active; }
@@ -104,6 +106,7 @@ private:
     QVariantList m_bars;
     QVariantList m_tempos;
     QVariantList m_chords;
+    QVariantList m_markers;
     double m_length = 0;
     double m_playheadPosition = 0;
     bool m_active = true;

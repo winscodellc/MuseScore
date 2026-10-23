@@ -45,9 +45,24 @@ Rectangle {
     readonly property int headerWidth: 160
     readonly property int toolbarHeight: 28
     readonly property int rulerHeight: 24
-    // Read-only Tempo and Chords lanes under the ruler (spec 101, P9)
+    // Read-only Tempo and Chords lanes under the ruler (spec 101, P9), and the Markers lane (spec 91)
     readonly property int laneHeight: 22
-    readonly property int topInset: toolbarHeight + rulerHeight + 2 * laneHeight
+    // Dorico's lane toggles in the track tools: Markers starts hidden (Dorico 6.2)
+    property bool tempoLaneShown: true
+    property bool markersLaneShown: false
+    property bool chordsLaneShown: true
+    readonly property var lanes: {
+        var all = [
+            { "title": qsTrc("dorico", "Tempo"), "marks": overview.tempos, "shown": root.tempoLaneShown },
+            { "title": qsTrc("dorico", "Markers"), "marks": overview.markers, "shown": root.markersLaneShown, "addMarker": true },
+            { "title": qsTrc("dorico", "Chords"), "marks": overview.chords, "shown": root.chordsLaneShown }
+        ]
+        var shown = all.filter(function(lane) { return lane.shown })
+        shown.forEach(function(lane, i) { lane.row = i })
+        return shown
+    }
+    readonly property int laneCount: lanes.length
+    readonly property int topInset: toolbarHeight + rulerHeight + laneCount * laneHeight
     readonly property int trackHeight: 48
     readonly property int zoomBarHeight: 28
     // Horizontal zoom (the slider), relative to fitting the piece to the width
@@ -110,6 +125,27 @@ Rectangle {
                 toolTipDescription: qsTrc("dorico", "Not available yet")
             }
         }
+
+        // Show / hide the Tempo, Markers and Chords lanes
+        Repeater {
+            model: [
+                { "icon": "svg:tempo", "title": qsTrc("dorico", "Tempo"), "lane": "tempo" },
+                { "icon": "svg:pin", "title": qsTrc("dorico", "Markers"), "lane": "markers" },
+                { "icon": "svg:list-music", "title": qsTrc("dorico", "Chords"), "lane": "chords" }
+            ]
+
+            DoricoButton {
+                required property var modelData
+
+                anchors.verticalCenter: parent.verticalCenter
+                transparent: !accentButton
+                accentButton: root[modelData.lane + "LaneShown"]
+                doricoIcon: modelData.icon
+                iconBoxSize: 16
+                toolTipTitle: modelData.title
+                onTriggered: root[modelData.lane + "LaneShown"] = !root[modelData.lane + "LaneShown"]
+            }
+        }
     }
 
     // Ruler: scrolls horizontally with the tracks, stays at the top
@@ -165,12 +201,15 @@ Rectangle {
         SeparatorLine { anchors.bottom: parent.bottom }
     }
 
-    // Tempo and Chords lanes: marks of the score, scrolling with the tracks
+    // Opens Add Marker from the Markers lane header
+    VideoModel {
+        id: laneVideo
+        Component.onCompleted: laneVideo.load()
+    }
+
+    // Tempo, Markers and Chords lanes: marks of the score, scrolling with the tracks
     Repeater {
-        model: [
-            { "title": qsTrc("dorico", "Tempo"), "row": 0, "marks": overview.tempos },
-            { "title": qsTrc("dorico", "Chords"), "row": 1, "marks": overview.chords }
-        ]
+        model: root.lanes
 
         Item {
             id: lane
@@ -188,6 +227,17 @@ Rectangle {
                 text: lane.modelData.title
             }
 
+            DoricoButton {
+                x: root.headerWidth - width - 6
+                anchors.verticalCenter: parent.verticalCenter
+                visible: lane.modelData.addMarker === true
+                doricoIcon: "svg:plus"
+                iconBoxSize: 14
+                transparent: true
+                toolTipTitle: qsTrc("dorico", "Add Marker")
+                onTriggered: laneVideo.openAddMarker()
+            }
+
             Item {
                 x: root.headerWidth
                 width: parent.width - root.headerWidth
@@ -198,6 +248,40 @@ Rectangle {
                     x: -flick.contentX
                     height: parent.height
 
+                    // Markers: Dorico's magenta pill with a white diamond, starting at the marker's time
+                    Repeater {
+                        model: lane.modelData.addMarker === true ? lane.modelData.marks : []
+
+                        Rectangle {
+                            required property var modelData
+
+                            x: modelData.start * root.pxPerQuarter
+                            anchors.verticalCenter: parent.verticalCenter
+                            width: pillText.implicitWidth + 22
+                            height: root.laneHeight - 6
+                            radius: height / 2
+                            color: "#C2378F"
+
+                            Rectangle {
+                                x: 5
+                                anchors.verticalCenter: parent.verticalCenter
+                                width: 6
+                                height: 6
+                                rotation: 45
+                                color: "#FFFFFF"
+                            }
+
+                            Text {
+                                id: pillText
+                                x: 16
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: parent.modelData.text
+                                font: ui.theme.bodyFont
+                                color: "#FFFFFF"
+                            }
+                        }
+                    }
+
                     Repeater {
                         model: lane.modelData.marks
 
@@ -206,6 +290,7 @@ Rectangle {
 
                             x: modelData.start * root.pxPerQuarter + 2
                             anchors.verticalCenter: parent.verticalCenter
+                            visible: lane.modelData.addMarker !== true
                             text: modelData.text
                             font: ui.theme.bodyBoldFont
                         }

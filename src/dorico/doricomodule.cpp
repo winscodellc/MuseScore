@@ -48,6 +48,11 @@
 #include "internal/modepolicy.h"
 #include "internal/popovercontroller.h"
 #include "internal/transformcontroller.h"
+#include "video/videodata.h"
+
+#ifdef DORICO_HAS_MIDI_EXPORT
+#include "importexport/midi/internal/midiexport/exportmidi.h"
+#endif
 
 #include "log.h"
 
@@ -105,6 +110,8 @@ void DoricoModule::resolveImports()
         ir->registerQmlUri(muse::Uri("musescore://dorico/transforminvert"), "MuseScore.Dorico", "InvertPitchesDialog"); // spec 65
         ir->registerQmlUri(muse::Uri("musescore://dorico/transformrotate"), "MuseScore.Dorico", "RotateDialog");
         ir->registerQmlUri(muse::Uri("musescore://dorico/preferences"), "MuseScore.Dorico", "DoricoPreferencesDialog"); // spec 100
+        ir->registerQmlUri(muse::Uri("musescore://dorico/addmarker"), "MuseScore.Dorico", "AddMarkerDialog"); // spec 91
+        ir->registerQmlUri(muse::Uri("musescore://dorico/videoproperties"), "MuseScore.Dorico", "VideoPropertiesDialog");
     }
 
     auto cr = globalIoc()->resolve<muse::rcommand::ICommandsRegister>(mname);
@@ -118,6 +125,11 @@ void DoricoModule::onInit(const IApplication::RunMode&)
     LOGI() << "dorico module init";
 
     applyFirstRunDefaults();
+
+#ifdef DORICO_HAS_MIDI_EXPORT
+    // Markers go into exported MIDI (spec 91)
+    iex::midi::ExportMidi::extraMarkers = [](const engraving::Score* score) { return markerTicks(score); };
+#endif
 }
 
 //! The keymap preset, Dorico's colours and the vertical page column, each applied once. Also after Preferences >

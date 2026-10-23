@@ -43,6 +43,7 @@
         {"command": "command://notation/goto-last-element", "sequences": []},
         {"command": "command://dorico/move-to-staff-above", "sequences": ["Alt+N"]},
         {"command": "command://dorico/move-to-staff-below", "sequences": ["Alt+M"]},
+        {"command": "command://dorico/add-marker", "sequences": ["Alt+Shift+M"]},
         {"command": "command://notation/move-up", "sequences": ["N"]},
         {"command": "command://notation/move-down", "sequences": ["M"]},
         {"command": "command://notation/toggle-note-input", "sequences": ["Shift+N"]},
