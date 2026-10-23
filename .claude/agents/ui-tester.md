@@ -1,7 +1,7 @@
 ---
 name: ui-tester
 description: Drives Dorico 6 and our MuseScore build through ClaudeUIControl to run a given UI test list, and returns a short pass/fail report. Use for any multi-step UI test run (e.g. a spec's manual checks), so screenshots and clicks stay out of the main context.
-model: sonnet
+model: opus
 effort: medium
 tools: Bash, Read
 ---
