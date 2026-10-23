@@ -412,7 +412,7 @@ DockPage {
             id: doricoTopBar
 
             objectName: "doricoTopBar"
-            thickness: 37
+            thickness: 36
             title: qsTrc("dorico", "Top bar")
 
             floatable: false
@@ -429,7 +429,7 @@ DockPage {
             Rectangle {
                 color: ui.theme.backgroundSecondaryColor
                 implicitWidth: topBarContent.implicitWidth
-                implicitHeight: 37
+                implicitHeight: 36
 
                 DoricoTopBar {
                     id: topBarContent
@@ -446,7 +446,7 @@ DockPage {
             id: playbackToolBar
 
             objectName: "playbackToolBar"
-            thickness: 37
+            thickness: 36
             title: qsTrc("appshell", "Playback controls")
 
             separatorsVisible: false
@@ -458,94 +458,22 @@ DockPage {
 
             navigationSection: root.topToolbarKeyNavSec
 
-            // Dorico's transport group (spec 101, T5): video, mixer, audio engine, the playback controls, record and
-            // volume, in one dark pill. Video, audio engine, record and volume have no MuseScore command yet.
+            // One shade lighter than the panels, like the other top toolbars (spec 101, T2). Sized by the
+            // toolbar's width / height: PlaybackToolBar sets those and has no implicit size.
             Rectangle {
-                id: transport
+                color: playbackToolBar.floating ? "transparent" : ui.theme.backgroundSecondaryColor
+                implicitWidth: playbackContent.width
+                implicitHeight: playbackToolBar.floating ? playbackContent.height : 36
 
-                readonly property bool docked: !playbackToolBar.floating
-                readonly property string notAvailable: qsTrc("dorico", "Not available yet")
+                PlaybackToolBar {
+                    id: playbackContent
 
-                color: docked ? ui.theme.backgroundSecondaryColor : "transparent"
-                implicitWidth: transportRow.implicitWidth + (docked ? 20 : 0)
-                implicitHeight: docked ? 37 : transportRow.implicitHeight
+                    anchors.verticalCenter: parent.verticalCenter
 
-                Rectangle {
-                    anchors.centerIn: parent
-                    width: transportRow.implicitWidth + 12
-                    height: 31
-                    radius: 4
-                    color: ui.theme.backgroundPrimaryColor
-                    visible: transport.docked
-                }
+                    navigationPanelSection: playbackToolBar.navigationSection
+                    navigationPanelOrder: 3
 
-                Row {
-                    id: transportRow
-
-                    anchors.centerIn: parent
-                    spacing: 4
-
-                    DoricoButton {
-                        anchors.verticalCenter: parent.verticalCenter
-                        visible: transport.docked
-                        enabled: false
-                        doricoIcon: "svg:video"
-                        transparent: true
-                        toolTipTitle: qsTrc("dorico", "Video")
-                        toolTipDescription: transport.notAvailable
-                    }
-
-                    DoricoButton {
-                        anchors.verticalCenter: parent.verticalCenter
-                        visible: transport.docked
-                        doricoIcon: "svg:sliders-vertical"
-                        transparent: true
-                        toolTipTitle: qsTrc("dorico", "Mixer")
-                        onTriggered: root.shellModel.dispatch("command://app/dock/toggle-mixer")
-                    }
-
-                    DoricoButton {
-                        anchors.verticalCenter: parent.verticalCenter
-                        visible: transport.docked
-                        enabled: false
-                        doricoIcon: "svg:power"
-                        iconColor: "#40ACFF"
-                        transparent: true
-                        toolTipTitle: qsTrc("dorico", "Audio engine")
-                        toolTipDescription: transport.notAvailable
-                    }
-
-                    PlaybackToolBar {
-                        id: playbackContent
-
-                        anchors.verticalCenter: parent.verticalCenter
-
-                        navigationPanelSection: playbackToolBar.navigationSection
-                        navigationPanelOrder: 3
-
-                        floating: playbackToolBar.floating
-                    }
-
-                    DoricoButton {
-                        anchors.verticalCenter: parent.verticalCenter
-                        visible: transport.docked
-                        enabled: false
-                        doricoIcon: "svg:circle"
-                        iconColor: "#E5484D"
-                        transparent: true
-                        toolTipTitle: qsTrc("dorico", "Record")
-                        toolTipDescription: transport.notAvailable
-                    }
-
-                    DoricoButton {
-                        anchors.verticalCenter: parent.verticalCenter
-                        visible: transport.docked
-                        enabled: false
-                        doricoIcon: "svg:volume-2"
-                        transparent: true
-                        toolTipTitle: qsTrc("dorico", "Master volume")
-                        toolTipDescription: transport.notAvailable
-                    }
+                    floating: playbackToolBar.floating
                 }
             }
         },
@@ -554,7 +482,7 @@ DockPage {
             id: undoRedoToolBar
 
             objectName: "undoRedoToolBar"
-            thickness: 37
+            thickness: 36
             title: qsTrc("appshell", "Undo/redo")
 
             floatable: false
@@ -569,14 +497,40 @@ DockPage {
 
             Rectangle {
                 color: ui.theme.backgroundSecondaryColor
-                implicitWidth: undoRedoRow.implicitWidth
-                implicitHeight: 37
+                implicitWidth: undoRedoRow.implicitWidth + 12
+                implicitHeight: 36
 
+                // Dorico's right group (spec 101, T5): video, mixer, audio engine, record, volume, then undo / redo /
+                // help. Video, audio engine, record and volume have no MuseScore command yet (disabled stubs).
                 Row {
                     id: undoRedoRow
 
-                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.centerIn: parent
                     spacing: 4
+
+                    Repeater {
+                        model: [
+                            { "icon": "svg:video", "title": qsTrc("dorico", "Video"), "color": "", "command": "" },
+                            { "icon": "svg:sliders-vertical", "title": qsTrc("dorico", "Mixer"), "color": "", "command": "command://app/dock/toggle-mixer" },
+                            { "icon": "svg:power", "title": qsTrc("dorico", "Audio engine"), "color": "#40ACFF", "command": "" },
+                            { "icon": "svg:circle", "title": qsTrc("dorico", "Record"), "color": "#E5484D", "command": "" },
+                            { "icon": "svg:volume-2", "title": qsTrc("dorico", "Master volume"), "color": "", "command": "" }
+                        ]
+
+                        DoricoButton {
+                            required property var modelData
+
+                            anchors.verticalCenter: parent.verticalCenter
+                            enabled: modelData.command !== ""
+                            transparent: true
+                            doricoIcon: modelData.icon
+                            iconColor: modelData.color !== "" ? modelData.color : ui.theme.fontPrimaryColor
+                            toolTipTitle: modelData.title
+                            toolTipDescription: modelData.command === "" ? qsTrc("dorico", "Not available yet") : ""
+
+                            onTriggered: root.shellModel.dispatch(modelData.command)
+                        }
+                    }
 
                     UndoRedoToolBar {
                         anchors.verticalCenter: parent.verticalCenter
@@ -877,28 +831,33 @@ DockPage {
                 }
 
                 // Zone collapse tabs at the window edges (spec 101, S3): the left and right zones, like Ctrl-7 / Ctrl-9
-                Repeater {
-                    model: [
-                        { "icon": "svg:chevron-left", "command": "command://dorico/toggle-zone-left", "left": true },
-                        { "icon": "svg:chevron-right", "command": "command://dorico/toggle-zone-right", "left": false }
-                    ]
+                // (Not a Repeater: it cannot restack delegates that were re-parented onto the paint view.)
+                DoricoButton {
+                    parent: notationView.paintView
+                    z: 10
+                    anchors.left: parent.left
+                    anchors.verticalCenter: parent.verticalCenter
 
-                    DoricoButton {
-                        required property var modelData
+                    visible: root.mode !== root.modePrint
+                    doricoIcon: "svg:chevron-left"
+                    iconBoxSize: 12
+                    toolTipTitle: qsTrc("dorico", "Show/hide left zone")
 
-                        parent: notationView.paintView
-                        z: 10
-                        anchors.left: modelData.left ? parent.left : undefined
-                        anchors.right: modelData.left ? undefined : parent.right
-                        anchors.verticalCenter: parent.verticalCenter
+                    onTriggered: root.shellModel.dispatch("command://dorico/toggle-zone-left")
+                }
 
-                        visible: root.mode !== root.modePrint
-                        doricoIcon: modelData.icon
-                        iconBoxSize: 12
-                        toolTipTitle: modelData.left ? qsTrc("dorico", "Show/hide left zone") : qsTrc("dorico", "Show/hide right zone")
+                DoricoButton {
+                    parent: notationView.paintView
+                    z: 10
+                    anchors.right: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
 
-                        onTriggered: root.shellModel.dispatch(modelData.command)
-                    }
+                    visible: root.mode !== root.modePrint
+                    doricoIcon: "svg:chevron-right"
+                    iconBoxSize: 12
+                    toolTipTitle: qsTrc("dorico", "Show/hide right zone")
+
+                    onTriggered: root.shellModel.dispatch("command://dorico/toggle-zone-right")
                 }
 
                 // Popovers (spec 20) open in Write mode only. On the paint view, so the popover works in view pixels.
