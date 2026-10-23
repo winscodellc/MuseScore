@@ -63,7 +63,6 @@ public:
     MOCK_METHOD(bool, isDragStarted, (), (const, override));
     MOCK_METHOD(void, startDrag, (const std::vector<EngravingItem*>&, const muse::PointF&, const IsDraggable&), (override));
     MOCK_METHOD(void, drag, (const muse::PointF&, const muse::PointF&, DragMode), (override));
-    MOCK_METHOD(void, setDragKeepsAnchors, (bool), (override));
     MOCK_METHOD(void, endDrag, (), (override));
     MOCK_METHOD(muse::async::Notification, dragChanged, (), (const, override));
 

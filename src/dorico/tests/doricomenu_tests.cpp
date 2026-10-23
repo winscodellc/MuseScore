@@ -26,6 +26,7 @@
 #include <gtest/gtest.h>
 
 #include "dorico/doricocommands.h"
+#include "dorico/internal/doricocommandsregister.h"
 #include "dorico/internal/doricomenu.h"
 
 using namespace mu::dorico;
@@ -163,4 +164,19 @@ TEST(DoricoMenu, NoDuplicateMeasuresMenu)
         measures += spec.id == "menu-measures";
     });
     EXPECT_EQ(measures, 0);
+}
+
+TEST(DoricoMenu, EveryDoricoItemHasARegisteredCommand)
+{
+    // A typo'd id only logs a warning at runtime and the item disappears from the menu
+    DoricoCommandsRegister reg;
+    std::set<std::string> registered;
+    for (const muse::rcommand::Command& command : reg.commandList()) {
+        registered.insert(command.toString());
+    }
+    forEachSpec(everyMenu(), [&](const MenuSpec& spec) {
+        if (spec.children.empty() && spec.id.startsWith("command://dorico/")) {
+            EXPECT_TRUE(registered.count(spec.id.toStdString())) << spec.id.toStdString();
+        }
+    });
 }

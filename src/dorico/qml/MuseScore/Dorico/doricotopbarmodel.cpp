@@ -63,6 +63,9 @@ void DoricoTopBarModel::load()
     modes()->modeAboutToChange().onNotify(this, [this]() {
         emit modeAboutToChange();
     });
+    modes()->zonesReset().onNotify(this, [this]() {
+        emit zonesReset();
+    });
 
     globalContext()->currentNotationChanged().onNotify(this, [this]() {
         updateLayouts();

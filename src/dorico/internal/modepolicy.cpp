@@ -37,7 +37,7 @@ static constexpr std::array MODE_EVERYWHERE = {
     "notation/toggle-mmrest", "notation/toggle-automation", "notation/open-edit-style", "notation/load-style",
     "notation/save-style", "notation/open-page-settings", "notation/open-parts", "notation/get-location",
     "notation/cancel", "notation/undo", "notation/redo",
-    "dorico/mode-", "dorico/toggle-zone-", "dorico/toggle-all-zones", "dorico/toggle-toolbar", "dorico/open-hub",
+    "dorico/mode-", "dorico/toggle-zone-", "dorico/toggle-all-zones", "dorico/toggle-toolbar", "dorico/open-hub", "dorico/export-", "dorico/notation-options",
     "dorico/open-publish", "dorico/preferences", "dorico/noop", "dorico/toggle-stave-sharing", "dorico/jump-bar", "dorico/jump-bar-", "dorico/go-to-bar",
     "dorico/grid-",
 };
@@ -47,7 +47,7 @@ static constexpr std::array MODE_EVERYWHERE = {
 static constexpr std::array MODE_ENGRAVE = {
     "notation/select", "notation/select-", "notation/add-to-selection-", "notation/goto-", "notation/move-left",
     "notation/move-right", "notation/move-left-quickly", "notation/move-right-quickly", "notation/copy", "notation/flip",
-    "notation/delete", "notation/reset-shapes-and-positions", "notation/reset-to-default-layout",
+    "notation/delete", "notation/reset-shapes-and-positions", "notation/reset-text-style-overrides", "notation/reset-to-default-layout",
     "notation/toggle-autoplace", "notation/autoplace-enabled", "notation/freeze-current-placement",
     "notation/screen-edit-element", "notation/screen-edit-text", "notation/edittext-", "notation/editlyrics-",
     "notation/insert-hbox", "notation/insert-vbox", "notation/insert-textframe", "notation/insert-fretframe",

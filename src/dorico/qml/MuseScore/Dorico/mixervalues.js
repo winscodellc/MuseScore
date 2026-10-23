@@ -31,7 +31,7 @@ function parseVolume(text, min, max) {
     if (t === "-inf" || t === "-oo") {
         return min
     }
-    const value = Number(t)
+    const value = Number(t.replace(",", ".")) // a decimal comma, as typed in many locales
     return t === "" || isNaN(value) ? null : Math.max(min, Math.min(max, value))
 }
 
@@ -42,6 +42,6 @@ function parsePan(text, min, max) {
         return 0
     }
     const side = /^([LR])\s*(\d+)$/.exec(t)
-    const value = side ? (side[1] === "L" ? -1 : 1) * Number(side[2]) : (t === "" ? NaN : Number(t))
+    const value = side ? (side[1] === "L" ? -1 : 1) * Number(side[2]) : (t === "" ? NaN : Number(t.replace(",", ".")))
     return isNaN(value) ? null : Math.max(min, Math.min(max, Math.round(value)))
 }

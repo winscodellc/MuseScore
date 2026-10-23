@@ -34,6 +34,7 @@
 #include "global/modularity/ioc.h"
 #include "rcommand/icommandsregister.h"
 #include "context/iglobalcontext.h"
+#include "dockwindow/idockwindowprovider.h"
 #include "notationscene/inotationcommandscontroller.h"
 
 #include "../idoricomodestate.h"
@@ -46,6 +47,7 @@ class DoricoCommandsState : public muse::rcommand::IModuleCommandsState, public 
     muse::ContextInject<context::IGlobalContext> globalContext = { this };
     muse::ContextInject<notation::INotationCommandsController> notationController = { this };
     muse::ContextInject<IDoricoModeState> modes = { this };
+    muse::ContextInject<muse::dock::IDockWindowProvider> dockWindowProvider = { this };
 
 public:
     DoricoCommandsState(const muse::modularity::ContextPtr& ctx)
@@ -60,6 +62,8 @@ public:
     muse::async::Channel<muse::rcommand::Command, muse::rcommand::CommandState> commandStateChanged() const override;
 
 private:
+    bool anyDockOpen(const std::vector<QString>& names) const;
+
     // What several commands ask of the selection, worked out once per pass instead of once per command
     struct SelectionFacts {
         bool hasNotes = false;

@@ -109,6 +109,10 @@ DockPage {
     }
 
     function saveZoneSizes() {
+        // A resize still settling (see onModeChanged) can be tens of pixels short: keep the size saved before.
+        if (restoreSizesLater.running) {
+            return
+        }
         root.sizeMode = root.mode // also ends the initial binding: from now on only these handlers set it
         for (let zone = 0; zone < 3; ++zone) {
             const dock = root.zoneDock(zone)
@@ -135,6 +139,34 @@ DockPage {
     Connections {
         target: root.shellModel
         function onModeAboutToChange() { root.saveZoneSizes() }
+        // Restore Default Layout: DoricoActionsController has put the default zones and sizes back
+        function onZonesReset() { restoreSizesLater.restart() }
+    }
+
+    // A zone resized by the user is saved soon after, so it survives a trip to the Hub or a quit, not only a mode switch.
+    Timer {
+        id: saveSizesLater
+        interval: 500
+        onTriggered: root.saveZoneSizes()
+    }
+
+    // A zone shown again (Cmd-7/8/9) opens at the size its dock last had, maybe in another mode: put this mode's back.
+    Connections {
+        target: leftZone
+        function onWidthChanged() { saveSizesLater.restart() }
+        function onVisibleChanged() { if (leftZone.visible) restoreSizesLater.restart() }
+    }
+
+    Connections {
+        target: rightZone
+        function onWidthChanged() { saveSizesLater.restart() }
+        function onVisibleChanged() { if (rightZone.visible) restoreSizesLater.restart() }
+    }
+
+    Connections {
+        target: lowerZonePanel
+        function onHeightChanged() { saveSizesLater.restart() }
+        function onVisibleChanged() { if (lowerZonePanel.visible) restoreSizesLater.restart() }
     }
 
     // When the page is shown (startup, back from the Hub) DoricoActionsController first puts the current mode's
@@ -391,7 +423,7 @@ DockPage {
             }
 
             LazyPane {
-                sourceComponent: EngravePagesPanel {}
+                sourceComponent: EngravePagesPanel { paintView: notationView.paintView }
             }
 
             Item {} // Play has no right zone
@@ -407,6 +439,8 @@ DockPage {
         }
     }
 
+    // The three thicknesses must equal the window's own mainToolBar (36, DockToolBar's default), which shares the
+    // top row: any other value makes KDDockWidgets re-size inside its own signal and crash (spec 101).
     mainToolBars: [
         DockToolBar {
             id: doricoTopBar

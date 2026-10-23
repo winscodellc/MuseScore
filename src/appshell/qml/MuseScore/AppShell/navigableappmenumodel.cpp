@@ -400,6 +400,11 @@ void NavigableAppMenuModel::navigate(int scanCode)
     default:
         break;
     }
+
+    // Dorico fork (spec 102): step over the hidden, untitled mode menu slot (Play and Print)
+    if ((_key == Qt::Key_Left || _key == Qt::Key_Right) && item(itemIndex(m_highlightedMenuId)).translatedTitle().isEmpty()) {
+        navigate(scanCode);
+    }
 }
 
 bool NavigableAppMenuModel::hasItem(const QSet<int>& activatePossibleKeys)

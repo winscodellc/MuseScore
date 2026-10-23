@@ -153,6 +153,16 @@ The Roadmap specs (82-93) enable them later.
 - [x] The Setup Players, Flows and Layouts lists have Dorico's menus.
 - [ ] (not measured with a pixel tool; by eye in the 2026-10-22 run: dark, rounded, no icons, no underlines) A side-by-side crop with `dorico-ctx-note.png` matches: row height within 2 px, no icons, same colours within a small tolerance.
 
+## Review (2026-10-22)
+
+- Fixed (UI-checked): the new player menu dropped the only Setup-shell switches for MuseScore's hidden instruments and shared parts. Added after Delete Player (not in Dorico): Hide / Show Instrument and Disable / Enable Part; the one that does not apply is disabled (both Part rows on a row that is not a shared part).
+- Fixed (UI-checked): in note input, a right-click removed the note under the pointer. With `INTERACTION_DORICO_RIGHT_CLICK` it now opens the menu.
+- Fixed: "Not available yet" is only on stub rows (`dorico-ctx-*`), not on commands disabled by their state, and uses `muse::qtrc("dorico", ...)`.
+- Fixed: each popup freed none of the previous MenuItem tree (`replaceItems`).
+- Fixed (UI-checked, approximated): a right double-click on a layout card switched the layout.
+- Fixed (UI-checked): stem and notehead commands are disabled with only rests selected.
+- Open: Escape does not close the score menu while note input is on (it reaches the score as `notation/cancel`).
+
 ## Tests
 
 - GoogleTest `DoricoContextMenu*`: (mode, selection types, clipboard) → item ids, for each table row above.

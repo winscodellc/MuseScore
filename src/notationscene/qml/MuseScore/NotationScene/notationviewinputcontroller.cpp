@@ -678,7 +678,8 @@ void NotationViewInputController::mousePressEvent(QMouseEvent* event)
     }
 
     // note enter mode
-    if (m_view->isNoteEnterMode()) {
+    const bool doricoMenuClick = event->button() == Qt::RightButton && (m_interactionCaps & INTERACTION_DORICO_RIGHT_CLICK); // Dorico fork (spec 98): the menu, not remove note
+    if (m_view->isNoteEnterMode() && !doricoMenuClick) {
         handleClickInNoteInputMode(event);
         return;
     }
@@ -980,7 +981,8 @@ void NotationViewInputController::handleLeftClick(const ClickContext& ctx)
 
     // If it is the only selected element, start editing if needed
     if (ctx.hitElement == viewInteraction()->selection()->element()
-        && ctx.hitElement->needStartEditingAfterSelecting()) {
+        && ctx.hitElement->needStartEditingAfterSelecting()
+        && (m_interactionCaps & INTERACTION_GRIPS)) { // Dorico fork (spec 97): else the arrow keys move its handles
         viewInteraction()->startEditElement(ctx.hitElement);
     }
 
@@ -1193,8 +1195,10 @@ void NotationViewInputController::startDragElements(ElementType elementsType, co
     }
 
     bool isFilterType = viewInteraction()->selection()->isRange();
-    auto isDraggable = [isFilterType, elementsType](const EngravingItem* element) {
-        return element && element->selected() && (!isFilterType || elementsType == element->type());
+    const int caps = m_interactionCaps; // Dorico fork (spec 97): a mode may drag notes but not other items, or the reverse
+    auto isDraggable = [isFilterType, elementsType, caps](const EngravingItem* element) {
+        return element && element->selected() && (!isFilterType || elementsType == element->type())
+               && (caps & (element->isNote() ? INTERACTION_DRAG_NOTES : INTERACTION_DRAG_ITEMS));
     };
 
     viewInteraction()->startDrag(elements, elementsOffset, isDraggable);
@@ -1307,7 +1311,7 @@ void NotationViewInputController::handleLeftClickRelease(const QPointF& releaseP
         INotationInteractionPtr interaction = viewInteraction();
         interaction->select({ ctx.element }, SelectType::SINGLE, staffIndex);
 
-        if (ctx.element->needStartEditingAfterSelecting()) {
+        if (ctx.element->needStartEditingAfterSelecting() && (m_interactionCaps & INTERACTION_GRIPS)) { // Dorico fork (spec 97)
             viewInteraction()->startEditElement(ctx.element);
             return;
         }
@@ -1458,7 +1462,14 @@ bool NotationViewInputController::isAnchorEditingEvent(QKeyEvent* event) const
     bool anchorEditingKeyCombo = (event->key() == Qt::Key_Left || event->key() == Qt::Key_Right)
                                  && event->modifiers() & Qt::ShiftModifier;
     EngravingItem* selectedItem = viewInteraction()->selection()->element();
-    return selectedItem && selectedItem->allowTimeAnchor() && anchorEditingKeyCombo;
+    return selectedItem && selectedItem->allowTimeAnchor() && anchorEditingKeyCombo && !isReanchorKeyBlocked(event);
+}
+
+// Dorico fork (spec 97): with Shift, a key moves the selected or edited item (dynamic, line, slur) to another beat
+bool NotationViewInputController::isReanchorKeyBlocked(QKeyEvent* event) const
+{
+    return !(m_interactionCaps & INTERACTION_REANCHOR) && (event->modifiers() & Qt::ShiftModifier)
+           && !viewInteraction()->isTextEditingStarted();
 }
 
 bool NotationViewInputController::shortcutOverrideEvent(QKeyEvent* event)
@@ -1481,7 +1492,7 @@ bool NotationViewInputController::shortcutOverrideEvent(QKeyEvent* event)
     }
 
     if (viewInteraction()->isEditingElement()) {
-        return viewInteraction()->isEditAllowed(event);
+        return viewInteraction()->isEditAllowed(event) && !isReanchorKeyBlocked(event); // Dorico fork (spec 97)
     }
 
     if (isAnchorEditingEvent(event)) {
@@ -1505,6 +1516,9 @@ void NotationViewInputController::keyPressEvent(QKeyEvent* event)
         m_view->asItem()->setCursor({});
         event->accept();
     } else if (viewInteraction()->isEditingElement()) {
+        if (key != Qt::Key_Shift && isReanchorKeyBlocked(event)) { // Dorico fork (spec 97)
+            return;
+        }
         viewInteraction()->editElement(event);
         if (key == Qt::Key_Shift) {
             viewInteraction()->updateTimeTickAnchors(event);

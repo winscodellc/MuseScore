@@ -325,6 +325,9 @@ std::vector<MenuSpec> mu::dorico::playerContextMenu()
         ctxStub("player-flows", "Flows"), ctxStub("player-layouts", "Layouts"), ctxSep(),
         ctxStub("duplicate-player", "Duplicate Player"),
         ctxCmd("dorico-setup-delete", "Delete Player"), ctxSep(),
+        // Not in Dorico: MuseScore's hidden instruments and shared parts have no other switch in the Setup shell
+        ctxCmd("dorico-setup-hide", "Hide Instrument"), ctxCmd("dorico-setup-show", "Show Instrument"),
+        ctxCmd("dorico-setup-disable-part", "Disable Part"), ctxCmd("dorico-setup-enable-part", "Enable Part"), ctxSep(),
         ctxStub("player-chord-symbols", "Chord Symbols"), ctxStub("player-chord-diagrams", "Chord Diagrams"), ctxSep(),
         ctxStub("combine-kit", "Combine Instruments Into Kit"), ctxStub("empty-kit", "Create Empty Kit"), ctxStub("import-kit", "Import Kit..."),
     };

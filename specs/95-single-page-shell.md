@@ -118,6 +118,16 @@ Make switching modes (Cmd-1..5, mode tabs) close to instant, as in Dorico. Today
   - The "NotationView created once" log line: a QML `console.log` does not reach the log file. It holds by construction (one `NotationView` in the page), and the 19 ms Play switch shows nothing is rebuilt.
   - The View menu toggles and Restore Default Layout were not re-tested in the UI.
 
+## Review (2026-10-22)
+
+Code review fixes (UI-checked unless noted):
+- Restore Default Layout: the page reload it queues ran after our zone reset and saved the QML default docks over it (Setup showed the toolboxes). `DoricoActionsController` now resets the zones on the reload's `docksOpenStatusChanged` (`m_restoringLayout`), and `IDoricoModeState::zonesReset` tells the page to apply the default sizes.
+- Zone sizes are also saved 500 ms after a resize (`saveSizesLater`), so they survive the Hub and a quit, not only a mode switch. A save is skipped while a restore is pending (a settling resize is ~42 px short). A zone shown again (Cmd-7/8/9) gets its mode's size back instead of the dock's last size from another mode (not UI-checked yet).
+- Leaving Print restores the zoom only on the score it was saved from (`ViewBeforePrint::notation`). Not UI-checked.
+- The switch-time log ignores a second frame callback when two switches land before one frame.
+- Mode switch medians in the review run (Dynamic_Strings, few rounds): Setup 152, Write 242, Engrave 152, Play 217, Print 303 ms.
+- Known, not from this spec: the app crashes with SIGSEGV on quit (after `Destroying context`); seen in logs since 2026-10-21.
+
 ## Acceptance criteria
 
 - [x] Cmd-1..5 and the mode tabs switch modes. The log shows no `loadPage` and no `doLayout` on Setup↔Write↔Print switches. (No `onPageLoaded` lines are logged. `setViewMode` is only called for Engrave.)
@@ -127,7 +137,7 @@ Make switching modes (Cmd-1..5, mode tabs) close to instant, as in Dorico. Today
 - [x] Entering Engrave from Galley causes exactly one layout; going back to Write causes one; the status bar view buttons match.
 - [x] Entering or leaving Print does not write `notation/backgroundColor`.
 - [x] Each mode remembers its own zone visibility and size across switches and restarts.
-- [ ] The View menu panel toggles and Restore Default Layout still work. (Not re-tested in the UI.)
+- [x] The zone toggles (Window menu since spec 102, Cmd-7/8/9) and Restore Default Layout (no menu item since spec 102, as in Dorico; reachable from the jump bar) still work. Checked in the 2026-10-22 review run.
 - [x] The lower zone tab (Mixer, Key Editor, ...) and its state survive a mode round-trip.
 - [x] Only one `DoricoStatusBar` / `NotationStatusBarModel` instance exists.
 

@@ -142,6 +142,7 @@ Loader {
 
         DoricoColorRow {
             value: String(root.current)
+            defaultValue: root.row.defaultValue ?? ""
             enabled: root.row.backed
             onColorEdited: function(newValue) { root.set(newValue) }
         }

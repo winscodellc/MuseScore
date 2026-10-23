@@ -43,7 +43,8 @@ Columns: key | Dorico action | target | owner | MuseScore binding this displaces
 | Cmd-- , X | Zoom out | `notation/view/zoom-out` | 10 | `notation/flip` (X) |
 | Cmd-0 | Hide/restore all zones | | deferred | `notation/view/zoom-to-100` |
 | Cmd-Shift-L | Layout Options | `notation/open-page-settings` (closest) | 10 | |
-| Cmd-Shift-N, Cmd-Shift-E | Notation / Engraving Options | `notation/open-edit-style` (closest) | 10 | `notation/insert-note-e` (Ctrl+Shift+E) |
+| Cmd-Shift-E | Engraving Options | `notation/open-edit-style` (closest) | 10 | `notation/insert-note-e` (Ctrl+Shift+E) |
+| Cmd-Shift-N | Notation Options | `dorico/notation-options` (opens the same Style dialog; its own command since spec 102, so the menu shows one key per item) | 10 | |
 | Cmd-Shift-I | Note Input Options | | deferred | `notation/toggle-note-input-repitch` (Ctrl+Shift+I) |
 | Cmd-Shift-P / V | Playback / View Options | | deferred | |
 | Home / PgUp | Previous page | `notation/view/prev-page` | 10 | `notation/view/top-of-first-page` (Home), `prev-screen` (PgUp) |

@@ -58,6 +58,7 @@ Rectangle {
 
     // Read once per change: each `overview.tracks` read converts the whole list (spec 96)
     readonly property int trackCount: overview.tracks.length
+    readonly property var notesByPart: overview.notes
 
     function trackColor(index) {
         return TrackColor.trackColor(index, root.trackCount)
@@ -71,6 +72,7 @@ Rectangle {
 
     TrackOverviewModel {
         id: overview
+        active: root.visible
         Component.onCompleted: overview.load()
     }
 
@@ -354,7 +356,7 @@ Rectangle {
 
                     // Mini piano roll: one dash per note, higher pitch higher up (Dorico's blocks show the notes)
                     Repeater {
-                        model: track.modelData.notes
+                        model: root.notesByPart[track.modelData.partId] ?? []
 
                         Rectangle {
                             required property var modelData

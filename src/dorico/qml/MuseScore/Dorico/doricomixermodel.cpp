@@ -27,7 +27,11 @@
 
 #include "engraving/dom/masterscore.h"
 #include "notation/imasternotation.h"
+#include "notation/inotation.h"
+#include "engraving/editing/editscoreproperties.h"
+#include "notation/inotationundostack.h"
 #include "project/inotationproject.h"
+#include "project/iprojectaudiosettings.h"
 #include "playback/playbacktypes.h"
 
 using namespace mu::dorico;
@@ -57,7 +61,17 @@ int DoricoMixerModel::fxChannelMax() const
 
 void DoricoMixerModel::load()
 {
-    globalContext()->currentMasterNotationChanged().onNotify(this, [this]() { readNames(); });
+    // Undo / redo of a rename changes the tag
+    auto listenToUndo = [this]() {
+        if (const notation::IMasterNotationPtr master = globalContext()->currentMasterNotation()) {
+            master->notation()->undoStack()->stackChanged().onNotify(this, [this]() { readNames(); });
+        }
+    };
+    globalContext()->currentMasterNotationChanged().onNotify(this, [this, listenToUndo]() {
+        listenToUndo();
+        readNames();
+    });
+    listenToUndo();
     mixerNamesChanged().onNotify(this, [this]() { readNames(); });
     readNames();
 }
@@ -68,7 +82,11 @@ void DoricoMixerModel::readNames()
     const engraving::MasterScore* score = master ? master->masterScore() : nullptr;
     const QByteArray json = score ? score->metaTag(MIXER_NAMES_TAG).toQString().toUtf8() : QByteArray();
 
-    m_names = QJsonDocument::fromJson(json).object().toVariantMap();
+    const QVariantMap names = QJsonDocument::fromJson(json).object().toVariantMap();
+    if (names == m_names) { // most undo-stack changes are other edits
+        return;
+    }
+    m_names = names;
     emit namesChanged();
 }
 
@@ -116,15 +134,30 @@ void DoricoMixerModel::setName(const QString& key, const QString& name)
         return;
     }
 
+    // An undoable edit, so the project knows it has something to save even after other edits are undone
     const QByteArray json = QJsonDocument(QJsonObject::fromVariantMap(names)).toJson(QJsonDocument::Compact);
-    score->setMetaTag(MIXER_NAMES_TAG, muse::String::fromUtf8(json.constData()));
-
-    // A tag change is not an undoable edit, so the project is told directly that it has something to save.
-    if (project::INotationProjectPtr project = globalContext()->currentProject()) {
-        project->markAsUnsaved();
-    }
+    std::map<muse::String, muse::String> tags = score->metaTags();
+    tags[MIXER_NAMES_TAG] = muse::String::fromUtf8(json.constData());
+    const notation::INotationUndoStackPtr undoStack = master->notation()->undoStack();
+    undoStack->prepareChanges(muse::TranslatableString("undoableAction", "Rename mixer channel"));
+    score->undo(new engraving::ChangeMetaTags(score, tags));
+    undoStack->commitChanges();
 
     mixerNamesChanged().notify();
+}
+
+// MuseScore's aux visibility is display only, so a removed channel would still be heard: it is muted instead (Dorico
+// deletes it). Through the project's audio settings, which the playback controller applies to the aux track.
+void DoricoMixerModel::setFxChannelMuted(aux_channel_idx_t index, bool muted)
+{
+    const project::INotationProjectPtr project = globalContext()->currentProject();
+    if (!project) {
+        return;
+    }
+    notation::INotationSoloMuteState::SoloMuteState state = project->audioSettings()->auxSoloMuteState(index);
+    state.mute = muted;
+    state.solo = false;
+    project->audioSettings()->setAuxSoloMuteState(index, state);
 }
 
 void DoricoMixerModel::addFxChannel()
@@ -133,6 +166,7 @@ void DoricoMixerModel::addFxChannel()
         if (!playbackConfiguration()->isAuxChannelVisible(i)) {
             playbackConfiguration()->setAuxChannelVisible(i, true);
             playbackConfiguration()->setAuxSendVisible(i, true);
+            setFxChannelMuted(i, false);
             return;
         }
     }
@@ -145,6 +179,7 @@ void DoricoMixerModel::removeFxChannel()
         if (playbackConfiguration()->isAuxChannelVisible(i)) {
             playbackConfiguration()->setAuxChannelVisible(i, false);
             playbackConfiguration()->setAuxSendVisible(i, false);
+            setFxChannelMuted(i, true);
             return;
         }
     }

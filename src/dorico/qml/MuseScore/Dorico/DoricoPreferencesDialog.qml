@@ -51,15 +51,23 @@ StyledDialogView {
     property var anchorItems: ({}) // anchor -> item, for the left list's sub-rows and the page search
     property var rowItems: ({}) // row id -> item
     property var embeddedItems: []
+    // The Key Commands and MIDI mapping pages keep their edits in their own model until apply(), so the settings
+    // diff can't see them. ponytail: an opened one counts as changed; ask the page models if the prompt annoys.
+    property bool embeddedPending: false
 
     property bool searchOpen: false
     property var matchIds: []
     property int matchIndex: 0
 
     function reloadPages() {
+        // the pages are destroyed below: keep what was typed in them
+        if (root.embeddedPending) {
+            root.applyEmbedded()
+        }
         root.anchorItems = ({})
         root.rowItems = ({})
         root.embeddedItems = []
+        root.embeddedPending = false
         root.pages = prefs.content(root.currentCategory)
         flick.contentY = 0
         root.refreshMatches()
@@ -126,16 +134,23 @@ StyledDialogView {
         root.matchIds = []
     }
 
+    function applyEmbedded() {
+        let ok = true
+        for (const e of root.embeddedItems) {
+            ok = e.applyPage() && ok
+        }
+        root.embeddedPending = false
+        return ok
+    }
+
     function apply() {
         prefs.apply()
-        for (const e of root.embeddedItems) {
-            e.applyPage()
-        }
+        return root.applyEmbedded()
     }
 
     // Close / Escape: unapplied changes ask first (Dorico: "apply them now?")
     function requestClose() {
-        prefs.requestClose()
+        prefs.requestClose(root.embeddedPending)
     }
 
     function closeNow() {
@@ -148,8 +163,9 @@ StyledDialogView {
 
         onLoaded: root.reloadPages()
         onCloseRequested: function(apply) {
-            if (apply) {
-                root.apply()
+            // as MuseScore's dialog: a page that could not apply keeps the dialog open
+            if (apply && !root.apply()) {
+                return
             }
             root.closeNow()
         }
@@ -505,7 +521,13 @@ StyledDialogView {
                                                             page: embedded.modelData.page
                                                             title: embedded.modelData.title
                                                             navigationSection: root.navigationSection
-                                                            onPageLoaded: root.embeddedItems.push(embedded)
+                                                            onPageLoaded: {
+                                                                root.embeddedItems.push(embedded)
+                                                                if (embedded.page === "ShortcutsPreferencesPage"
+                                                                        || embedded.page === "MidiDeviceMappingPreferencesPage") {
+                                                                    root.embeddedPending = true
+                                                                }
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -540,7 +562,7 @@ StyledDialogView {
 
                     FlatButton {
                         text: qsTrc("dorico", "Apply")
-                        enabled: prefs.dirty
+                        enabled: prefs.dirty || root.embeddedPending
                         onClicked: root.apply()
                     }
 

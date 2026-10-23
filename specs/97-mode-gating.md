@@ -107,7 +107,16 @@ A blocked key gives no beep and no message: it is silently ignored.
 - [x] Print: no edits through keys either (today keys are still enabled).
 - [x] Menu items reflect the mode: the Edit menu in Engrave shows Paste disabled (Delete stays on, as in Dorico 6).
 - [x] Switching modes updates the enabled states at once (no stale enabled items).
-- [ ] An upstream build without the dorico module still compiles and behaves as before. (not built: the notationscene/notation/engraving edits include no dorico header, and every hook is null-safe or defaults to upstream behaviour)
+- [x] Spec 97's upstream hooks are safe without the dorico module (reviewed 2026-10-22, not built): no dorico header or symbol in the edits, every hook is null-safe, caps default to `INTERACTION_ALL`, `keepAnchors` defaults to false. The whole fork cannot be built without the module, see Review.
+
+## Review (2026-10-22)
+
+- Fixed (UI-checked): Shift+arrow re-anchored dynamics, lines and slurs in modes without `INTERACTION_REANCHOR` (Engrave, and a Write selection carried into Setup/Play). One guard, `NotationViewInputController::isReanchorKeyBlocked`, covers the anchor-editing key and keys in edit mode (text editing exempt).
+- Fixed (UI-checked): in Write a click on a slur or line started grip edit mode, so the arrows moved its handles. `startEditElement` on click now needs `INTERACTION_GRIPS`.
+- Fixed (UI-checked): dragging one item of a list selection dragged the others regardless of caps. `startDragElements`' `isDraggable` checks each element.
+- `INotationInteraction::setDragKeepsAnchors` has a default body, so the upstream mock is untouched.
+- Debt: there is no `MUE_BUILD_DORICO_MODULE` option (`src/CMakeLists.txt` and `appfactory.cpp` add the module unconditionally), and two upstream headers include dorico interfaces (`abstractnotationpaintview.h`: `dorico/idoricocaret.h`, spec 12; `notationinteraction.h`: `dorico/idoricopaste.h`, spec 42).
+
 
 ## Tests
 

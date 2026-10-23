@@ -32,6 +32,8 @@
 #include "async/asyncable.h"
 #include "modularity/ioc.h"
 #include "interactive/iinteractive.h"
+#include "midiremote/imidiremote.h"
+#include "shortcuts/ishortcutsregister.h"
 #include "settings.h"
 #include "ui/iuiconfiguration.h"
 #include "languages/ilanguagesconfiguration.h"
@@ -68,6 +70,8 @@ class DoricoPreferencesModel : public QObject, public muse::Contextable, public 
     muse::GlobalInject<muse::languages::ILanguagesConfiguration> languagesConfiguration;
     muse::GlobalInject<muse::languages::ILanguagesService> languagesService;
     muse::ContextInject<muse::IInteractive> interactive = { this };
+    muse::ContextInject<muse::shortcuts::IShortcutsRegister> shortcutsRegister = { this };
+    muse::ContextInject<muse::midiremote::IMidiRemote> midiRemote = { this };
 
 public:
     explicit DoricoPreferencesModel(QObject* parent = nullptr);
@@ -94,7 +98,8 @@ public:
     Q_INVOKABLE void apply();
     Q_INVOKABLE void discard();
     //! Close / Escape: with unapplied changes asks "apply them now?" (Discard Changes, Cancel, Apply Changes), then closeRequested
-    Q_INVOKABLE void requestClose();
+    //! embeddedPending: an embedded MuseScore page may hold edits the settings diff can't see
+    Q_INVOKABLE void requestClose(bool embeddedPending = false);
     Q_INVOKABLE void askForReset();
     Q_INVOKABLE void resetToFactory();
 
@@ -119,5 +124,6 @@ private:
     bool m_dirty = false;
     bool m_editing = false;
     std::map<muse::Settings::Key, muse::Val> m_snapshot;
+    std::map<muse::Settings::Key, muse::Val> m_lastPoll; // to see an embedded MuseScore page change a setting
 };
 }

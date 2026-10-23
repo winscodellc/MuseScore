@@ -63,6 +63,7 @@ signals:
 private:
     ContextMenuInput inputFromSelection() const;
     muse::uicomponents::MenuItemList build(const std::vector<MenuSpec>& specs);
+    void replaceItems(const std::vector<MenuSpec>& specs);
     void show(QQuickItem* anchor, const QPointF& pos, const QString& kind);
 };
 }

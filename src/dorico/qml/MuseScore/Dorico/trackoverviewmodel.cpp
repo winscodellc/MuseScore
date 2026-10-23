@@ -74,7 +74,7 @@ static void collectNotes(const Measure* measure, const Part* part, std::vector<s
             }
             const Chord* chord = toChord(item);
             for (const Note* note : chord->notes()) {
-                out.push_back({ quarters(s->tick()), quarters(chord->durationTypeTicks()), double(note->pitch()) });
+                out.push_back({ quarters(s->tick()), quarters(chord->actualTicks()), double(note->pitch()) }); // tuplets included
             }
         }
     }
@@ -172,16 +172,34 @@ void TrackOverviewModel::listenToScore()
         // ponytail: recomputes every bar on each edit but only tells QML when the overview changed; per-range
         // recompute (ScoreChanges tickFrom/tickTo) if the "trackOverview rebuild" timing grows on big scores
         m_master->notation()->undoStack()->stackChanged().onNotify(this, [this]() {
+            if (!m_active) { // hidden (Write after a Play visit): once shown again
+                m_stale = true;
+                return;
+            }
             rebuild(m_master->masterScore());
         });
     }
     rebuild(m_master ? m_master->masterScore() : nullptr);
 }
 
+void TrackOverviewModel::setActive(bool active)
+{
+    if (m_active == active) {
+        return;
+    }
+    m_active = active;
+    emit activeChanged();
+    if (m_active && m_stale) {
+        m_stale = false;
+        rebuild(m_master ? m_master->masterScore() : nullptr);
+    }
+}
+
 void TrackOverviewModel::rebuild(const Score* score)
 {
     PerfTimer perf("trackOverview rebuild (all measures)");
     QVariantList tracks;
+    QVariantMap notesByPart;
     QVariantList bars;
     QVariantList tempos;
     QVariantList chords;
@@ -192,10 +210,13 @@ void TrackOverviewModel::rebuild(const Score* score)
             bars << QVariantMap { { "start", quarters(m->tick()) }, { "number", m->measureNumber() + 1 } };
             // The read-only Tempo and Chords lanes: the tempo marks and chord symbols of the score
             for (const Segment* s = m->first(); s; s = s->next()) {
+                bool chordAtTick = false; // one lane: the first chord symbol at a tick (others are on other staves)
                 for (const EngravingItem* e : s->annotations()) {
-                    if (e->isTempoText()) {
+                    // a tempo mark is copied onto every system-object staff: the top one only
+                    if (e->isTempoText() && e->isTopSystemObject()) {
                         tempos << QVariantMap { { "start", quarters(s->tick()) }, { "text", toTempoText(e)->plainText().toQString() } };
-                    } else if (e->isHarmony()) {
+                    } else if (e->isHarmony() && !chordAtTick) {
+                        chordAtTick = true;
                         chords << QVariantMap { { "start", quarters(s->tick()) }, { "text", toHarmony(e)->plainText().toQString() } };
                     }
                 }
@@ -225,14 +246,19 @@ void TrackOverviewModel::rebuild(const Score* score)
             for (size_t i = 0; i < allNotes.size(); i += stride) {
                 notes << QVariantList { allNotes[i][0], allNotes[i][1], allNotes[i][2] };
             }
+            notesByPart[part->id().toQString()] = notes;
 
             tracks << QVariantMap {
                 { "partId", part->id().toQString() },
                 { "title", TextBase::unEscape(part->partName()).toQString() }, // plain text: partName() is rich text
                 { "blocks", blocks },
-                { "notes", notes },
             };
         }
+    }
+
+    if (notesByPart != m_notes) {
+        m_notes = notesByPart;
+        emit notesChanged();
     }
 
     // Most edits (a pitch, a dynamic) leave the overview as it was: then QML keeps its delegates (spec 96)

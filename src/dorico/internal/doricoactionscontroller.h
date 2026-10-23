@@ -39,6 +39,7 @@
 #include "notation/inotation.h"
 #include "notation/inotationconfiguration.h"
 #include "notation/inotationviewstate.h"
+#include "project/iexportprojectscenario.h"
 
 #include "../idoricomodestate.h"
 #include "doricoshell.h"
@@ -54,6 +55,7 @@ class DoricoActionsController : public muse::async::Asyncable, public muse::Cont
     muse::ContextInject<muse::dock::IDockWindowProvider> dockWindowProvider = { this };
     muse::ContextInject<IDoricoModeState> modes = { this };
     muse::ContextInject<context::IGlobalContext> globalContext = { this };
+    muse::ContextInject<project::IExportProjectScenario> exportProjectScenario = { this };
     muse::GlobalInject<notation::INotationConfiguration> notationConfiguration;
 
 public:
@@ -75,6 +77,7 @@ private:
     void switchZones(mu::dorico::Mode from, mu::dorico::Mode to);
     void applyZones(mu::dorico::Mode mode);
     void saveZone(mu::dorico::Mode mode, Zone zone) const;
+    void onDocksOpenStatusChanged();
     void saveOpenZones() const;
     std::vector<QString> zoneTarget(mu::dorico::Mode mode, Zone zone) const;
     void resetZoneSettings();
@@ -89,12 +92,19 @@ private:
     bool m_zonesApplied = false;
     // Docks are being opened/closed for a mode switch: their changes are not the user's.
     bool m_switching = false;
+    // Restore Default Layout ran: the page reload it queued reports its default docks next, then the zones are reset.
+    bool m_restoringLayout = false;
     // Docks that were open when their zone was last hidden, so showing the zone brings back the same panels.
     std::map<ZoneKey, std::vector<QString>> m_remembered;
     // Zones hidden by "Hide Zones", so "Restore Zones" does not reopen zones the user had closed on purpose.
     std::set<ZoneKey> m_hiddenByAll;
     // Print shows a whole page (spec 58); the score's zoom and scroll before Print, put back when leaving it.
-    std::optional<std::pair<muse::draw::Transform, notation::ZoomType> > m_viewBeforePrint;
+    struct ViewBeforePrint {
+        std::weak_ptr<notation::INotation> notation;
+        muse::draw::Transform matrix;
+        notation::ZoomType zoomType;
+    };
+    std::optional<ViewBeforePrint> m_viewBeforePrint;
     // Mode switch time (spec 95): from the mode command to the next frame on screen.
     QElapsedTimer m_switchTimer;
 };

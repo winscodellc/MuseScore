@@ -26,6 +26,7 @@
 
 #include <QColor>
 
+#include "settings.h"
 #include "notation/inotationconfiguration.h"
 #include "notation/types/zoomtype.h"
 #include "project/iprojectconfiguration.h"
@@ -190,10 +191,13 @@ static PrefCategory colors(const PrefBackends& b)
                            "Draws the music in the page's inverted colors.");
     if (b.notation) {
         auto n = b.notation;
-        fullScore = bound(fullScore, [n]() { return Val(hexOf(n->foregroundColor())); },
+        // The page colour itself: NotationConfiguration::foregroundColor() switches to the inverted colour while
+        // Invert is on, which is Dorico's separate (unbacked) "Inverted page background" row.
+        static const muse::Settings::Key PAGE_COLOR_KEY("notation", "ui/canvas/foreground/color");
+        fullScore = bound(fullScore, []() { return Val(hexOf(muse::settings()->value(PAGE_COLOR_KEY).toQColor())); },
                           [n](const Val& v) {
-            n->setForegroundColor(QColor(QString::fromStdString(v.toString())));
-            n->setForegroundUseColor(true);
+            muse::settings()->setSharedValue(PAGE_COLOR_KEY, Val(QColor(QString::fromStdString(v.toString()))));
+            n->setForegroundUseColor(true); // Dorico has no page wallpaper
         });
         invert = bound(invert, [n]() { return Val(n->scoreInversionEnabled()); },
                        [n](const Val& v) { n->setScoreInversionEnabled(v.toBool()); });

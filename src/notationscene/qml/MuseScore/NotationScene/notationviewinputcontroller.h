@@ -232,6 +232,7 @@ private:
     void updateTextCursorPosition();
 
     bool isAnchorEditingEvent(QKeyEvent* event) const;
+    bool isReanchorKeyBlocked(QKeyEvent* event) const; // Dorico fork (spec 97)
 
     bool tryPercussionShortcut(QKeyEvent* event);
 

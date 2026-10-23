@@ -35,7 +35,7 @@ RowLayout {
     id: root
 
     property string value: "#000000"
-    property string defaultValue: value
+    property string defaultValue: "" // empty: no reset
 
     signal colorEdited(string newValue)
 
@@ -55,7 +55,7 @@ RowLayout {
             if (/^#[0-9a-fA-F]{6}$/.test(s)) {
                 root.colorEdited(s.toLowerCase())
             } else {
-                field.currentText = root.value
+                field.currentText = Qt.binding(() => root.value) // assigning would break the binding
             }
         }
     }
@@ -74,7 +74,7 @@ RowLayout {
         Layout.preferredHeight: 28
         minWidth: 28
         text: "↺"
-        enabled: root.enabled && root.value !== root.defaultValue
+        enabled: root.enabled && root.defaultValue !== "" && root.value !== root.defaultValue
         onClicked: root.colorEdited(root.defaultValue)
     }
 }

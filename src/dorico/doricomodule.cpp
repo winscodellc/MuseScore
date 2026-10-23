@@ -117,11 +117,18 @@ void DoricoModule::onInit(const IApplication::RunMode&)
 {
     LOGI() << "dorico module init";
 
+    applyFirstRunDefaults();
+}
+
+//! The keymap preset, Dorico's colours and the vertical page column, each applied once. Also after Preferences >
+//! Reset to Factory, which clears the "applied" keys with everything else (spec 100).
+void DoricoModule::applyFirstRunDefaults()
+{
     settings()->setDefaultValue(KEYMAP_APPLIED_KEY, Val(false));
 
     // ponytail: runs once; if the user later picks another preset we never touch it again
     if (!settings()->value(KEYMAP_APPLIED_KEY).toBool()) {
-        auto shortcutsConfig = globalIoc()->resolve<muse::shortcuts::IShortcutsConfiguration>(mname);
+        auto shortcutsConfig = muse::modularity::globalIoc()->resolve<muse::shortcuts::IShortcutsConfiguration>(mname);
         if (shortcutsConfig) {
             shortcutsConfig->setCurrentShortcutsPresetName("shortcuts_dorico");
         }
@@ -137,7 +144,7 @@ void DoricoModule::onInit(const IApplication::RunMode&)
     // Spec 101 (M2): Dorico lays its pages out in a vertical column. Once, so Preferences can still change it. Not part
     // of the appearance version: bumping that would overwrite the colors the user has set since.
     if (!settings()->value(CANVAS_ORIENTATION_APPLIED_KEY).toBool()) {
-        auto notationConfig = globalIoc()->resolve<mu::notation::INotationConfiguration>(mname);
+        auto notationConfig = muse::modularity::globalIoc()->resolve<mu::notation::INotationConfiguration>(mname);
         if (notationConfig) {
             notationConfig->setCanvasOrientation(muse::Orientation::Vertical);
         }

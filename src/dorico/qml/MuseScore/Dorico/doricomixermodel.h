@@ -72,6 +72,7 @@ signals:
 
 private:
     void readNames();
+    void setFxChannelMuted(muse::audio::aux_channel_idx_t index, bool muted);
 
     QVariantMap m_names;
 };

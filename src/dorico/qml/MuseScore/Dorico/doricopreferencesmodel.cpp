@@ -24,9 +24,12 @@
 
 #include <cmath>
 
+#include <QCursor>
 #include <QGuiApplication>
 
 #include "translation.h"
+
+#include "dorico/doricomodule.h"
 
 using namespace mu::dorico;
 
@@ -113,14 +116,21 @@ void DoricoPreferencesModel::bump()
 void DoricoPreferencesModel::refreshDirty()
 {
     bool changed = false;
+    std::map<muse::Settings::Key, muse::Val> now;
     for (const auto& [key, item] : muse::settings()->items()) {
         auto it = m_snapshot.find(key);
         if (it == m_snapshot.end() || !(it->second == item.value)) {
             changed = true;
-            break;
         }
+        now.emplace(key, item.value);
     }
     setDirty(changed);
+
+    // An embedded MuseScore page wrote a setting (the theme, say): our rows read it again
+    if (!m_lastPoll.empty() && !(now == m_lastPoll)) {
+        bump();
+    }
+    m_lastPoll = std::move(now);
 }
 
 void DoricoPreferencesModel::apply()
@@ -141,10 +151,10 @@ void DoricoPreferencesModel::discard()
     setDirty(false);
 }
 
-void DoricoPreferencesModel::requestClose()
+void DoricoPreferencesModel::requestClose(bool embeddedPending)
 {
     refreshDirty();
-    if (!m_dirty) {
+    if (!m_dirty && !embeddedPending) {
         emit closeRequested(false);
         return;
     }
@@ -193,6 +203,11 @@ void DoricoPreferencesModel::resetToFactory()
     appShellConfiguration()->revertToFactorySettings(true);
     // as MuseScore's dialog does: the first-launch wizard must not come back
     appShellConfiguration()->setHasCompletedFirstLaunchSetup(true);
+    // the revert also dropped the Dorico keymap preset, colours and page column: back at once, not on the next start
+    DoricoModule::applyFirstRunDefaults();
+    // as MuseScore's dialog, whose Shortcuts and MIDI pages always exist: ours are built only once opened
+    shortcutsRegister()->resetShortcuts();
+    midiRemote()->resetMidiMappings();
     appShellConfiguration()->startEditSettings();
     m_editing = true;
     QGuiApplication::restoreOverrideCursor();
@@ -214,6 +229,7 @@ QVariantMap DoricoPreferencesModel::rowToMap(const PrefRow& row, const QString& 
     m["unit"] = prefsQs(row.unit);
     m["backed"] = row.backed();
     m["caption"] = row.type == PrefType::Button ? prefsQs(row.fallback.toString()) : QString();
+    m["defaultValue"] = row.type == PrefType::Hex ? prefsQs(row.fallback.toString()) : QString(); // the colour reset
     QVariantList options;
     for (const PrefOption& o : row.options) {
         options << QVariantMap { { "text", prefsQs(o.text) }, { "value", o.value.toQVariant() } };

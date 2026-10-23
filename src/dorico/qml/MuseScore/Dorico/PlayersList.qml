@@ -276,8 +276,19 @@ FocusScope {
                             if (!cell.item.isSelected) {
                                 tree.selectRow(tree.index(cell.index, 0))
                             }
-                            playerMenu.popupSetup("player", rowMouse, Qt.point(mouse.x, mouse.y),
-                                                  cell.item.isRemovable ? [] : ["dorico-setup-delete"])
+                            const item = cell.item
+                            const isSharedPart = item.type === LayoutPanelItemType.SHARED_PART && tree.isStaveSharingEnabled
+                            let disabled = [item.isVisible ? "dorico-setup-show" : "dorico-setup-hide"]
+                            if (!item.isRemovable) {
+                                disabled.push("dorico-setup-delete")
+                            }
+                            if (!isSharedPart || !item.isEnabled) {
+                                disabled.push("dorico-setup-disable-part")
+                            }
+                            if (!isSharedPart || item.isEnabled) {
+                                disabled.push("dorico-setup-enable-part")
+                            }
+                            playerMenu.popupSetup("player", rowMouse, Qt.point(mouse.x, mouse.y), disabled)
                         } else {
                             tree.selectRow(tree.index(cell.index, 0))
                         }
@@ -320,8 +331,12 @@ FocusScope {
                     id: playerMenu
 
                     onSetupItemChosen: function(kind, itemId) {
-                        if (itemId === "dorico-setup-delete") {
-                            tree.removeSelectedRows()
+                        switch (itemId) {
+                        case "dorico-setup-delete": tree.removeSelectedRows(); break
+                        case "dorico-setup-hide": tree.changeVisibilityOfSelectedRows(false); break
+                        case "dorico-setup-show": tree.changeVisibilityOfSelectedRows(true); break
+                        case "dorico-setup-disable-part": tree.changeEnabledOfSelectedRows(false); break
+                        case "dorico-setup-enable-part": tree.changeEnabledOfSelectedRows(true); break
                         }
                     }
                 }

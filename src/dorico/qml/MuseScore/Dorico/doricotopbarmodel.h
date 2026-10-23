@@ -86,6 +86,7 @@ public:
 signals:
     void currentModeChanged();
     void modeAboutToChange();
+    void zonesReset();
     void layoutsChanged();
 
 private:

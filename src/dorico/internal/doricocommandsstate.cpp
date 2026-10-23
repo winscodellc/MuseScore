@@ -27,6 +27,7 @@
 #include <QClipboard>
 #include <QGuiApplication>
 
+#include "dockwindow/idockwindow.h"
 #include "notation/inotation.h"
 #include "notation/inotationelements.h"
 #include "notation/inotationstyle.h"
@@ -37,6 +38,7 @@
 #include "modepolicy.h"
 #include "pastespecial.h"
 #include "doricoperf.h"
+#include "doricoshell.h"
 
 #include "log.h"
 
@@ -103,6 +105,18 @@ void DoricoCommandsState::init()
         m_clip = pasteClipFromClipboard();
     }
 
+    // Window > Show Toolbar / Show ... Zone are checked while shown
+    auto listenToDocks = [this]() {
+        if (muse::dock::IDockWindow* window = dockWindowProvider()->window()) {
+            window->docksOpenStatusChanged().onReceive(this, [this](const QStringList&) { updateCommandStates(); });
+        }
+    };
+    if (dockWindowProvider()->window()) {
+        listenToDocks();
+    } else {
+        dockWindowProvider()->windowChanged().onNotify(this, listenToDocks);
+    }
+
     // Edit > Filter > Select Only / Deselect Only show the current mode as checked
     muse::settings()->valueChanged(FILTER_MODE_KEY).onReceive(this, [this](const Val&) {
         updateCommandStates();
@@ -115,6 +129,10 @@ void DoricoCommandsState::deinit()
 {
     QObject::disconnect(m_clipboardConnection);
     muse::settings()->valueChanged(FILTER_MODE_KEY).disconnect(this);
+    dockWindowProvider()->windowChanged().disconnect(this);
+    if (muse::dock::IDockWindow* window = dockWindowProvider()->window()) {
+        window->docksOpenStatusChanged().disconnect(this);
+    }
     modes()->modeChanged().disconnect(this);
     modes()->modesChanged().disconnect(this);
     notationController()->noteInputStateChanged().disconnect(this);
@@ -148,6 +166,12 @@ DoricoCommandsState::SelectionFacts DoricoCommandsState::selectionFacts() const
     return { score && !score->selection().noteList().empty(), notationController()->currentArticulations() };
 }
 
+bool DoricoCommandsState::anyDockOpen(const std::vector<QString>& names) const
+{
+    const muse::dock::IDockWindow* window = dockWindowProvider()->window();
+    return window && std::any_of(names.begin(), names.end(), [window](const QString& name) { return window->isDockOpen(name); });
+}
+
 CommandState DoricoCommandsState::commandState(const Command& command) const
 {
     return commandState(command, selectionFacts());
@@ -177,7 +201,9 @@ CommandState DoricoCommandsState::commandState(const Command& command, const Sel
         pasteSpecialEnabled = score && pasteSpecialCanExplode(m_clip, pasteSpecialRangeStaves(score));
     } else if (command == DORICO_REDUCE_COMMAND) {
         pasteSpecialEnabled = score && pasteSpecialCanReduce(m_clip, pasteSpecialRangeStaves(score));
-    } else if (std::find(DORICO_TRANSFORM_COMMANDS.begin(), DORICO_TRANSFORM_COMMANDS.end(), command) != DORICO_TRANSFORM_COMMANDS.end()) {
+    } else if (std::find(DORICO_TRANSFORM_COMMANDS.begin(), DORICO_TRANSFORM_COMMANDS.end(), command) != DORICO_TRANSFORM_COMMANDS.end()
+               || command.toString().starts_with("command://dorico/stem-")
+               || command.toString().starts_with("command://dorico/notehead-")) { // a rest has no stem or notehead
         pasteSpecialEnabled = facts.hasNotes;
     } else if (command == DORICO_PASTE_INTO_NEW_VOICE_COMMAND || command == DORICO_PASTE_ARTICULATIONS_COMMAND
                || std::find(DORICO_PASTE_INTO_VOICE_COMMANDS.begin(), DORICO_PASTE_INTO_VOICE_COMMANDS.end(), command)
@@ -200,6 +226,11 @@ CommandState DoricoCommandsState::commandState(const Command& command, const Sel
         checked = modes()->isInsertMode();
     } else if (command == DORICO_FILTER_SELECT_ONLY_COMMAND || command == DORICO_FILTER_DESELECT_ONLY_COMMAND) {
         checked = filterIsDeselectOnly() == (command == DORICO_FILTER_DESELECT_ONLY_COMMAND);
+    } else if (command == DORICO_TOGGLE_TOOLBAR_COMMAND) {
+        checked = anyDockOpen(toolbarDocks());
+    } else if (const auto zone = std::find(DORICO_TOGGLE_ZONE_COMMANDS.begin(), DORICO_TOGGLE_ZONE_COMMANDS.end(), command);
+               zone != DORICO_TOGGLE_ZONE_COMMANDS.end()) {
+        checked = anyDockOpen(zoneDocks(modes()->mode(), static_cast<Zone>(zone - DORICO_TOGGLE_ZONE_COMMANDS.begin())));
     } else if (command == DORICO_TOGGLE_STAVE_SHARING_COMMAND) {
         const notation::INotationPtr notation = globalContext()->currentNotation();
         checked = notation && notation->style()->styleValue(engraving::Sid::enableStaveSharing).toBool();

@@ -80,6 +80,14 @@ Anything else the profiler shows above 2 ms per event is added to this table bef
 - [x] Glyph-only buttons create no ShaderEffect (by construction: the overlay is in the SVG `Loader`). Not checked with the QML profiler.
 - [x] Track overview: a pitch edit or a note in a bar that already has notes does not refresh QML (`trackOverview changed` 0 times). The C++ pass still walks every bar (~1.1 ms). A bar changing from empty to filled was not tested.
 
+## Review (2026-10-22)
+
+- Fixed (UI-checked): `MixerPanelModel`'s skip test compared the user mute with the engine mute, which includes another track's solo force-mute, so a solo set from the track overview did not reach the Mixer. It now skips the all-channel refresh only when the echo changed the volume or pan.
+- Fixed (UI-checked): the meter clock could stop on the frame a meter started to fall (the clock's own handler runs before the strips'). A pressure change sets `busy`.
+- Fixed: spec 101's note dashes were part of `tracks`, so every pitch edit rebuilt the overview again. They are a separate `notes` property (`{ partId: [...] }`, `notesChanged`).
+- Fixed: `DoricoMixer`'s `anyMuted` / `anySolo` read the shared model before it exists.
+- Ceiling (not fixed): `mixerModelWanted` is never reset, so after the Mixer or Play inspector is shown once the shared model listens to every track for the session. Bind `active` to visibility if profiling shows it.
+
 ## Tests
 
 - Add a GoogleTest for the paste-clip cache: the clip is parsed once, and its "can explode" / "can reduce" answers are unchanged from today for the existing `pastespecial` test clips. **Done:** `DoricoPasteSpecial.ExplodeNeedsOneStaffClipAndRangeOfTwoOrMore` and `ReduceNeedsMoreClipStavesThanTheRange` (255/255 pass).

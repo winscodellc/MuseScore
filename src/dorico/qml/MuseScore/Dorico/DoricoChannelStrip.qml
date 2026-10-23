@@ -103,8 +103,9 @@ Rectangle {
         editor.y = pos.y
         editor.width = item.width
         editor.height = item.height
-        editor.currentText = target === "pan" ? root.panText(root.channelItem.balance)
-                                              : (target === "volume" ? root.channelItem.volumeLevel.toFixed(2) : root.label)
+        // the field itself: currentText may already hold this value while the field shows old typing
+        editor.inputField.text = target === "pan" ? root.panText(root.channelItem.balance)
+                                                  : (target === "volume" ? root.channelItem.volumeLevel.toFixed(2) : root.label)
         root.editTarget = target
         Qt.callLater(editor.ensureActiveFocus)
     }
@@ -121,7 +122,12 @@ Rectangle {
                 root.channelItem.volumeLevel = value
             }
         } else if (root.editTarget === "name") {
-            root.names.setName(root.names.keyOf(root.channelItem), text)
+            const name = text.trim()
+            if (name === root.label) {
+                return // unchanged: no override, so a later rename in Setup still shows
+            }
+            // the instrument's own name again: drop the override
+            root.names.setName(root.names.keyOf(root.channelItem), name === root.channelItem.title ? "" : name)
         }
     }
 
@@ -251,7 +257,9 @@ Rectangle {
                 accentColor: root.muteLitColor
                 iconColor: accentButton ? "#000000" : ui.theme.fontPrimaryColor
                 toolTipTitle: qsTrc("dorico", "Mute")
-                accentButton: root.channelItem ? root.channelItem.muted : false
+                // As MuseScore's mixer: muted only by another channel's solo is not lit, and can't be toggled
+                accentButton: root.channelItem ? root.channelItem.muted && !root.channelItem.forceMute : false
+                enabled: !(root.channelItem && root.channelItem.forceMute)
                 onClicked: root.channelItem.muted = !root.channelItem.muted
             }
 
@@ -403,6 +411,9 @@ Rectangle {
                             meter.peak = meter.pressure
                             meter.peakHold = 1.5
                         }
+                        // The clock checks busy before the strips run: without it, a frame that sees a still meter
+                        // stops the clock just as this one starts to fall.
+                        root.meterClock.busy = true
                         root.meterClock.start()
                     }
 

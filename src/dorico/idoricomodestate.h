@@ -56,6 +56,8 @@ public:
     virtual muse::async::Notification modeChanged() const = 0;
     //! Sent by setMode before the mode changes, so the page can save the leaving mode's zone sizes (spec 95).
     virtual muse::async::Notification modeAboutToChange() const = 0;
+    //! Sent after Restore Default Layout put every mode's default zones back, so the page applies the default sizes.
+    virtual muse::async::Notification zonesReset() const = 0;
 
     //! Selected tab of the Write-mode lower zone (spec 54): properties, keyboard, fretboard, drumPads, mixer, keyEditor, timeline.
     virtual QString lowerZoneTab() const = 0;

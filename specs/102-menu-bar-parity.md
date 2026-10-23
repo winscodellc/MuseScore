@@ -99,3 +99,14 @@ All are disabled stubs:
   - Dorico's New From Project Template submenu, the dynamic Paste Into Voice entries and Open Recent's contents are not reproduced.
   - Transposed Pitch is a stub; Concert Pitch toggles.
 - Not yet checked: the 20-item "every enabled item runs its command" spot-check (the UI test report did not come back).
+
+## Review (2026-10-22)
+
+- Static check: all 152 `command://` ids in the menu tables (and the reused context-menu builders) are registered and handled. New GoogleTest `DoricoMenu.EveryDoricoItemHasARegisteredCommand` covers the `command://dorico/` ones.
+- Fixed: the mode commands are registered as "Dorico: Setup mode" ... again (the bare titles made two "Play" rows in the jump bar and shortcut list); the menus keep their own labels.
+- Fixed: Write > Insert, Window > Show Toolbar and Show Left / Lower / Right Zone show a tick while on (`DoricoCommandsState` listens to the dock window).
+- Fixed: Linux menu-bar keyboard navigation steps over the untitled mode slot in Play and Print (one line in `navigableappmenumodel.cpp`).
+- Fixed: Export > Audio / MIDI / MusicXML open the export dialog on WAV / MIDI / MusicXML (`dorico/export-*` set `IExportProjectScenario::exportInfo().id`, then `project/export`).
+- Fixed: Edit > Reset Appearance (`notation/reset-text-style-overrides`) is allowed in Engrave. It still resets text-style overrides only.
+- Fixed: Library > Engraving Options shows Cmd+Shift+E first (Cmd+Shift+N is Dorico's Notation Options key).
+- Known differences (added): Engrave Frame Break Shift+F, System Break Shift+S, Move Bars `.` / `,` and Setup New Single Player Shift+P have no keys: they would clash with Write's popover keys, and shortcuts are not per mode.

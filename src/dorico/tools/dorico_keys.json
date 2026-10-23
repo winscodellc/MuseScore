@@ -26,7 +26,7 @@
   {"key": "X", "dorico": "X", "command": "command://notation/view/zoom-out", "owner": "10"},
   {"key": "Ctrl+0", "dorico": "Cmd-0", "command": "deferred", "owner": "10"},
   {"key": "Ctrl+Shift+L", "dorico": "Cmd-Shift-L", "command": "command://notation/open-page-settings", "owner": "10"},
-  {"key": "Ctrl+Shift+N", "dorico": "Cmd-Shift-N", "command": "command://notation/open-edit-style", "owner": "10"},
+  {"key": "Ctrl+Shift+N", "dorico": "Cmd-Shift-N", "command": "command://dorico/notation-options", "owner": "102"},
   {"key": "Ctrl+Shift+E", "dorico": "Cmd-Shift-E", "command": "command://notation/open-edit-style", "owner": "10"},
   {"key": "Ctrl+Shift+I", "dorico": "Cmd-Shift-I", "command": "deferred", "owner": "10"},
   {"key": "Home", "dorico": "Home", "command": "command://notation/view/prev-page", "owner": "10"},

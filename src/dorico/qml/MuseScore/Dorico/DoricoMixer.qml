@@ -113,7 +113,13 @@ Item {
         root.instrumentCount = primaries
         root.fxCount = fx
         root.masterChannel = master
+        // A new model scrolls the view back to the first channel: keep where it was (FX+/-, an added instrument)
+        const x = channels.contentX
         root.rows = rows
+        Qt.callLater(function() {
+            const maxX = channels.originX + Math.max(0, channels.contentWidth - channels.width)
+            channels.contentX = Math.max(channels.originX, Math.min(maxX, x))
+        })
     }
 
     function shows(channel) {
@@ -125,6 +131,9 @@ Item {
 
     // Re-evaluated whenever a channel's mute / solo changes (the binding reads every channel's property)
     readonly property bool anyMuted: {
+        if (!root.mixerModel) { // until the shell page's shared model is built
+            return false
+        }
         for (let i = 0; i < root.mixerModel.count; ++i) {
             const channel = root.mixerModel.get(i).channelItem
             if (channel.muted && !channel.forceMute) {
@@ -134,6 +143,9 @@ Item {
         return false
     }
     readonly property bool anySolo: {
+        if (!root.mixerModel) {
+            return false
+        }
         for (let i = 0; i < root.mixerModel.count; ++i) {
             if (root.mixerModel.get(i).channelItem.solo) {
                 return true
@@ -287,7 +299,7 @@ Item {
                 text: "FX+"
                 textFont.bold: true
                 transparent: true
-                enabled: root.fxCount < root.mixerData.fxChannelMax
+                enabled: Boolean(root.mixerData) && root.fxCount < root.mixerData.fxChannelMax
                 toolTipTitle: qsTrc("dorico", "Add Effects Channel")
                 navigation.panel: toolbarNav
                 navigation.order: 20
@@ -301,7 +313,7 @@ Item {
                 text: "FX−"
                 textFont.bold: true
                 transparent: true
-                enabled: root.fxCount > 0
+                enabled: Boolean(root.mixerData) && root.fxCount > 0
                 toolTipTitle: qsTrc("dorico", "Remove Effects Channel")
                 navigation.panel: toolbarNav
                 navigation.order: 21
@@ -404,8 +416,10 @@ Item {
 
         ScrollBar.horizontal: StyledScrollBar {}
 
-        // Channels cut by the edges fade out, as in Dorico
+        // Channels cut by the edges fade out, as in Dorico. Parented to the view itself: a child declared in a
+        // ListView goes into its contentItem and would scroll away with the channels.
         Rectangle {
+            parent: channels
             anchors.top: parent.top
             anchors.bottom: parent.bottom
             anchors.left: parent.left
@@ -419,6 +433,7 @@ Item {
         }
 
         Rectangle {
+            parent: channels
             anchors.top: parent.top
             anchors.bottom: parent.bottom
             anchors.right: parent.right

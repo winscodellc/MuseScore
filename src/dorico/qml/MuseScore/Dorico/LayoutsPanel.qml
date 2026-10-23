@@ -131,7 +131,11 @@ Item {
                     }
                 }
                 // Double-click shows the layout in the music area, like choosing it in the layout selector.
-                onDoubleClicked: layouts.selectLayout(card.index)
+                onDoubleClicked: function(mouse) {
+                    if (mouse.button === Qt.LeftButton) {
+                        layouts.selectLayout(card.index)
+                    }
+                }
                 onContainsMouseChanged: {
                     const info = (card.index === 0 ? qsTrc("dorico", "Full score") : qsTrc("dorico", "Instrumental part"))
                                + ((layouts.layoutInfos[card.index] ?? "") !== "" ? " - " + layouts.layoutInfos[card.index] : "")

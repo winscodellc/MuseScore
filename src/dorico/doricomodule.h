@@ -49,6 +49,8 @@ public:
     void onInit(const muse::IApplication::RunMode& mode) override;
 
     muse::modularity::IContextSetup* newContext(const muse::modularity::ContextPtr& ctx) const override;
+
+    static void applyFirstRunDefaults();
 };
 
 class DoricoContext : public muse::modularity::IContextSetup

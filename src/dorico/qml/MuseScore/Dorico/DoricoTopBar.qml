@@ -51,7 +51,7 @@ Item {
     readonly property color stripColor: ui.theme.isDark ? ui.theme.strokeColor : "#DDE2E7"
 
     implicitWidth: row.implicitWidth
-    implicitHeight: 37
+    implicitHeight: 36 // = the dock toolbar thickness (DoricoShellPage: other values crash the dock layout)
     width: implicitWidth
     height: implicitHeight
 

@@ -72,7 +72,9 @@ static std::vector<CommandInfo> makeCommandInfos()
     v.push_back(info(DORICO_REST_COMMAND, "Dorico: input rest", "Enters a rest during note input"));
     v.push_back(info(DORICO_TOGGLE_REST_INPUT_COMMAND, "Dorico: rest input", "Toggles rest input: letters then enter rests"));
     v.push_back(info(DORICO_TOGGLE_CHORD_MODE_COMMAND, "Dorico: chord mode", "Toggles chord mode"));
-    v.push_back(info(DORICO_TOGGLE_INSERT_MODE_COMMAND, "Dorico: insert mode", "Toggles insert mode"));
+    CommandInfo insertMode = info(DORICO_TOGGLE_INSERT_MODE_COMMAND, "Dorico: insert mode", "Toggles insert mode");
+    insertMode.decoration.checkable = Checkable::Yes; // Write > Insert shows a tick while it is on
+    v.push_back(insertMode);
     v.push_back(info(DORICO_CYCLE_DOTS_COMMAND, "Dorico: cycle dots", "Cycles 0-4 rhythm dots"));
     v.push_back(info(DORICO_NEXT_VOICE_COMMAND, "Dorico: next voice", "Moves to the next existing voice"));
     v.push_back(info(DORICO_NEW_VOICE_COMMAND, "Dorico: new voice", "Moves to the first unused voice"));
@@ -162,18 +164,27 @@ static std::vector<CommandInfo> makeCommandInfos()
 
     static const char* MODES[] = { "Setup", "Write", "Engrave", "Play", "Print" };
     for (int i = 0; i < 5; ++i) {
-        CommandInfo mode = info(DORICO_MODE_COMMANDS[i], MODES[i], "Switches the project window to this mode");
+        // The menus set their own titles ("Setup", ...); this one is for the jump bar and shortcut lists
+        CommandInfo mode = info(DORICO_MODE_COMMANDS[i], std::string("Dorico: ") + MODES[i] + " mode", "Switches the project window to this mode");
         mode.decoration.checkable = Checkable::Yes; // the Window menu checks the current mode
         v.push_back(mode);
     }
     static const char* ZONES[] = { "left", "lower", "right" };
     for (int i = 0; i < 3; ++i) {
-        v.push_back(info(DORICO_TOGGLE_ZONE_COMMANDS[i], std::string("Dorico: toggle ") + ZONES[i] + " zone",
-                         "Shows or hides the panels of this zone in the current mode"));
+        CommandInfo zone = info(DORICO_TOGGLE_ZONE_COMMANDS[i], std::string("Dorico: toggle ") + ZONES[i] + " zone",
+                                "Shows or hides the panels of this zone in the current mode");
+        zone.decoration.checkable = Checkable::Yes; // Window > Show ... Zone is ticked while the zone is shown
+        v.push_back(zone);
     }
     v.push_back(info(DORICO_TOGGLE_ALL_ZONES_COMMAND, "Dorico: hide/restore zones", "Hides all open zones, or restores them"));
-    v.push_back(info(DORICO_TOGGLE_TOOLBAR_COMMAND, "Dorico: toggle toolbar", "Shows or hides the top toolbars"));
+    CommandInfo toolbar = info(DORICO_TOGGLE_TOOLBAR_COMMAND, "Dorico: toggle toolbar", "Shows or hides the top toolbars");
+    toolbar.decoration.checkable = Checkable::Yes;
+    v.push_back(toolbar);
     v.push_back(info(DORICO_OPEN_HUB_COMMAND, "Dorico: Hub", "Opens the Hub: recent scores, new score, plugins and learning"));
+    v.push_back(info(DORICO_NOTATION_OPTIONS_COMMAND, "Dorico: Notation Options", "Opens the style settings (MuseScore's Style dialog)"));
+    v.push_back(info(DORICO_EXPORT_AUDIO_COMMAND, "Dorico: export audio", "Opens the export dialog on WAV audio"));
+    v.push_back(info(DORICO_EXPORT_MIDI_COMMAND, "Dorico: export MIDI", "Opens the export dialog on MIDI"));
+    v.push_back(info(DORICO_EXPORT_MUSICXML_COMMAND, "Dorico: export MusicXML", "Opens the export dialog on MusicXML"));
     CommandInfo staveSharing = info(DORICO_TOGGLE_STAVE_SHARING_COMMAND, "Enable stave sharing",
                                     "Lets instruments share a staff in this score");
     staveSharing.decoration.checkable = Checkable::Yes; // the Players "…" menu shows a tick while it is on

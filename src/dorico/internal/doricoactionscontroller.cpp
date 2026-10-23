@@ -102,11 +102,11 @@ void DoricoActionsController::init()
 
     // A zone shown or hidden by the user (Cmd-7/8/9, View menu, toolbox buttons ...) is remembered for this mode.
     if (muse::dock::IDockWindow* window = dockWindowProvider()->window()) {
-        window->docksOpenStatusChanged().onReceive(this, [this](const QStringList&) { saveOpenZones(); });
+        window->docksOpenStatusChanged().onReceive(this, [this](const QStringList&) { onDocksOpenStatusChanged(); });
     } else {
         dockWindowProvider()->windowChanged().onNotify(this, [this]() {
             if (muse::dock::IDockWindow* window = dockWindowProvider()->window()) {
-                window->docksOpenStatusChanged().onReceive(this, [this](const QStringList&) { saveOpenZones(); });
+                window->docksOpenStatusChanged().onReceive(this, [this](const QStringList&) { onDocksOpenStatusChanged(); });
             }
         });
     }
@@ -141,15 +141,33 @@ void DoricoActionsController::init()
         if (tab && selectLowerZoneTab(*tab)) {
             *allowDispatch = false;
         }
-        // Restore Default Layout: every mode starts again from its default zones.
+        // Restore Default Layout: every mode starts again from its default zones, once the page reload it queues has
+        // put the QML default docks back (see onDocksOpenStatusChanged).
         if (command == DAC_RESTORE_LAYOUT_COMMAND) {
-            muse::async::Async::call(this, [this]() { resetZoneSettings(); });
+            m_restoringLayout = true;
         }
     });
 
     cd->onRequest(this, DORICO_TOGGLE_ALL_ZONES_COMMAND, [this]() { toggleAllZones(); return muse::make_ok(); });
     cd->onRequest(this, DORICO_TOGGLE_TOOLBAR_COMMAND, [this]() { toggleToolbar(); return muse::make_ok(); });
     cd->onRequest(this, DORICO_OPEN_HUB_COMMAND, [this]() { interactive()->open("musescore://home"); return muse::make_ok(); });
+    cd->onRequest(this, DORICO_NOTATION_OPTIONS_COMMAND, [this]() {
+        commandDispatcher()->dispatch(muse::rcommand::Command("command://notation/open-edit-style"));
+        return muse::make_ok();
+    });
+    // The export dialog opens on the format of the last export: set it first
+    const std::pair<muse::rcommand::Command, const char*> exports[] = {
+        { DORICO_EXPORT_AUDIO_COMMAND, "wav" }, { DORICO_EXPORT_MIDI_COMMAND, "mid" }, { DORICO_EXPORT_MUSICXML_COMMAND, "mxl" },
+    };
+    for (const auto& [command, format] : exports) {
+        cd->onRequest(this, command, [this, format]() {
+            project::ExportInfo info = exportProjectScenario()->exportInfo();
+            info.id = format;
+            exportProjectScenario()->setExportInfo(info);
+            commandDispatcher()->dispatch(muse::rcommand::Command("command://project/export"));
+            return muse::make_ok();
+        });
+    }
     cd->onRequest(this, DORICO_TOGGLE_STAVE_SHARING_COMMAND, [this]() {
         // Same call as MuseScore's instrument-tree switch (LayoutPanelTreeModel::toggleStaveSharing)
         if (const notation::INotationPtr notation = globalContext()->currentNotation()) {
@@ -210,6 +228,19 @@ std::vector<QString> DoricoActionsController::openDocks(mu::dorico::Mode mode, Z
         }
     }
     return result;
+}
+
+void DoricoActionsController::onDocksOpenStatusChanged()
+{
+    // The reload after Restore Default Layout reports the QML default docks: put the modes' defaults on top of them
+    // instead of saving them.
+    if (m_restoringLayout) {
+        m_restoringLayout = false;
+        resetZoneSettings();
+        modes()->zonesReset().notify();
+        return;
+    }
+    saveOpenZones();
 }
 
 void DoricoActionsController::saveOpenZones() const
@@ -429,10 +460,13 @@ void DoricoActionsController::applyPrintZoom(mu::dorico::Mode from, mu::dorico::
         return;
     }
     if (to == mu::dorico::Mode::Print) {
-        m_viewBeforePrint = { notation->viewState()->matrix(), notation->viewState()->zoomType().val };
+        m_viewBeforePrint = ViewBeforePrint { notation, notation->viewState()->matrix(), notation->viewState()->zoomType().val };
     } else if (from == mu::dorico::Mode::Print && m_viewBeforePrint) {
-        notation->viewState()->setZoomType(m_viewBeforePrint->second);
-        notation->viewState()->setMatrix(m_viewBeforePrint->first, nullptr);
+        // Only on the score it was saved from: another layout or project may be shown now.
+        if (m_viewBeforePrint->notation.lock() == notation) {
+            notation->viewState()->setZoomType(m_viewBeforePrint->zoomType);
+            notation->viewState()->setMatrix(m_viewBeforePrint->matrix, nullptr);
+        }
         m_viewBeforePrint.reset();
     }
 }
@@ -461,6 +495,9 @@ void DoricoActionsController::logSwitchTime()
         return;
     }
     QObject::connect(quickWindow, &QQuickWindow::frameSwapped, quickWindow, [this]() {
+        if (!m_switchTimer.isValid()) { // two switches before one frame: the first lambda logged it
+            return;
+        }
         LOGI() << "Dorico mode switch: " << m_switchTimer.elapsed() << " ms";
         m_switchTimer.invalidate();
     }, Qt::SingleShotConnection);

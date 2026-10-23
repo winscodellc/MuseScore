@@ -35,6 +35,7 @@
 #include "notation/inotation.h"
 #include "notation/inotationinteraction.h"
 #include "notation/inotationselection.h"
+#include "translation.h"
 
 using namespace mu::dorico;
 using namespace mu::engraving;
@@ -75,8 +76,8 @@ void fillMenu(QMenu* menu, const MenuItemList& items, const std::function<void(c
         const QString shortcut = item->shortcutsTitle().section(", ", 0, 0);
         QAction* action = menu->addAction(shortcut.isEmpty() ? title : title + "\t" + shortcut);
         action->setEnabled(item->enabled());
-        if (!item->enabled()) {
-            action->setToolTip(QObject::tr("Not available yet"));
+        if (item->id().startsWith("dorico-ctx-")) { // a stub; a real command is disabled only by its state
+            action->setToolTip(muse::qtrc("dorico", "Not available yet"));
         }
         if (item->checked()) {
             action->setCheckable(true);
@@ -148,10 +149,18 @@ MenuItemList DoricoContextMenuModel::build(const std::vector<MenuSpec>& specs)
     return items;
 }
 
+void DoricoContextMenuModel::replaceItems(const std::vector<MenuSpec>& specs)
+{
+    // Every popup builds a new tree owned by this model: free the last one. An open QMenu only holds copied ids.
+    const QList<MenuItem*> old = findChildren<MenuItem*>(Qt::FindDirectChildrenOnly);
+    setItems(build(specs));
+    qDeleteAll(old);
+}
+
 void DoricoContextMenuModel::popup(QQuickItem* view, const QPointF& viewPos)
 {
     AbstractMenuModel::load();
-    setItems(build(scoreContextMenu(inputFromSelection())));
+    replaceItems(scoreContextMenu(inputFromSelection()));
     if (view && !items().isEmpty()) {
         show(view, viewPos, QString());
     }
@@ -160,7 +169,7 @@ void DoricoContextMenuModel::popup(QQuickItem* view, const QPointF& viewPos)
 void DoricoContextMenuModel::popupSetup(const QString& kind, QQuickItem* anchor, const QPointF& pos, const QStringList& disabledIds)
 {
     AbstractMenuModel::load();
-    setItems(build(kind == "player" ? playerContextMenu() : kind == "flow" ? flowContextMenu() : layoutContextMenu()));
+    replaceItems(kind == "player" ? playerContextMenu() : kind == "flow" ? flowContextMenu() : layoutContextMenu());
     for (MenuItem* item : items()) {
         if (disabledIds.contains(item->id())) {
             item->setEnabled(false);

@@ -33,6 +33,9 @@ import MuseScore.NotationScene
 Column {
     id: pagesColumn
 
+    // The music area's paint view: the navigator follows it and moves it, as MuseScore's own navigator does
+    property var paintView: null
+
     spacing: 2
 
     Repeater {
@@ -54,12 +57,36 @@ Column {
 
             readonly property bool isPages: modelData.title === qsTrc("dorico", "Pages")
 
-            NotationNavigator {
-                visible: section.isPages
+            // Only the Pages section has one: a navigator loads its own copy of the score's paint state
+            Loader {
+                active: section.isPages
+                visible: active
                 width: parent.width
-                height: section.isPages ? 220 : 0
+                height: active ? 220 : 0
 
-                Component.onCompleted: load()
+                sourceComponent: NotationNavigator {
+                    id: navigator
+
+                    Component.onCompleted: {
+                        load()
+                        if (pagesColumn.paintView) {
+                            navigator.setCursorRect(pagesColumn.paintView.viewport)
+                        }
+                    }
+
+                    onMoveNotationRequested: function(dx, dy) {
+                        if (pagesColumn.paintView) {
+                            pagesColumn.paintView.moveCanvas(dx, dy)
+                        }
+                    }
+
+                    Connections {
+                        target: pagesColumn.paintView
+                        function onViewportChanged() {
+                            navigator.setCursorRect(pagesColumn.paintView.viewport)
+                        }
+                    }
+                }
             }
 
             StyledTextLabel {
